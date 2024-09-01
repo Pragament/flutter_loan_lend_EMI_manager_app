@@ -2,5 +2,13 @@
   "@@locale": "en",
   "appTitle": "Loan & Lending EMI Manager",
   "@appTitle": {},
-  "emi": "E.M.I"
+  "emi": "E.M.I",
+  "loanAmount": "Loan Amount",
+  "tenure": "Tenure",
+  "months": "months",
+  "interestRate": "Interest Rate",
+  "interestAmount": "Interest Amount",
+  "totalAmount": "Total Amount",
+  "completeOnboarding": "Complete Onboarding",
+  "caroselHeading":"EMI Calculator",
 }

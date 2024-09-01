@@ -7,28 +7,27 @@ environment:
   sdk: ^3.5.1
 
 dependencies:
+  fl_chart: ^0.69.0
   flutter:
     sdk: flutter
-
   flutter_localizations:
     sdk: flutter
-
-  go_router:
-  flutter_riverpod:
-  riverpod_annotation:
-  intl:
-  hive_flutter:
-  uuid:
+  flutter_riverpod: null
+  go_router: null
+  hive_flutter: null
+  intl: null
+  riverpod_annotation: null
+  uuid: null
 
 dev_dependencies:
+
+  build_runner: null
+  flutter_lints: ^4.0.0
   flutter_test:
     sdk: flutter
-  flutter_lints: ^4.0.0
-
-  build_runner:
-  go_router_builder:
-  riverpod_generator:
-  hive_generator:
+  go_router_builder: null
+  hive_generator: null
+  riverpod_generator: null
 
 flutter:
   generate: true

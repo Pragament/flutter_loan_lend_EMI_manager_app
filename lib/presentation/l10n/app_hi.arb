@@ -2,5 +2,13 @@
   "@@locale": "hi",
   "appTitle": "ऋण प्रबंधन",
   "@appTitle": {},
-  "emi": "ई.एम.आई"
+  "emi": "ई.एम.आई",
+  "loanAmount": "ऋण राशि",
+  "tenure": "अवधि",
+  "months": "महीने",
+  "interestRate": "ब्याज दर",
+  "interestAmount": "ब्याज राशि",
+  "totalAmount": "कुल राशि",
+  "completeOnboarding": "ऑनबोर्डिंग पूरा करें",
+  "caroselHeading": "ईएमआई कैलकुलेटर"
 }

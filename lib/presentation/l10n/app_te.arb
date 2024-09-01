@@ -2,5 +2,13 @@
   "@@locale": "te",
   "appTitle": "రుణ నిర్వహణ",
   "@appTitle": {},
-  "emi": "ఇ.ఎం.ఐ"
+  "emi": "ఇ.ఎం.ఐ",
+  "loanAmount": "రుణ మొత్తం",
+  "tenure": "కాలావధి",
+  "months": "నెలలు",
+  "interestRate": "వడ్డీ రేటు",
+  "interestAmount": "వడ్డీ మొత్తం",
+  "totalAmount": "మొత్తం మొత్తం",
+  "completeOnboarding": "ఆన్‌బోర్డింగ్ పూర్తి చేయండి",
+  "caroselHeading": "ఇఎంఐ కాలిక్యులేటర్"
 }
