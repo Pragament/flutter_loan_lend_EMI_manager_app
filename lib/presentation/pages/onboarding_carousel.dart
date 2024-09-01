@@ -145,7 +145,7 @@ class _SecondPageState extends State<SecondPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(AppLocalizations.of(context)!.completeOnboarding),
+        title: Text(AppLocalizations.of(context)!.caroselHeading),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),

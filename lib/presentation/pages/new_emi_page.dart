@@ -1,5 +1,3 @@
-// ignore_for_file: use_build_context_synchronously
-
 import 'package:emi_manager/data/models/emi_model.dart';
 import 'package:emi_manager/logic/emis_provider.dart';
 import 'package:emi_manager/presentation/constants.dart';
@@ -26,6 +24,23 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
   final titleC = TextEditingController();
   final principalAmountC = TextEditingController(text: '0');
   final interestRateC = TextEditingController(text: '0');
+  final startDateC = TextEditingController(text: DateTime.now().toLocal().toString().split(' ')[0]);
+  final endDateC = TextEditingController();
+  final contactPersonNameC = TextEditingController();
+  final contactPersonPhoneC = TextEditingController();
+  final contactPersonEmailC = TextEditingController();
+  final otherInfoC = TextEditingController();
+  final processingFeeC = TextEditingController(text: '0');
+  final otherChargesC = TextEditingController(text: '0');
+  final partPaymentC = TextEditingController(text: '0');
+  final advancePaymentC = TextEditingController(text: '0');
+  final insuranceChargesC = TextEditingController(text: '0');
+  final moratoriumC = TextEditingController(text: 'false');
+  final moratoriumMonthC = TextEditingController(text: '1');
+  final moratoriumTypeC = TextEditingController();
+  final monthlyEmiC = TextEditingController(text: '0');
+  final totalEmiC = TextEditingController(text: '0');
+  final paidC = TextEditingController(text: '0');
   //\\
 
   @override
@@ -61,7 +76,7 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
                         border: emiType == 'lend' ? Border.all() : null,
                         borderRadius: BorderRadius.circular(borderRadius),
                       ),
-                      child: const Text('Lend', textAlign: TextAlign.center),
+                      child: Text(l10n.lend, textAlign: TextAlign.center),
                     ),
                   ),
                 ),
@@ -80,7 +95,7 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
                         border: emiType == 'loan' ? Border.all() : null,
                         borderRadius: BorderRadius.circular(borderRadius),
                       ),
-                      child: const Text('Loan', textAlign: TextAlign.center),
+                      child: Text(l10n.loan, textAlign: TextAlign.center),
                     ),
                   ),
                 ),
@@ -94,16 +109,332 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
               child: SingleChildScrollView(
                 child: Column(
                   children: [
+                    // Title Field
                     Padding(
                       padding: const EdgeInsets.all(4.0),
                       child: TextFormField(
                         controller: titleC,
-                        decoration: const InputDecoration(
-                          border: OutlineInputBorder(
-                              borderRadius: BorderRadius.all(
-                                  Radius.circular(borderRadius))),
-                          prefixIcon: Icon(Icons.title),
-                          labelText: 'Title',
+                        decoration: InputDecoration(
+                          border: const OutlineInputBorder(
+                            borderRadius: BorderRadius.all(
+                                Radius.circular(borderRadius)),
+                          ),
+                          prefixIcon: const Icon(Icons.title),
+                          labelText: l10n.title,
+                        ),
+                      ),
+                    ),
+                    // Principal Amount Field
+                    Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child: TextFormField(
+                        controller: principalAmountC,
+                        keyboardType: TextInputType.number,
+                        decoration: InputDecoration(
+                          border: const OutlineInputBorder(
+                            borderRadius: BorderRadius.all(
+                                Radius.circular(borderRadius)),
+                          ),
+                          prefixIcon: const Icon(Icons.money),
+                          labelText: l10n.loanAmount,
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return l10n.enterAmount;
+                          }
+                          return null;
+                        },
+                      ),
+                    ),
+                    // Interest Rate Field
+                    Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child: TextFormField(
+                        controller: interestRateC,
+                        keyboardType: TextInputType.number,
+                        decoration: InputDecoration(
+                          border: const OutlineInputBorder(
+                            borderRadius: BorderRadius.all(
+                                Radius.circular(borderRadius)),
+                          ),
+                          prefixIcon: const Icon(Icons.percent),
+                          labelText: l10n.interestRate,
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return l10n.enterInterestRate;
+                          }
+                          return null;
+                        },
+                      ),
+                    ),
+                    // Start Date Field
+                    Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child: TextFormField(
+                        controller: startDateC,
+                        decoration: InputDecoration(
+                          border: const OutlineInputBorder(
+                            borderRadius: BorderRadius.all(
+                                Radius.circular(borderRadius)),
+                          ),
+                          prefixIcon: const Icon(Icons.calendar_today),
+                          labelText: l10n.startDate,
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return l10n.enterStartDate;
+                          }
+                          return null;
+                        },
+                      ),
+                    ),
+                    // End Date Field
+                    Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child: TextFormField(
+                        controller: endDateC,
+                        decoration: InputDecoration(
+                          border: const OutlineInputBorder(
+                            borderRadius: BorderRadius.all(
+                                Radius.circular(borderRadius)),
+                          ),
+                          prefixIcon: const Icon(Icons.calendar_today),
+                          labelText: l10n.endDate,
+                        ),
+                      ),
+                    ),
+                    // Contact Person Name Field
+                    Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child: TextFormField(
+                        controller: contactPersonNameC,
+                        decoration: InputDecoration(
+                          border: const OutlineInputBorder(
+                            borderRadius: BorderRadius.all(
+                                Radius.circular(borderRadius)),
+                          ),
+                          prefixIcon: const Icon(Icons.person),
+                          labelText: l10n.contactPersonName,
+                        ),
+                      ),
+                    ),
+                    // Contact Person Phone Field
+                    Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child: TextFormField(
+                        controller: contactPersonPhoneC,
+                        decoration: InputDecoration(
+                          border: const OutlineInputBorder(
+                            borderRadius: BorderRadius.all(
+                                Radius.circular(borderRadius)),
+                          ),
+                          prefixIcon: const Icon(Icons.phone),
+                          labelText: l10n.contactPersonPhone,
+                        ),
+                      ),
+                    ),
+                    // Contact Person Email Field
+                    Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child: TextFormField(
+                        controller: contactPersonEmailC,
+                        decoration: InputDecoration(
+                          border: const OutlineInputBorder(
+                            borderRadius: BorderRadius.all(
+                                Radius.circular(borderRadius)),
+                          ),
+                          prefixIcon: const Icon(Icons.email),
+                          labelText: l10n.contactPersonEmail,
+                        ),
+                      ),
+                    ),
+                    // Other Info Field
+                    Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child: TextFormField(
+                        controller: otherInfoC,
+                        decoration: InputDecoration(
+                          border: const OutlineInputBorder(
+                            borderRadius: BorderRadius.all(
+                                Radius.circular(borderRadius)),
+                          ),
+                          prefixIcon: const Icon(Icons.info),
+                          labelText: l10n.otherInfo,
+                        ),
+                      ),
+                    ),
+                    // Processing Fee Field
+                    Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child: TextFormField(
+                        controller: processingFeeC,
+                        keyboardType: TextInputType.number,
+                        decoration: InputDecoration(
+                          border: const OutlineInputBorder(
+                            borderRadius: BorderRadius.all(
+                                Radius.circular(borderRadius)),
+                          ),
+                          prefixIcon: const Icon(Icons.attach_money),
+                          labelText: l10n.processingFee,
+                        ),
+                      ),
+                    ),
+                    // Other Charges Field
+                    Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child: TextFormField(
+                        controller: otherChargesC,
+                        keyboardType: TextInputType.number,
+                        decoration: InputDecoration(
+                          border: const OutlineInputBorder(
+                            borderRadius: BorderRadius.all(
+                                Radius.circular(borderRadius)),
+                          ),
+                          prefixIcon: const Icon(Icons.attach_money),
+                          labelText: l10n.otherCharges,
+                        ),
+                      ),
+                    ),
+                    // Part Payment Field
+                    Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child: TextFormField(
+                        controller: partPaymentC,
+                        keyboardType: TextInputType.number,
+                        decoration: InputDecoration(
+                          border: const OutlineInputBorder(
+                            borderRadius: BorderRadius.all(
+                                Radius.circular(borderRadius)),
+                          ),
+                          prefixIcon: const Icon(Icons.attach_money),
+                          labelText: l10n.partPayment,
+                        ),
+                      ),
+                    ),
+                    // Advance Payment Field
+                    Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child: TextFormField(
+                        controller: advancePaymentC,
+                        keyboardType: TextInputType.number,
+                        decoration: InputDecoration(
+                          border: const OutlineInputBorder(
+                            borderRadius: BorderRadius.all(
+                                Radius.circular(borderRadius)),
+                          ),
+                          prefixIcon: const Icon(Icons.attach_money),
+                          labelText: l10n.advancePayment,
+                        ),
+                      ),
+                    ),
+                    // Insurance Charges Field
+                    Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child: TextFormField(
+                        controller: insuranceChargesC,
+                        keyboardType: TextInputType.number,
+                        decoration: InputDecoration(
+                          border: const OutlineInputBorder(
+                            borderRadius: BorderRadius.all(
+                                Radius.circular(borderRadius)),
+                          ),
+                          prefixIcon: const Icon(Icons.attach_money),
+                          labelText: l10n.insuranceCharges,
+                        ),
+                      ),
+                    ),
+                    // Moratorium Field
+                    Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child: TextFormField(
+                        controller: moratoriumC,
+                        decoration: InputDecoration(
+                          border: const OutlineInputBorder(
+                            borderRadius: BorderRadius.all(
+                                Radius.circular(borderRadius)),
+                          ),
+                          prefixIcon: const Icon(Icons.access_time),
+                          labelText: l10n.moratorium,
+                        ),
+                      ),
+                    ),
+                    // Moratorium Month Field
+                    Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child: TextFormField(
+                        controller: moratoriumMonthC,
+                        keyboardType: TextInputType.number,
+                        decoration: InputDecoration(
+                          border: const OutlineInputBorder(
+                            borderRadius: BorderRadius.all(
+                                Radius.circular(borderRadius)),
+                          ),
+                          prefixIcon: const Icon(Icons.access_time),
+                          labelText: l10n.moratoriumMonth,
+                        ),
+                      ),
+                    ),
+                    // Moratorium Type Field
+                    Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child: TextFormField(
+                        controller: moratoriumTypeC,
+                        decoration: InputDecoration(
+                          border: const OutlineInputBorder(
+                            borderRadius: BorderRadius.all(
+                                Radius.circular(borderRadius)),
+                          ),
+                          prefixIcon: const Icon(Icons.access_time),
+                          labelText: l10n.moratoriumType,
+                        ),
+                      ),
+                    ),
+                    // Monthly EMI Field
+                    Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child: TextFormField(
+                        controller: monthlyEmiC,
+                        keyboardType: TextInputType.number,
+                        decoration: InputDecoration(
+                          border: const OutlineInputBorder(
+                            borderRadius: BorderRadius.all(
+                                Radius.circular(borderRadius)),
+                          ),
+                          prefixIcon: const Icon(Icons.attach_money),
+                          labelText: l10n.monthlyEmi,
+                        ),
+                      ),
+                    ),
+                    // Total EMI Field
+                    Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child: TextFormField(
+                        controller: totalEmiC,
+                        keyboardType: TextInputType.number,
+                        decoration: InputDecoration(
+                          border: const OutlineInputBorder(
+                            borderRadius: BorderRadius.all(
+                                Radius.circular(borderRadius)),
+                          ),
+                          prefixIcon: const Icon(Icons.attach_money),
+                          labelText: l10n.totalEmi,
+                        ),
+                      ),
+                    ),
+                    // Paid Field
+                    Padding(
+                      padding: const EdgeInsets.all(4.0),
+                      child: TextFormField(
+                        controller: paidC,
+                        keyboardType: TextInputType.number,
+                        decoration: InputDecoration(
+                          border: const OutlineInputBorder(
+                            borderRadius: BorderRadius.all(
+                                Radius.circular(borderRadius)),
+                          ),
+                          prefixIcon: const Icon(Icons.attach_money),
+                          labelText: l10n.paid,
                         ),
                       ),
                     ),
@@ -125,23 +456,23 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
                       int.parse(principalAmountC.text).toDouble(),
                   interestRate: double.tryParse(interestRateC.text) ??
                       int.parse(interestRateC.text).toDouble(),
-                  startDate: DateTime.now(),
-                  endDate: null,
-                  contactPersonName: '',
-                  contactPersonPhone: '',
-                  contactPersonEmail: '',
-                  otherInfo: '',
-                  processingFee: 0,
-                  otherCharges: 0,
-                  partPayment: 0,
-                  advancePayment: 0,
-                  insuranceCharges: 0,
-                  moratorium: false,
-                  moratoriumMonth: 1,
-                  moratoriumType: '',
-                  monthlyEmi: 0,
-                  totalEmi: 0,
-                  paid: 0,
+                  startDate: DateTime.tryParse(startDateC.text) ?? DateTime.now(),
+                  endDate: DateTime.tryParse(endDateC.text),
+                  contactPersonName: contactPersonNameC.text,
+                  contactPersonPhone: contactPersonPhoneC.text,
+                  contactPersonEmail: contactPersonEmailC.text,
+                  otherInfo: otherInfoC.text,
+                  processingFee: double.tryParse(processingFeeC.text) ?? 0,
+                  otherCharges: double.tryParse(otherChargesC.text) ?? 0,
+                  partPayment: double.tryParse(partPaymentC.text) ?? 0,
+                  advancePayment: double.tryParse(advancePaymentC.text) ?? 0,
+                  insuranceCharges: double.tryParse(insuranceChargesC.text) ?? 0,
+                  moratorium: moratoriumC.text.toLowerCase() == 'true',
+                  moratoriumMonth: int.tryParse(moratoriumMonthC.text) ?? 1,
+                  moratoriumType: moratoriumTypeC.text,
+                  monthlyEmi: double.tryParse(monthlyEmiC.text) ?? 0,
+                  totalEmi: double.tryParse(totalEmiC.text) ?? 0,
+                  paid: double.tryParse(paidC.text) ?? 0,
                 );
 
                 await ref.read(emisNotifierProvider.notifier).add(newEmi);
@@ -153,7 +484,7 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
                     borderRadius:
                         BorderRadius.all(Radius.circular(borderRadius))))),
             icon: const Icon(Icons.save),
-            label: const Text('SAVE'),
+            label: Text(l10n.save),
           ),
         ],
       ),
