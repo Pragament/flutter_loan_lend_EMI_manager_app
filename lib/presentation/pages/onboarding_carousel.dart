@@ -1,6 +1,5 @@
 import 'dart:math';
-
-import 'package:fl_chart/fl_chart.dart';
+import 'package:emi_manager/presentation/widgets/pie.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -35,8 +34,10 @@ class OnboardingCarousel extends ConsumerWidget {
   }
 }
 
+Center firstPage(BuildContext context, LocaleNotifier localeNotifier,
+    PageController pageController) {
+  const buttonWidth = 200.0; // Define a fixed width for all buttons
 
-Center firstPage(BuildContext context, LocaleNotifier localeNotifier, PageController pageController) {
   return Center(
     child: Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24.0),
@@ -44,68 +45,77 @@ Center firstPage(BuildContext context, LocaleNotifier localeNotifier, PageContro
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Text(
+          const Text(
             "Select Language", // Localized text for "Select Language"
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
-              color: Theme.of(context).primaryColor,
+              color: Colors.amber,
             ),
           ),
           const SizedBox(height: 40),
-          ElevatedButton.icon(
-            onPressed: () {
-              localeNotifier.changeLanguage(const Locale('en'));
-              pageController.nextPage(
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeInOut,
-              );
-            },
-            icon: const Icon(Icons.language, color: Colors.white),
-            label: const Text('English'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blueAccent, // Background color
-              padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 32.0),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(30.0), // Rounded corners
+          SizedBox(
+            width: buttonWidth,
+            child: ElevatedButton.icon(
+              onPressed: () {
+                localeNotifier.changeLanguage(const Locale('en'));
+                pageController.nextPage(
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
+                );
+              },
+              icon: const Icon(Icons.language, color: Colors.white),
+              label: const Text('English'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blueAccent, // Background color
+                padding: const EdgeInsets.symmetric(vertical: 16.0),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30.0), // Rounded corners
+                ),
               ),
             ),
           ),
           const SizedBox(height: 20),
-          ElevatedButton.icon(
-            onPressed: () {
-              localeNotifier.changeLanguage(const Locale('hi'));
-              pageController.nextPage(
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeInOut,
-              );
-            },
-            icon: const Icon(Icons.language, color: Colors.white),
-            label: const Text('हिन्दी'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.orangeAccent, // Background color
-              padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 32.0),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(30.0), // Rounded corners
+          SizedBox(
+            width: buttonWidth,
+            child: ElevatedButton.icon(
+              onPressed: () {
+                localeNotifier.changeLanguage(const Locale('hi'));
+                pageController.nextPage(
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
+                );
+              },
+              icon: const Icon(Icons.language, color: Colors.white),
+              label: const Text('हिन्दी'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.orangeAccent, // Background color
+                padding: const EdgeInsets.symmetric(vertical: 16.0),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30.0), // Rounded corners
+                ),
               ),
             ),
           ),
           const SizedBox(height: 20),
-          ElevatedButton.icon(
-            onPressed: () {
-              localeNotifier.changeLanguage(const Locale('te'));
-              pageController.nextPage(
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeInOut,
-              );
-            },
-            icon: const Icon(Icons.language, color: Colors.white),
-            label: const Text('తెలుగు'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.greenAccent, // Background color
-              padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 32.0),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(30.0), // Rounded corners
+          SizedBox(
+            width: buttonWidth,
+            child: ElevatedButton.icon(
+              onPressed: () {
+                localeNotifier.changeLanguage(const Locale('te'));
+                pageController.nextPage(
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
+                );
+              },
+              icon: const Icon(Icons.language, color: Colors.white),
+              label: const Text('తెలుగు'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.greenAccent, // Background color
+                padding: const EdgeInsets.symmetric(vertical: 16.0),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30.0), // Rounded corners
+                ),
               ),
             ),
           ),
@@ -114,8 +124,6 @@ Center firstPage(BuildContext context, LocaleNotifier localeNotifier, PageContro
     ),
   );
 }
-
-
 
 class SecondPage extends StatefulWidget {
   const SecondPage({super.key});
@@ -128,6 +136,7 @@ class _SecondPageState extends State<SecondPage> {
   double loanAmount = 1000000; // Default loan amount
   double interestRate = 7.2; // Default annual interest rate
   double tenure = 120; // Default tenure in months
+  bool isTenureInYears = false; // New state variable to track tenure toggle
 
   // Method to calculate EMI
   double calculateEMI(double principal, double annualRate, double months) {
@@ -139,9 +148,21 @@ class _SecondPageState extends State<SecondPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Convert tenure to months if it is in years for calculations
+    double displayTenure = isTenureInYears ? tenure / 12 : tenure;
     double emi = calculateEMI(loanAmount, interestRate, tenure);
     double totalAmount = emi * tenure;
     double interestAmount = totalAmount - loanAmount;
+
+    // Correcting the slider value if it goes out of bounds
+    double minTenure = isTenureInYears ? 0.25 : 3;
+    double maxTenure = isTenureInYears ? 30 : 360;
+
+    if (displayTenure < minTenure) {
+      displayTenure = minTenure;
+    } else if (displayTenure > maxTenure) {
+      displayTenure = maxTenure;
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -159,7 +180,7 @@ class _SecondPageState extends State<SecondPage> {
                   ),
                 ),
                 SizedBox(
-                  width: 100,
+                  width: 150,
                   height: 40,
                   child: TextField(
                     decoration: InputDecoration(
@@ -203,7 +224,7 @@ class _SecondPageState extends State<SecondPage> {
                   ),
                 ),
                 SizedBox(
-                  width: 100,
+                  width: 150,
                   height: 40,
                   child: TextField(
                     decoration: InputDecoration(
@@ -246,53 +267,177 @@ class _SecondPageState extends State<SecondPage> {
               children: [
                 Expanded(
                   child: Text(
-                    '${AppLocalizations.of(context)!.tenure}: ${tenure.toStringAsFixed(0)} ${AppLocalizations.of(context)!.months}',
+                    '${AppLocalizations.of(context)!.tenure}: ',
                   ),
                 ),
                 SizedBox(
-                  width: 100,
+                  width: 150,
                   height: 40,
-                  child: TextField(
-                    decoration: InputDecoration(
-                      hintText: tenure.toStringAsFixed(0), // Dynamic hint text
-                      border: const OutlineInputBorder(), // Box style
-                    ),
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                    onChanged: (value) {
-                      double? inputValue = double.tryParse(value);
-                      if (inputValue != null &&
-                          inputValue >= 3 &&
-                          inputValue <= 360) {
-                        setState(() {
-                          tenure = inputValue;
-                        });
-                      }
-                    },
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          decoration: InputDecoration(
+                            hintText: displayTenure.toStringAsFixed(0),
+                            border: const OutlineInputBorder(
+                                borderRadius: BorderRadius.only(
+                                    topRight: Radius.zero,
+                                    bottomRight: Radius.zero)), // Box style
+                          ),
+                          keyboardType: TextInputType.number,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly
+                          ],
+                          onChanged: (value) {
+                            double? inputValue = double.tryParse(value);
+                            if (inputValue != null &&
+                                inputValue >=
+                                    (isTenureInYears
+                                        ? 0.25
+                                        : 3) && // Minimum 3 months or 0.25 years
+                                inputValue <= (isTenureInYears ? 30 : 360)) {
+                              // Maximum 360 months or 30 years
+                              setState(() {
+                                tenure = isTenureInYears
+                                    ? inputValue * 12
+                                    : inputValue; // Convert years to months if needed
+                              });
+                            }
+                          },
+                        ),
+                      ),
+                      // Two selectable boxes for years and months
+                      Row(
+                        children: [
+                          InkWell(
+                            onTap: () {
+                              setState(() {
+                                isTenureInYears = false;
+                                tenure =
+                                    displayTenure; // Convert years to months if needed
+                              });
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 2, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: isTenureInYears
+                                    ? Colors.grey[200]
+                                    : Colors.orange,
+                                borderRadius: BorderRadius.circular(0),
+                                border: Border.all(
+                                  width: 1.5,
+                                ),
+                              ),
+                              child: Text(
+                                'Mo',
+                                style: TextStyle(
+                                  color: isTenureInYears
+                                      ? Colors.black
+                                      : Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                          InkWell(
+                            onTap: () {
+                              setState(() {
+                                isTenureInYears = true;
+                                tenure = displayTenure *
+                                    12; // Convert months to years if needed
+                              });
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 2, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: isTenureInYears
+                                    ? Colors.orange
+                                    : Colors.grey[200],
+                                borderRadius: BorderRadius.circular(0),
+                                border: Border.all(
+                                  width: 1.5,
+                                ),
+                              ),
+                              child: Text(
+                                'Yr',
+                                style: TextStyle(
+                                  color: isTenureInYears
+                                      ? Colors.white
+                                      : Colors.black,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
             Slider(
-              value: tenure,
-              min: 3,
-              max: 360,
-              divisions: 348,
-              label: tenure.toStringAsFixed(0),
+              value: displayTenure,
+              min: minTenure,
+              max: maxTenure,
+              divisions: isTenureInYears ? 30 : 348,
+              label: displayTenure.toStringAsFixed(0),
               onChanged: (value) {
                 setState(() {
-                  tenure = value;
+                  tenure = isTenureInYears
+                      ? value * 12
+                      : value; // Convert slider value to months if needed
                 });
               },
             ),
             const SizedBox(height: 20),
-            Text(
-                '${AppLocalizations.of(context)!.emi}: ₹${emi.toStringAsFixed(0)}'),
-            Text(
-                '${AppLocalizations.of(context)!.interestAmount}: ₹${interestAmount.toStringAsFixed(0)}'),
-            Text(
-                '${AppLocalizations.of(context)!.totalAmount}: ₹${totalAmount.toStringAsFixed(0)}'),
-            const SizedBox(height: 20),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '${AppLocalizations.of(context)!.emi}:',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    Text(
+                      '₹${emi.toStringAsFixed(0)}',
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '${AppLocalizations.of(context)!.interestAmount}:',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    Text(
+                      '₹${interestAmount.toStringAsFixed(0)}',
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '${AppLocalizations.of(context)!.totalAmount}:',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    Text(
+                      '₹${totalAmount.toStringAsFixed(0)}',
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+              ],
+            ),
+
             // Wrapped PieChart in a Container with a fixed height
             SizedBox(
               height: 200, // Specify a fixed height for the pie chart
@@ -308,57 +453,6 @@ class _SecondPageState extends State<SecondPage> {
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class EmiPie extends StatelessWidget {
-  const EmiPie({
-    super.key,
-    required this.loanAmount,
-    required this.interestAmount,
-  });
-
-  final double loanAmount;
-  final double interestAmount;
-
-  @override
-  Widget build(BuildContext context) {
-    double total = loanAmount + interestAmount;
-    double loanPercentage = (loanAmount / total) * 100;
-    double interestPercentage = (interestAmount / total) * 100;
-
-    return PieChart(
-      PieChartData(
-        sections: [
-          PieChartSectionData(
-            color: Colors.green,
-            value: loanAmount,
-            title:
-                '${loanPercentage.toStringAsFixed(1)}%', // Display as percentage
-            radius: 100,
-            titleStyle: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-          PieChartSectionData(
-            color: Colors.orange,
-            value: interestAmount,
-            title:
-                '${interestPercentage.toStringAsFixed(1)}%', // Display as percentage
-            radius: 100,
-            titleStyle: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-        ],
-        sectionsSpace: 4,
-        centerSpaceRadius: 0,
       ),
     );
   }

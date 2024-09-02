@@ -26,10 +26,13 @@ class EmisNotifier extends _$EmisNotifier {
 
   Future<void> update(Emi emi) async {
     await _box.put(emi.id, emi);
-
     state = [
       for (final existingEmi in state)
         if (existingEmi.id == emi.id) emi else existingEmi
     ];
+  }
+
+  Future<Emi?> getEmiById(String id) async {
+    return _box.get(id);
   }
 }

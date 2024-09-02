@@ -6,7 +6,7 @@ part of 'emis_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$emisNotifierHash() => r'3aa17b3c5f1efb45ce537fca79f382d686c9a4ae';
+String _$emisNotifierHash() => r'24e3c6bb1caedbc3eba59a65a58606da45310905';
 
 /// See also [EmisNotifier].
 @ProviderFor(EmisNotifier)
