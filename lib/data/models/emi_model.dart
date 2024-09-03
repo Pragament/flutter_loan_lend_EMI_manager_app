@@ -1,3 +1,4 @@
+import 'package:emi_manager/data/models/tag_model.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 part 'emi_model.g.dart';
@@ -48,6 +49,8 @@ class Emi {
   double? totalEmi;
   @HiveField(22)
   double? paid;
+  @HiveField(23)
+  List<Tag> tags;
 
   Emi({
     required this.id,
@@ -72,6 +75,7 @@ class Emi {
     required this.monthlyEmi,
     required this.totalEmi,
     required this.paid,
+    required this.tags,
   });
 
   Emi copyWith({
@@ -97,6 +101,7 @@ class Emi {
     double? monthlyEmi,
     double? totalEmi,
     double? paid,
+    List<Tag>? tags,
   }) =>
       Emi(
         id: id ?? this.id,
@@ -121,6 +126,7 @@ class Emi {
         monthlyEmi: monthlyEmi ?? this.monthlyEmi,
         totalEmi: totalEmi ?? this.totalEmi,
         paid: paid ?? this.paid,
+        tags: tags ?? this.tags,
       );
 
   factory Emi.fromMap(Map<String, dynamic> map, String id) => Emi(
@@ -146,6 +152,7 @@ class Emi {
         monthlyEmi: map["monthlyEmi"]?.toDouble(),
         totalEmi: map["totalEmi"]?.toDouble(),
         paid: map["paid"]?.toDouble(),
+        tags: map["tags"],
       );
 
   Map<String, dynamic> toMap() => {
@@ -171,5 +178,6 @@ class Emi {
         "monthlyEmi": monthlyEmi,
         "totalEmi": totalEmi,
         "paid": paid,
+        "tags": tags,
       };
 }

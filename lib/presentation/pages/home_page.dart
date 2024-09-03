@@ -1,6 +1,8 @@
 import 'package:emi_manager/data/models/emi_model.dart';
 import 'package:emi_manager/logic/emis_provider.dart';
 import 'package:emi_manager/presentation/constants.dart';
+import 'package:emi_manager/presentation/pages/home/logic/home_state_provider.dart';
+import 'package:emi_manager/presentation/pages/home/widgets/tags_strip.dart';
 import 'package:emi_manager/presentation/router/routes.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -23,7 +25,7 @@ class HomePageState extends ConsumerState<HomePage> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    final allEmis = ref.watch(emisNotifierProvider);
+    final allEmis = ref.watch(homeStateNotifierProvider).emis;
 
     return Scaffold(
       appBar: AppBar(
@@ -32,28 +34,35 @@ class HomePageState extends ConsumerState<HomePage> {
           LocaleSelectorPopupMenu(),
         ],
       ),
-      body: ListView.builder(
-        itemCount: allEmis.length,
-        itemBuilder: (context, index) {
-          final emi = allEmis.elementAt(index);
+      body: Column(
+        children: [
+          const TagsStrip(),
+          Expanded(
+            child: ListView.builder(
+              itemCount: allEmis.length,
+              itemBuilder: (context, index) {
+                final emi = allEmis.elementAt(index);
 
-          final emiTypeColor = emi.emiType == 'lend'
-              ? lendColor(context, true)
-              : loanColor(context, true);
+                final emiTypeColor = emi.emiType == 'lend'
+                    ? lendColor(context, true)
+                    : loanColor(context, true);
 
-         final double principalAmount = emi.principalAmount;
-final double interestAmount = emi.totalEmi! - emi.principalAmount;
-final double totalAmount = emi.totalEmi!;
+                final double principalAmount = emi.principalAmount;
+                final double interestAmount =
+                    emi.totalEmi! - emi.principalAmount;
+                final double totalAmount = emi.totalEmi!;
 
-
-          return EmiCard(
-              emiTypeColor: emiTypeColor,
-              l10n: l10n,
-              emi: emi,
-              interestAmount: interestAmount,
-              totalAmount: totalAmount,
-              principalAmount: principalAmount);
-        },
+                return EmiCard(
+                    emiTypeColor: emiTypeColor,
+                    l10n: l10n,
+                    emi: emi,
+                    interestAmount: interestAmount,
+                    totalAmount: totalAmount,
+                    principalAmount: principalAmount);
+              },
+            ),
+          ),
+        ],
       ),
       floatingActionButton: Fab(l10n: l10n),
     );
@@ -82,8 +91,7 @@ class EmiCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final double totalAmount = interestAmount + principalAmount;
     final double interestPercentage = (interestAmount / totalAmount) * 100;
-final double principalPercentage = (principalAmount / totalAmount) * 100;
-
+    final double principalPercentage = (principalAmount / totalAmount) * 100;
 
     return InkWell(
       onTap: () {
@@ -116,10 +124,13 @@ final double principalPercentage = (principalAmount / totalAmount) * 100;
                   PopupMenuButton<String>(
                     onSelected: (value) {
                       if (value == 'edit') {
-                       final emiId = emi.id; // Assume emi is your EMI object and you have an id field
-      final emiType = emi.emiType; // Assuming emiType is part of the EMI object
-      GoRouter.of(context).go(NewEmiRoute(emiType: emiType, emiId: emiId).location);
-    
+                        final emiId = emi
+                            .id; // Assume emi is your EMI object and you have an id field
+                        final emiType = emi
+                            .emiType; // Assuming emiType is part of the EMI object
+                        GoRouter.of(context).go(
+                            NewEmiRoute(emiType: emiType, emiId: emiId)
+                                .location);
                       } else if (value == 'delete') {
                         _deleteEmi(context, ref, emi);
                       }

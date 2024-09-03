@@ -1,7 +1,9 @@
 import 'dart:math';
 import 'package:emi_manager/data/models/emi_model.dart';
+import 'package:emi_manager/data/models/tag_model.dart';
 import 'package:emi_manager/logic/emis_provider.dart';
 import 'package:emi_manager/presentation/constants.dart';
+import 'package:emi_manager/presentation/pages/home/widgets/tags_selection_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -39,6 +41,9 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
   double years = 1.0;
   double months = 0.0;
 
+  // tags
+  List<Tag> tags = [];
+
   @override
   void initState() {
     super.initState();
@@ -55,46 +60,46 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
     }
   }
 
- void _loadEmiData() async {
-  // Fetch EMI data using emiId and populate fields
-  final emi =
-      await ref.read(emisNotifierProvider.notifier).getEmiById(emiId!);
+  void _loadEmiData() async {
+    // Fetch EMI data using emiId and populate fields
+    final emi =
+        await ref.read(emisNotifierProvider.notifier).getEmiById(emiId!);
 
-  if (emi != null) {
-    setState(() {
-      titleC.text = emi.title;
-      principalAmount = emi.principalAmount;
-      interestRate = emi.interestRate;
+    if (emi != null) {
+      setState(() {
+        titleC.text = emi.title;
+        principalAmount = emi.principalAmount;
+        interestRate = emi.interestRate;
 
-      principalAmountC.text = principalAmount.toStringAsFixed(0);
-      interestRateC.text = interestRate.toStringAsFixed(1);
-      startDateC.text = emi.startDate.toLocal().toString().split(' ')[0];
-      contactPersonNameC.text = emi.contactPersonName;
-      contactPersonPhoneC.text = emi.contactPersonPhone;
-      contactPersonEmailC.text = emi.contactPersonEmail;
+        principalAmountC.text = principalAmount.toStringAsFixed(0);
+        interestRateC.text = interestRate.toStringAsFixed(1);
+        startDateC.text = emi.startDate.toLocal().toString().split(' ')[0];
+        contactPersonNameC.text = emi.contactPersonName;
+        contactPersonPhoneC.text = emi.contactPersonPhone;
+        contactPersonEmailC.text = emi.contactPersonEmail;
 
-      // Calculate the difference between startDate and endDate
-      final startDate = emi.startDate;
-      final endDate = emi.endDate;
+        // Calculate the difference between startDate and endDate
+        final startDate = emi.startDate;
+        final endDate = emi.endDate;
 
-      if (endDate != null) {
-        final duration = endDate.difference(startDate);
+        if (endDate != null) {
+          final duration = endDate.difference(startDate);
 
-        final totalDays = duration.inDays;
-        final yearsFromDays = (totalDays / 365).floor();
-        final remainingDays = totalDays % 365;
-        final monthsFromDays = (remainingDays / 30).floor();
+          final totalDays = duration.inDays;
+          final yearsFromDays = (totalDays / 365).floor();
+          final remainingDays = totalDays % 365;
+          final monthsFromDays = (remainingDays / 30).floor();
 
-        years = yearsFromDays.toDouble();
-        months = monthsFromDays.toDouble();
-      } else {
-        // If endDate is null, set default values for years and months
-        years = 1.0;
-        months = 0.0;
-      }
-    });
+          years = yearsFromDays.toDouble();
+          months = monthsFromDays.toDouble();
+        } else {
+          // If endDate is null, set default values for years and months
+          years = 1.0;
+          months = 0.0;
+        }
+      });
+    }
   }
-}
 
   void _showPreviewDialog() {
     final l10n = AppLocalizations.of(context)!;
@@ -120,11 +125,7 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
             Text('${l10n.interestRate}: ${interestRate.toStringAsFixed(1)}%'),
             Text('${l10n.startDate}: ${startDateC.text}'),
             Text(
-                '${l10n.endDate}: ${DateTime.parse(startDateC.text)
-                    .add(Duration(days: (totalMonths * 30)))
-                    .toLocal()
-                    .toString()
-                    .split(' ')[0]}'),
+                '${l10n.endDate}: ${DateTime.parse(startDateC.text).add(Duration(days: (totalMonths * 30))).toLocal().toString().split(' ')[0]}'),
             Text('${l10n.monthlyEmi}: ₹${monthlyEmi.toStringAsFixed(2)}'),
             Text('${l10n.totalEmi}: ₹${totalEmi.toStringAsFixed(2)}'),
           ],
@@ -149,7 +150,8 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
   void _saveEmi() {
     final startDate = DateTime.parse(startDateC.text);
     final totalMonths = (years * 12 + months).toInt();
-    final endDate = startDate.add(Duration(days: (totalMonths * 30))); // Approximation
+    final endDate =
+        startDate.add(Duration(days: (totalMonths * 30))); // Approximation
 
     // EMI Calculation using the formula
     final monthlyInterestRate = interestRate / 12 / 100;
@@ -160,7 +162,8 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
     final totalEmi = monthlyEmi * totalMonths;
 
     final emi = Emi(
-      id: emiId ?? const Uuid().v4(), // Use provided emiId or generate a new one
+      id: emiId ??
+          const Uuid().v4(), // Use provided emiId or generate a new one
       title: titleC.text,
       principalAmount: principalAmount,
       interestRate: interestRate,
@@ -182,6 +185,7 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
       moratoriumMonth: null,
       moratoriumType: '',
       paid: null,
+      tags: tags,
     );
 
     if (emiId != null) {
@@ -268,7 +272,6 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
                         labelText: l10n.title,
                         border: const OutlineInputBorder(),
                       ),
-                      
                     ),
                   ),
                   // Principal Amount Slider
@@ -276,7 +279,8 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
                     padding: const EdgeInsets.all(4.0),
                     child: Row(
                       children: [
-                        Text('${l10n.loanAmount}: ₹${principalAmount.toStringAsFixed(0)}'),
+                        Text(
+                            '${l10n.loanAmount}: ₹${principalAmount.toStringAsFixed(0)}'),
                         Expanded(
                           child: Slider(
                             value: principalAmount,
@@ -287,7 +291,8 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
                             onChanged: (value) {
                               setState(() {
                                 principalAmount = value;
-                                principalAmountC.text = value.toStringAsFixed(0);
+                                principalAmountC.text =
+                                    value.toStringAsFixed(0);
                               });
                             },
                           ),
@@ -316,7 +321,8 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
                     padding: const EdgeInsets.all(4.0),
                     child: Row(
                       children: [
-                        Text('${l10n.interestRate}: ${interestRate.toStringAsFixed(1)}%'),
+                        Text(
+                            '${l10n.interestRate}: ${interestRate.toStringAsFixed(1)}%'),
                         Expanded(
                           child: Slider(
                             value: interestRate,
@@ -352,44 +358,48 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
                     ),
                   ),
                   // Start Date Field
-                 // Start Date Field with Date Picker
-Padding(
-  padding: const EdgeInsets.all(4.0),
-  child: InkWell(
-    onTap: () async {
-      DateTime? pickedDate = await showDatePicker(
-        context: context,
-        initialDate: DateTime.now(),
-        firstDate: DateTime(2000),
-        lastDate: DateTime(2100),
-      );
+                  // Start Date Field with Date Picker
+                  Padding(
+                    padding: const EdgeInsets.all(4.0),
+                    child: InkWell(
+                      onTap: () async {
+                        DateTime? pickedDate = await showDatePicker(
+                          context: context,
+                          initialDate: DateTime.now(),
+                          firstDate: DateTime(2000),
+                          lastDate: DateTime(2100),
+                        );
 
-      if (pickedDate != null) {
-        setState(() {
-          startDateC.text = pickedDate.toLocal().toString().split(' ')[0];
-        });
-      }
-    },
-    child: IgnorePointer( // To prevent keyboard from appearing
-      child: TextFormField(
-        controller: startDateC,
-        decoration: InputDecoration(
-          labelText: l10n.startDate,
-          border: const OutlineInputBorder(),
-        ),
-        validator: (value) =>
-          value == null || value.isEmpty ? l10n.enterStartDate : null,
-      ),
-    ),
-  ),
-),
+                        if (pickedDate != null) {
+                          setState(() {
+                            startDateC.text =
+                                pickedDate.toLocal().toString().split(' ')[0];
+                          });
+                        }
+                      },
+                      child: IgnorePointer(
+                        // To prevent keyboard from appearing
+                        child: TextFormField(
+                          controller: startDateC,
+                          decoration: InputDecoration(
+                            labelText: l10n.startDate,
+                            border: const OutlineInputBorder(),
+                          ),
+                          validator: (value) => value == null || value.isEmpty
+                              ? l10n.enterStartDate
+                              : null,
+                        ),
+                      ),
+                    ),
+                  ),
 
                   // Years Slider
                   Padding(
                     padding: const EdgeInsets.all(4.0),
                     child: Row(
                       children: [
-                        Text('${l10n.tenure}: ${years.toStringAsFixed(0)} ${l10n.years}'),
+                        Text(
+                            '${l10n.tenure}: ${years.toStringAsFixed(0)} ${l10n.years}'),
                         Expanded(
                           child: Slider(
                             value: years,
@@ -412,7 +422,8 @@ Padding(
                     padding: const EdgeInsets.all(4.0),
                     child: Row(
                       children: [
-                        Text('${l10n.tenure}: ${months.toStringAsFixed(0)} ${l10n.months}'),
+                        Text(
+                            '${l10n.tenure}: ${months.toStringAsFixed(0)} ${l10n.months}'),
                         Expanded(
                           child: Slider(
                             value: months,
@@ -461,6 +472,96 @@ Padding(
                       ),
                     ),
                   ),
+                  Padding(
+                    padding: const EdgeInsets.all(4.0),
+                    child: Card(
+                      elevation: 0,
+                      child: Row(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(right: 8.0),
+                            child: Icon(Icons.tag,
+                                color: Theme.of(context).colorScheme.primary,
+                                size: 22),
+                          ),
+                          Text(
+                            '${l10n.tags}:',
+                            style: TextStyle(
+                                color: Theme.of(context).colorScheme.primary),
+                          ),
+                          tags.isEmpty
+                              ? Expanded(
+                                  child: GestureDetector(
+                                    child: const Text(
+                                      'Tap to add a tag',
+                                      style: TextStyle(color: Colors.grey),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                    onTap: () async {
+                                      tags = await showDialog(
+                                        barrierDismissible: false,
+                                        context: context,
+                                        builder: (context) =>
+                                            TagsSelectionDialog(
+                                                selectedTags: tags),
+                                      );
+
+                                      setState(() {});
+                                    },
+                                  ),
+                                )
+                              : Expanded(
+                                  child: SingleChildScrollView(
+                                    scrollDirection: Axis.horizontal,
+                                    child: Row(
+                                      children: List.generate(
+                                        tags.length,
+                                        (index) {
+                                          final tag = tags.elementAt(index);
+
+                                          return Padding(
+                                            padding: const EdgeInsets.all(2.0),
+                                            child: FittedBox(
+                                              fit: BoxFit.contain,
+                                              child: FilterChip(
+                                                padding:
+                                                    const EdgeInsets.all(4.0),
+                                                label: Text('# ${tag.name}'),
+                                                shape: RoundedRectangleBorder(
+                                                    side: const BorderSide(
+                                                        color: Colors.grey),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            borderRadius)),
+                                                onSelected: (selected) =>
+                                                    setState(
+                                                        () => tags.remove(tag)),
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                          IconButton(
+                            onPressed: () async {
+                              tags = await showDialog(
+                                barrierDismissible: false,
+                                context: context,
+                                builder: (context) =>
+                                    TagsSelectionDialog(selectedTags: tags),
+                              );
+
+                              setState(() {});
+                            },
+                            icon: Icon(Icons.add,
+                                color: Theme.of(context).colorScheme.primary),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                   // Submit Button
                   Padding(
                     padding: const EdgeInsets.all(8.0),
@@ -481,7 +582,4 @@ Padding(
       ],
     );
   }
-
-
-
 }

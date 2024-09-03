@@ -39,13 +39,14 @@ class EmiAdapter extends TypeAdapter<Emi> {
       monthlyEmi: fields[20] as double?,
       totalEmi: fields[21] as double?,
       paid: fields[22] as double?,
+      tags: (fields[23] as List).cast<Tag>(),
     );
   }
 
   @override
   void write(BinaryWriter writer, Emi obj) {
     writer
-      ..writeByte(22)
+      ..writeByte(23)
       ..writeByte(1)
       ..write(obj.id)
       ..writeByte(2)
@@ -89,7 +90,9 @@ class EmiAdapter extends TypeAdapter<Emi> {
       ..writeByte(21)
       ..write(obj.totalEmi)
       ..writeByte(22)
-      ..write(obj.paid);
+      ..write(obj.paid)
+      ..writeByte(23)
+      ..write(obj.tags);
   }
 
   @override
