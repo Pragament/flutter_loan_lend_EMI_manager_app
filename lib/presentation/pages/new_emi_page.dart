@@ -77,6 +77,7 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
         contactPersonNameC.text = emi.contactPersonName;
         contactPersonPhoneC.text = emi.contactPersonPhone;
         contactPersonEmailC.text = emi.contactPersonEmail;
+        tags = List.from(emi.tags);
 
         // Calculate the difference between startDate and endDate
         final startDate = emi.startDate;

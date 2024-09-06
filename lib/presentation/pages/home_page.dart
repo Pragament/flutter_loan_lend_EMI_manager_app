@@ -103,7 +103,8 @@ class EmiCard extends ConsumerWidget {
         shape: RoundedRectangleBorder(
           side: BorderSide(
               color: emiTypeColor, width: 2), // Outline color and width
-          borderRadius: BorderRadius.circular(8), // Card corner radius
+          borderRadius:
+              BorderRadius.circular(borderRadius), // Card corner radius
         ),
         child: Padding(
           padding: const EdgeInsets.all(8.0),
