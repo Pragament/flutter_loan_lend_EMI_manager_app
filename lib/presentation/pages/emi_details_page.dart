@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
+import '../widgets/amortization_schedule_table.dart'; // Import the amortization schedule table widget
+import '../widgets/bar_graph.dart'; // Import the bar graph widget
 
 class EmiDetailsPage extends ConsumerWidget {
   const EmiDetailsPage({super.key, required this.emiId});
@@ -22,14 +24,26 @@ class EmiDetailsPage extends ConsumerWidget {
         : loanColor(context, true);
 
     final double principalAmount = emi.principalAmount;
-    final double interestAmount =
-        emi.totalEmi != null ? emi.totalEmi! - principalAmount : 0.0;
+    final double interestAmount = emi.totalEmi != null ? emi.totalEmi! - principalAmount : 0.0;
     final double totalAmount = emi.totalEmi ?? 0.0;
 
-    // Calculate Tenure in Years and Months
     final DateTime startDate = emi.startDate;
     final DateTime? endDate = emi.endDate;
     final String tenure = _calculateTenure(l10n, startDate, endDate);
+
+    // Generate amortization schedule based on tenure
+    final List<AmortizationEntry> schedule = _generateAmortizationSchedule(
+      tenureYears: int.parse(tenure.split(' ')[0]), // Assuming tenure is in years
+      principalAmount: principalAmount,
+      interestAmount: interestAmount,
+      totalAmount: totalAmount,
+    );
+
+    // Extract data for BarGraph
+    final List<double> principalAmounts = _getPrincipalAmounts(schedule);
+    final List<double> interestAmounts = _getInterestAmounts(schedule);
+    final List<double> balances = _getBalances(schedule);
+    final int totalYears = int.parse(tenure.split(' ')[0]);
 
     return Scaffold(
       appBar: AppBar(
@@ -42,38 +56,50 @@ class EmiDetailsPage extends ConsumerWidget {
           },
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildEmiInfoSection(context, emi, l10n, interestAmount,
-                principalAmount, totalAmount, tenure),
-            const SizedBox(height: 24),
-            _buildPieChart(interestAmount, principalAmount, totalAmount),
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                child: SizedBox(width: 150,
-                  child: Column(
-                    
-                    children: [
-                      _LegendItem(
-                          color: Colors.blue, label: l10n.legendInterestAmount),
-                      _LegendItem(
-                          color: Colors.green, label: l10n.legendPrincipalAmount),
-                    ],
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildEmiInfoSection(context, emi, l10n, interestAmount, principalAmount, totalAmount, tenure),
+              const SizedBox(height: 24),
+              _buildPieChart(interestAmount, principalAmount, totalAmount),
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: SizedBox(
+                    width: 150,
+                    child: Column(
+                      children: [
+                        _LegendItem(
+                          color: Colors.green,
+                          label: l10n.legendPrincipalAmount,
+                        ),
+                        _LegendItem(
+                          color: Colors.orange,
+                          label: l10n.legendInterestAmount,
+                        ),
+                        _LegendItem(
+                          color: Colors.red,
+                          label: l10n.legendBalanceAmount ?? 'Balance Amount',
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
-          ],
+              const SizedBox(height: 24),
+              _buildBarGraph(principalAmounts, interestAmounts, balances, totalYears),
+              const SizedBox(height: 24),
+              AmortizationScheduleTable(schedule: schedule),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  // Widget to build EMI Info Section
   Widget _buildEmiInfoSection(
       BuildContext context,
       dynamic emi,
@@ -111,7 +137,6 @@ class EmiDetailsPage extends ConsumerWidget {
     );
   }
 
-  // Widget to build Pie Chart
   Widget _buildPieChart(
       double interestAmount, double principalAmount, double totalAmount) {
     return SizedBox(
@@ -121,10 +146,10 @@ class EmiDetailsPage extends ConsumerWidget {
         PieChartData(
           sections: [
             PieChartSectionData(
-              color: Colors.blue,
+              color: Colors.orange,
               value: interestAmount,
               title:
-                  '${(interestAmount / totalAmount * 100).toStringAsFixed(1)}%',
+              '${(interestAmount / totalAmount * 100).toStringAsFixed(1)}%',
               radius: 100,
               titleStyle: const TextStyle(
                 fontSize: 18,
@@ -136,7 +161,7 @@ class EmiDetailsPage extends ConsumerWidget {
               color: Colors.green,
               value: principalAmount,
               title:
-                  '${(principalAmount / totalAmount * 100).toStringAsFixed(1)}%',
+              '${(principalAmount / totalAmount * 100).toStringAsFixed(1)}%',
               radius: 100,
               titleStyle: const TextStyle(
                 fontSize: 18,
@@ -153,36 +178,19 @@ class EmiDetailsPage extends ConsumerWidget {
     );
   }
 
-  // Widget to build Info Row
-  Widget _buildInfoRow(String label, String value,
-      {bool isBold = false, double fontSize = 16}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: fontSize,
-              fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-             
-            ),
-          ),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: fontSize,
-              fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-              
-            ),
-          ),
-        ],
+  Widget _buildBarGraph(List<double> principalAmounts, List<double> interestAmounts, List<double> balances, int totalYears) {
+    return SizedBox(
+      width: double.infinity,
+      height: 300,
+      child: BarGraph(
+        principalAmounts: principalAmounts,
+        interestAmounts: interestAmounts,
+        balances: balances,
+        totalYears: totalYears,
       ),
     );
   }
 
-  // Method to calculate tenure in years and months
   String _calculateTenure(
       AppLocalizations l10n, DateTime startDate, DateTime? endDate) {
     if (endDate == null) {
@@ -198,9 +206,9 @@ class EmiDetailsPage extends ConsumerWidget {
     }
 
     String yearsStr =
-        years > 0 ? '$years ${years == 1 ? l10n.year : l10n.years}' : '';
+    years > 0 ? '$years ${years == 1 ? l10n.year : l10n.years}' : '';
     String monthsStr =
-        months > 0 ? '$months ${months == 1 ? l10n.month : l10n.months}' : '';
+    months > 0 ? '$months ${months == 1 ? l10n.month : l10n.months}' : '';
 
     if (years > 0 && months > 0) {
       return '$yearsStr and $monthsStr';
@@ -212,13 +220,73 @@ class EmiDetailsPage extends ConsumerWidget {
       return '0 ${l10n.months}';
     }
   }
+
+  List<AmortizationEntry> _generateAmortizationSchedule({
+    required int tenureYears,
+    required double principalAmount,
+    required double interestAmount,
+    required double totalAmount,
+  }) {
+    List<AmortizationEntry> schedule = [];
+    double remainingBalance = totalAmount;
+
+    for (int year = 1; year <= tenureYears; year++) {
+      double yearPrincipal = principalAmount / tenureYears;
+      double yearInterest = interestAmount / tenureYears;
+      double yearTotalPayment = yearPrincipal + yearInterest;
+      remainingBalance -= yearPrincipal;
+
+      schedule.add(AmortizationEntry(
+        year: year,
+        principal: yearPrincipal,
+        interest: yearInterest,
+        totalPayment: yearTotalPayment,
+        balance: remainingBalance,
+        paymentDate: DateTime.now(), // Example date, can be adjusted
+      ));
+    }
+
+    return schedule;
+  }
+
+  List<double> _getPrincipalAmounts(List<AmortizationEntry> schedule) {
+    return schedule.map((entry) => entry.principal).toList();
+  }
+
+  List<double> _getInterestAmounts(List<AmortizationEntry> schedule) {
+    return schedule.map((entry) => entry.interest).toList();
+  }
+
+  List<double> _getBalances(List<AmortizationEntry> schedule) {
+    return schedule.map((entry) => entry.balance).toList();
+  }
+
+  Widget _buildInfoRow(String label, String value,
+      {bool isBold = false, double fontSize = 16}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: TextStyle(fontSize: fontSize),
+          ),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: fontSize,
+              fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _LegendItem extends StatelessWidget {
-  const _LegendItem({
-    required this.color,
-    required this.label,
-  });
+  const _LegendItem({required this.color, required this.label});
 
   final Color color;
   final String label;
@@ -228,11 +296,14 @@ class _LegendItem extends StatelessWidget {
     return Row(
       children: [
         Container(
-          width: 8,
-          height: 8,
-          color: color,
+          width: 20,
+          height: 20,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: color,
+          ),
         ),
-        const SizedBox(width: 2),
+        const SizedBox(width: 8),
         Text(label),
       ],
     );

@@ -49,5 +49,7 @@
   "preview": "Preview",
   "switchToMonths": "Switch to Months",
   "switchToYears": "Switch to Years",
-  "tags": "Tags"
+  "tags": "Tags",
+  "legendBalanceAmount": "Balance Amount",
+  "noTenure": "No Tenure"
 }
