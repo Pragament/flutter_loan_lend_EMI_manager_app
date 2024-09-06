@@ -82,7 +82,7 @@ class EmiDetailsPage extends ConsumerWidget {
                         ),
                         _LegendItem(
                           color: Colors.red,
-                          label: l10n.legendBalanceAmount ?? 'Balance Amount',
+                          label: l10n.legendBalanceAmount,
                         ),
                       ],
                     ),
