@@ -5,8 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
-import '../widgets/amortization_schedule_table.dart'; // Import the amortization schedule table widget
-import '../widgets/bar_graph.dart'; // Import the bar graph widget
+import '../widgets/amortization_schedule_table.dart';
+import '../widgets/bar_graph.dart';
 
 class EmiDetailsPage extends ConsumerWidget {
   const EmiDetailsPage({super.key, required this.emiId});
@@ -242,7 +242,7 @@ class EmiDetailsPage extends ConsumerWidget {
         interest: yearInterest,
         totalPayment: yearTotalPayment,
         balance: remainingBalance,
-        paymentDate: DateTime.now(), // Example date, can be adjusted
+        paymentDate: DateTime.now(),
       ));
     }
 

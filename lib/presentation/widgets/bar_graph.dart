@@ -85,7 +85,7 @@ class BarGraph extends StatelessWidget {
     final double maxBalance = balances.isNotEmpty
         ? balances.reduce((a, b) => a > b ? a : b)
         : 0.0;
-    return (maxPrincipal + maxInterest + maxBalance) * 1.2; // Adding 20% buffer
+    return (maxPrincipal + maxInterest + maxBalance) * 1.2;
   }
 
   Widget _bottomTitles(double value, TitleMeta meta) {
