@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:emi_manager/data/models/tag_model.dart';
 import 'package:emi_manager/logic/tags_provider.dart';
 import 'package:flutter/material.dart';
