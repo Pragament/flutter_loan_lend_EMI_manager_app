@@ -2,10 +2,14 @@ import 'package:flutter/material.dart';
 
 class AmortizationScheduleTable extends StatefulWidget {
   final List<AmortizationEntry> schedule;
+  final DateTime startDate;
+  final int tenureInYears;
 
   const AmortizationScheduleTable({
     Key? key,
     required this.schedule,
+    required this.startDate,
+    required this.tenureInYears,
   }) : super(key: key);
 
   @override
@@ -13,66 +17,111 @@ class AmortizationScheduleTable extends StatefulWidget {
 }
 
 class _AmortizationScheduleTableState extends State<AmortizationScheduleTable> {
+  final Map<int, List<AmortizationEntry>> _groupedByYear = {};
+  final Map<int, List<AmortizationEntry>> _groupedByMonth = {};
+  int? _expandedYear;
+
+  @override
+  void initState() {
+    super.initState();
+    _groupData();
+  }
+
+  void _groupData() {
+    for (var entry in widget.schedule) {
+      _groupedByYear.putIfAbsent(entry.year, () => []).add(entry);
+      _groupedByMonth.putIfAbsent(entry.year, () => []).add(entry);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    // Debugging: Ensure schedule is not empty
     if (widget.schedule.isEmpty) {
       return Center(child: Text('No data available.'));
     }
 
-    final Map<int, List<AmortizationEntry>> groupedByYear = {};
-    for (var entry in widget.schedule) {
-      groupedByYear.putIfAbsent(entry.year, () => []).add(entry);
-    }
+    List<int> years = List.generate(widget.tenureInYears + 1, (index) {
+      return widget.startDate.year + index;
+    });
 
     return SingleChildScrollView(
-      scrollDirection: Axis.horizontal, // Allows horizontal scrolling
+      scrollDirection: Axis.horizontal,
       child: DataTable(
         columns: const [
           DataColumn(label: Text('Year')),
-          DataColumn(label: Text('Month')),
           DataColumn(label: Text('Principal')),
           DataColumn(label: Text('Interest')),
           DataColumn(label: Text('Total Payment')),
           DataColumn(label: Text('Balance')),
         ],
-        rows: groupedByYear.entries.expand((yearEntry) {
-          final int year = yearEntry.key;
-          final List<AmortizationEntry> monthlyEntries = yearEntry.value;
-
-          // Summarize year data
-          final double yearPrincipal = monthlyEntries.fold(0.0, (sum, entry) => sum + entry.principal);
-          final double yearInterest = monthlyEntries.fold(0.0, (sum, entry) => sum + entry.interest);
-          final double yearTotalPayment = monthlyEntries.fold(0.0, (sum, entry) => sum + entry.totalPayment);
-          final double yearBalance = monthlyEntries.isNotEmpty ? monthlyEntries.last.balance : 0.0;
-
-          return [
-            DataRow(cells: [
-              DataCell(Text('$year', style: TextStyle(fontWeight: FontWeight.bold))),
-              DataCell(Text('')),
-              DataCell(Text('Principal: ${yearPrincipal.toStringAsFixed(2)}')),
-              DataCell(Text('Interest: ${yearInterest.toStringAsFixed(2)}')),
-              DataCell(Text('Total Payment: ${yearTotalPayment.toStringAsFixed(2)}')),
-              DataCell(Text('Balance: ${yearBalance.toStringAsFixed(2)}')),
-            ]),
-            ..._buildMonthlyEntries(monthlyEntries),
-          ];
-        }).toList(),
+        rows: _buildYearlyEntries(years),
       ),
     );
   }
 
-  List<DataRow> _buildMonthlyEntries(List<AmortizationEntry> entries) {
-    return entries.map((entry) {
-      return DataRow(cells: [
-        DataCell(Text('')),
-        DataCell(Text(_getMonthName(entry.month))),
-        DataCell(Text(entry.principal.toStringAsFixed(2))),
-        DataCell(Text(entry.interest.toStringAsFixed(2))),
-        DataCell(Text(entry.totalPayment.toStringAsFixed(2))),
-        DataCell(Text(entry.balance.toStringAsFixed(2))),
-      ]);
-    }).toList();
+  List<DataRow> _buildYearlyEntries(List<int> years) {
+    return years.map((year) {
+      final yearlyData = _groupedByYear[year] ?? [];
+      final totalPrincipal = yearlyData.fold(0.0, (sum, entry) => sum + entry.principal);
+      final totalInterest = yearlyData.fold(0.0, (sum, entry) => sum + entry.interest);
+      final totalPayment = yearlyData.fold(0.0, (sum, entry) => sum + entry.totalPayment);
+      final totalBalance = yearlyData.isNotEmpty ? yearlyData.last.balance : 0.0;
+
+      return DataRow(
+        cells: [
+          DataCell(
+            Row(
+              children: [
+                Expanded(child: Text('$year')),
+                IconButton(
+                  icon: Icon(
+                    _expandedYear == year ? Icons.expand_less : Icons.expand_more,
+                    color: Colors.blue,
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _expandedYear = _expandedYear == year ? null : year;
+                    });
+                  },
+                ),
+              ],
+            ),
+          ),
+          DataCell(Text(totalPrincipal.toStringAsFixed(2))),
+          DataCell(Text(totalInterest.toStringAsFixed(2))),
+          DataCell(Text(totalPayment.toStringAsFixed(2))),
+          DataCell(Text(totalBalance.toStringAsFixed(2))),
+        ],
+      );
+    }).toList()
+      ..addAll(
+        _expandedYear != null
+            ? _buildMonthlyDataRows(_groupedByMonth[_expandedYear!] ?? [])
+            : [],
+      );
+  }
+
+  List<DataRow> _buildMonthlyDataRows(List<AmortizationEntry> entries) {
+    final startMonth = widget.startDate.month;
+    final startYear = widget.startDate.year;
+    List<DataRow> rows = [];
+
+    for (var entry in entries) {
+      // Add rows for months starting from the startDate
+      if (entry.year > startYear || (entry.year == startYear && entry.month >= startMonth)) {
+        rows.add(DataRow(
+          cells: [
+            DataCell(Text(_getMonthName(entry.month))),
+            DataCell(Text(entry.principal.toStringAsFixed(2))),
+            DataCell(Text(entry.interest.toStringAsFixed(2))),
+            DataCell(Text(entry.totalPayment.toStringAsFixed(2))),
+            DataCell(Text(entry.balance.toStringAsFixed(2))),
+          ],
+        ));
+      }
+    }
+
+    return rows;
   }
 
   String _getMonthName(int month) {

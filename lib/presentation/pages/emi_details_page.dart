@@ -32,10 +32,11 @@ class EmiDetailsPage extends ConsumerWidget {
     final DateTime startDate = emi.startDate;
     final DateTime? endDate = emi.endDate;
     final String tenure = _calculateTenure(l10n, startDate, endDate);
+    final int tenureInYears = int.parse(tenure.split(' ')[0]);
 
     // Generate amortization schedule based on tenure
     final List<AmortizationEntry> schedule = _generateAmortizationSchedule(
-      tenureYears: int.parse(tenure.split(' ')[0]), // Assuming tenure is in years
+      tenureYears: tenureInYears,
       principalAmount: principalAmount,
       interestAmount: interestAmount,
       totalAmount: totalAmount,
@@ -46,7 +47,7 @@ class EmiDetailsPage extends ConsumerWidget {
     final List<double> interestAmounts = _getInterestAmounts(schedule);
     final List<double> balances = _getBalances(schedule);
     final List<int> years = List.generate(
-      int.parse(tenure.split(' ')[0]),
+      tenureInYears,
           (index) => startDate.year + index,
     );
 
@@ -99,10 +100,14 @@ class EmiDetailsPage extends ConsumerWidget {
                 principalAmounts: principalAmounts,
                 interestAmounts: interestAmounts,
                 balances: balances,
-                years: years, // Pass years parameter
+                years: years,
               ),
               const SizedBox(height: 24),
-              AmortizationScheduleTable(schedule: schedule),
+              AmortizationScheduleTable(
+                schedule: schedule,
+                startDate: startDate,
+                tenureInYears: tenureInYears,
+              ),
             ],
           ),
         ),
