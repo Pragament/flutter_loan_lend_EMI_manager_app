@@ -34,7 +34,7 @@ class EmiDetailsPage extends ConsumerWidget {
     final String tenure = _calculateTenure(l10n, startDate, endDate);
     final int tenureInYears = int.parse(tenure.split(' ')[0]);
 
-    // Generate amortization schedule based on tenure
+
     final List<AmortizationEntry> schedule = _generateAmortizationSchedule(
       tenureYears: tenureInYears,
       principalAmount: principalAmount,
@@ -42,7 +42,7 @@ class EmiDetailsPage extends ConsumerWidget {
       totalAmount: totalAmount,
     );
 
-    // Extract data for BarGraph
+
     final List<double> principalAmounts = _getPrincipalAmounts(schedule);
     final List<double> interestAmounts = _getInterestAmounts(schedule);
     final List<double> balances = _getBalances(schedule);
