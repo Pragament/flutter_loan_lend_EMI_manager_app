@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:emi_manager/logic/emis_provider.dart';
 import 'package:emi_manager/presentation/constants.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -7,6 +8,7 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 import '../widgets/amortization_schedule_table.dart';
 import '../widgets/bar_graph.dart';
+import 'dart:math';
 
 class EmiDetailsPage extends ConsumerWidget {
   const EmiDetailsPage({super.key, required this.emiId});
@@ -43,7 +45,10 @@ class EmiDetailsPage extends ConsumerWidget {
     final List<double> principalAmounts = _getPrincipalAmounts(schedule);
     final List<double> interestAmounts = _getInterestAmounts(schedule);
     final List<double> balances = _getBalances(schedule);
-    final int totalYears = int.parse(tenure.split(' ')[0]);
+    final List<int> years = List.generate(
+      int.parse(tenure.split(' ')[0]),
+          (index) => startDate.year + index,
+    );
 
     return Scaffold(
       appBar: AppBar(
@@ -90,7 +95,12 @@ class EmiDetailsPage extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 24),
-              _buildBarGraph(principalAmounts, interestAmounts, balances, totalYears),
+              BarGraph(
+                principalAmounts: principalAmounts,
+                interestAmounts: interestAmounts,
+                balances: balances,
+                years: years, // Pass years parameter
+              ),
               const SizedBox(height: 24),
               AmortizationScheduleTable(schedule: schedule),
             ],
@@ -119,21 +129,32 @@ class EmiDetailsPage extends ConsumerWidget {
         const SizedBox(height: 16),
         _buildInfoRow(l10n.loanAmount, principalAmount.toStringAsFixed(2)),
         _buildInfoRow(l10n.tenure, tenure),
-        const SizedBox(height: 16),
-        _buildInfoRow(
-            l10n.interestRate, '${emi.interestRate.toStringAsFixed(2)}%'),
-        _buildInfoRow(
-            l10n.startDate, emi.startDate.toLocal().toString().split(' ')[0]),
-        _buildInfoRow(
-            l10n.endDate,
-            emi.endDate != null
-                ? emi.endDate!.toLocal().toString().split(' ')[0]
-                : 'N/A'),
-        const SizedBox(height: 16),
-        _buildInfoRow(l10n.contactPersonName, emi.contactPersonName),
-        _buildInfoRow(l10n.contactPersonEmail, emi.contactPersonEmail),
-        _buildInfoRow(l10n.contactPersonPhone, emi.contactPersonPhone),
       ],
+    );
+  }
+
+  Widget _buildInfoRow(String label, String value, {bool isBold = false, double fontSize = 16}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+              fontSize: fontSize,
+            ),
+          ),
+          Text(
+            value,
+            style: TextStyle(
+              fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+              fontSize: fontSize,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -146,7 +167,7 @@ class EmiDetailsPage extends ConsumerWidget {
         PieChartData(
           sections: [
             PieChartSectionData(
-              color: Colors.orange,
+              color: Colors.blue,
               value: interestAmount,
               title:
               '${(interestAmount / totalAmount * 100).toStringAsFixed(1)}%',
@@ -178,49 +199,6 @@ class EmiDetailsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildBarGraph(List<double> principalAmounts, List<double> interestAmounts, List<double> balances, int totalYears) {
-    return SizedBox(
-      width: double.infinity,
-      height: 300,
-      child: BarGraph(
-        principalAmounts: principalAmounts,
-        interestAmounts: interestAmounts,
-        balances: balances,
-        totalYears: totalYears,
-      ),
-    );
-  }
-
-  String _calculateTenure(
-      AppLocalizations l10n, DateTime startDate, DateTime? endDate) {
-    if (endDate == null) {
-      return 'N/A';
-    }
-
-    int years = endDate.year - startDate.year;
-    int months = endDate.month - startDate.month;
-
-    if (months < 0) {
-      years -= 1;
-      months += 12;
-    }
-
-    String yearsStr =
-    years > 0 ? '$years ${years == 1 ? l10n.year : l10n.years}' : '';
-    String monthsStr =
-    months > 0 ? '$months ${months == 1 ? l10n.month : l10n.months}' : '';
-
-    if (years > 0 && months > 0) {
-      return '$yearsStr and $monthsStr';
-    } else if (years > 0) {
-      return yearsStr;
-    } else if (months > 0) {
-      return monthsStr;
-    } else {
-      return '0 ${l10n.months}';
-    }
-  }
-
   List<AmortizationEntry> _generateAmortizationSchedule({
     required int tenureYears,
     required double principalAmount,
@@ -228,82 +206,91 @@ class EmiDetailsPage extends ConsumerWidget {
     required double totalAmount,
   }) {
     List<AmortizationEntry> schedule = [];
-    double remainingBalance = totalAmount;
+    DateTime startDate = DateTime.now();
 
-    for (int year = 1; year <= tenureYears; year++) {
-      double yearPrincipal = principalAmount / tenureYears;
-      double yearInterest = interestAmount / tenureYears;
-      double yearTotalPayment = yearPrincipal + yearInterest;
-      remainingBalance -= yearPrincipal;
+    // Monthly interest rate assuming a flat interest rate model
+    double monthlyInterestRate = (interestAmount / principalAmount) / (tenureYears * 12);
+    int totalMonths = tenureYears * 12;
 
+    double monthlyEmi = (principalAmount * monthlyInterestRate *
+        pow(1 + monthlyInterestRate, totalMonths)) /
+        (pow(1 + monthlyInterestRate, totalMonths) - 1);
+
+    double remainingPrincipal = principalAmount;
+
+    for (int month = 0; month < totalMonths; month++) {
+      double monthlyInterest = remainingPrincipal * monthlyInterestRate;
+      double monthlyPrincipal = monthlyEmi - monthlyInterest;
+      remainingPrincipal -= monthlyPrincipal;
+
+      // Calculate year and month correctly
+      DateTime paymentDate = DateTime(startDate.year, startDate.month + month);
+      int year = paymentDate.year;
+      int monthOfYear = paymentDate.month;
+
+      // Add amortization entry for each month
       schedule.add(AmortizationEntry(
+        paymentDate: paymentDate,
+        principal: monthlyPrincipal,
+        interest: monthlyInterest,
+        totalPayment: monthlyEmi,
+        balance: remainingPrincipal,
         year: year,
-        principal: yearPrincipal,
-        interest: yearInterest,
-        totalPayment: yearTotalPayment,
-        balance: remainingBalance,
-        paymentDate: DateTime.now(),
+        month: monthOfYear,
       ));
     }
 
     return schedule;
   }
 
+
   List<double> _getPrincipalAmounts(List<AmortizationEntry> schedule) {
-    return schedule.map((entry) => entry.principal).toList();
+    final groupByYear = groupBy(schedule, (AmortizationEntry entry) => entry.year);
+    return groupByYear.values.map((entries) =>
+        entries.fold(0.0, (prev, entry) => prev + entry.principal)).toList();
   }
 
   List<double> _getInterestAmounts(List<AmortizationEntry> schedule) {
-    return schedule.map((entry) => entry.interest).toList();
+    final groupByYear = groupBy(schedule, (AmortizationEntry entry) => entry.year);
+    return groupByYear.values.map((entries) =>
+        entries.fold(0.0, (prev, entry) => prev + entry.interest)).toList();
   }
 
   List<double> _getBalances(List<AmortizationEntry> schedule) {
-    return schedule.map((entry) => entry.balance).toList();
+    final groupByYear = groupBy(schedule, (AmortizationEntry entry) => entry.year);
+    return groupByYear.values.map((entries) =>
+        entries.fold(0.0, (prev, entry) => prev + entry.balance)).toList();
   }
 
-  Widget _buildInfoRow(String label, String value,
-      {bool isBold = false, double fontSize = 16}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: TextStyle(fontSize: fontSize),
-          ),
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: fontSize,
-              fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
-            ),
-          ),
-        ],
-      ),
-    );
+  String _calculateTenure(AppLocalizations l10n, DateTime startDate, DateTime? endDate) {
+    if (endDate == null) return 'Unknown';
+
+    final int years = endDate.year - startDate.year;
+    final int months = endDate.month - startDate.month;
+    return '$years ${l10n.years} $months ${l10n.months}';
   }
 }
 
 class _LegendItem extends StatelessWidget {
-  const _LegendItem({required this.color, required this.label});
-
   final Color color;
   final String label;
+
+  const _LegendItem({
+    Key? key,
+    required this.color,
+    required this.label,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
         Container(
-          width: 20,
-          height: 20,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: color,
-          ),
+          width: 16,
+          height: 16,
+          color: color,
+          margin: const EdgeInsets.only(right: 8.0),
         ),
-        const SizedBox(width: 8),
         Text(label),
       ],
     );

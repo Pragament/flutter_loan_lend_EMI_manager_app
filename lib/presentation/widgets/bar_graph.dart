@@ -1,199 +1,167 @@
-import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
-import 'amortization_schedule_table.dart'; // Assuming the table is defined in this file
+import 'package:flutter/material.dart';
 
-class EmiDetailsPage extends StatelessWidget {
-  final double principalAmount;
-  final double interestAmount;
-  final double totalPayment;
-  final int tenure;
-  final List<AmortizationEntry> amortizationEntries;
+class BarGraph extends StatelessWidget {
+  final List<double> principalAmounts; // Monthly principal payments
+  final List<double> interestAmounts; // Monthly interest payments
+  final List<double> balances; // Remaining balances (if available)
+  final List<int> years; // List of years
 
-  EmiDetailsPage({
-    required this.principalAmount,
-    required this.interestAmount,
-    required this.totalPayment,
-    required this.tenure,
-    required this.amortizationEntries,
-  });
+  const BarGraph({
+    Key? key,
+    required this.principalAmounts,
+    required this.interestAmounts,
+    required this.balances,
+    required this.years,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('EMI Details'),
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Displaying the bar graph with line graph for remaining balance
-            Padding(
+    final double maxY = _getMaxY(); // Calculate dynamic maxY based on bar values
+
+    return SizedBox(
+      height: 300,
+      child: Stack(
+        children: [
+          Container(
+            color: Colors.white, // Set background color to white
+            child: BarChart(
+              BarChartData(
+                alignment: BarChartAlignment.spaceAround,
+                maxY: maxY,
+                barTouchData: BarTouchData(enabled: false),
+                titlesData: FlTitlesData(
+                  leftTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 50,
+                      getTitlesWidget: (value, meta) {
+                        return SideTitleWidget(
+                          axisSide: meta.axisSide,
+                          child: Text(
+                            _formatTitle(value),
+                            style: TextStyle(
+                              color: Colors.black,
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  rightTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: false, // Hide right titles for clarity
+                    ),
+                  ),
+                  bottomTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 40,
+                      getTitlesWidget: (double value, TitleMeta meta) {
+                        int index = value.toInt();
+                        if (index >= 0 && index < years.length) {
+                          return SideTitleWidget(
+                            axisSide: meta.axisSide,
+                            child: Text(
+                              years[index].toString(),
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontSize: 14,
+                              ),
+                            ),
+                          );
+                        }
+                        return const SizedBox.shrink();
+                      },
+                    ),
+                  ),
+                ),
+                borderData: FlBorderData(show: false),
+                barGroups: _createBarGroups(),
+                gridData: FlGridData(show: false),
+              ),
+            ),
+          ),
+          Positioned.fill(
+            child: Padding(
               padding: const EdgeInsets.all(8.0),
-              child: SizedBox(
-                height: 300,
-                child: BarGraphWithLineChart(
-                  principalAmount: principalAmount,
-                  interestAmount: interestAmount,
-                  remainingBalance: totalPayment - principalAmount,
-                  tenure: tenure,
-                  amortizationEntries: amortizationEntries, // Pass amortization data for balance
+              child: LineChart(
+                LineChartData(
+                  minX: -0.5,
+                  maxX: years.length.toDouble() - 0.5,
+                  minY: 0,
+                  maxY: maxY,
+                  lineTouchData: LineTouchData(enabled: false),
+                  titlesData: FlTitlesData(show: false),
+                  borderData: FlBorderData(show: false),
+                  gridData: FlGridData(show: false),
+                  lineBarsData: [
+                    LineChartBarData(
+                      spots: List.generate(
+                        balances.length,
+                            (index) => FlSpot(index.toDouble(), balances[index]),
+                      ),
+                      isCurved: true,
+                      color: Colors.red,
+                      barWidth: 2,
+                      dotData: FlDotData(show: false),
+                    ),
+                  ],
                 ),
               ),
             ),
-            // Amortization Table with scrollable content
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: AmortizationScheduleTable(
-                entries: amortizationEntries,
-                tenure: tenure,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class BarGraphWithLineChart extends StatelessWidget {
-  final double principalAmount;
-  final double interestAmount;
-  final double remainingBalance;
-  final int tenure;
-  final List<AmortizationEntry> amortizationEntries;
-
-  BarGraphWithLineChart({
-    required this.principalAmount,
-    required this.interestAmount,
-    required this.remainingBalance,
-    required this.tenure,
-    required this.amortizationEntries,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return BarChart(
-      BarChartData(
-        alignment: BarChartAlignment.spaceEvenly,
-        maxY: totalPayment(),
-        titlesData: FlTitlesData(
-          leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          bottomTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              getTitlesWidget: (value, meta) {
-                final int year = value.toInt() + 2023; // Start year of tenure
-                return Text('$year');
-              },
-            ),
-          ),
-        ),
-        barGroups: List.generate(tenure, (index) {
-          final AmortizationEntry entry = amortizationEntries[index];
-          return BarChartGroupData(
-            x: index,
-            barRods: [
-              BarChartRodData(
-                toY: entry.totalPayment, // Total payment (Principal + Interest)
-                rodStackItems: [
-                  BarChartRodStackItem(0, entry.principal, Colors.green),
-                  BarChartRodStackItem(entry.principal, entry.totalPayment, Colors.orange),
-                ],
-                width: 20, // Square bar width
-                borderRadius: BorderRadius.zero, // No curved edges
-              ),
-            ],
-          );
-        }),
-        gridData: FlGridData(show: false), // Remove background lines
-        borderData: FlBorderData(show: false),
-      ),
-      swapAnimationDuration: const Duration(milliseconds: 250),
-      swapAnimationCurve: Curves.linear,
-    );
-  }
-
-  // Function to calculate total payment (Principal + Interest)
-  double totalPayment() {
-    return principalAmount + interestAmount;
-  }
-
-  // Adding the line chart for the remaining balance
-  Widget buildLineChart() {
-    return LineChart(
-      LineChartData(
-        lineBarsData: [
-          LineChartBarData(
-            spots: List.generate(tenure, (index) {
-              final AmortizationEntry entry = amortizationEntries[index];
-              return FlSpot(index.toDouble(), entry.balance); // Remaining balance at each year
-            }),
-            isCurved: true,
-            color: Colors.red,
-            barWidth: 2,
-            isStrokeCapRound: true,
           ),
         ],
-        titlesData: FlTitlesData(
-          leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          bottomTitles: AxisTitles(
-            sideTitles: SideTitles(
-              showTitles: true,
-              getTitlesWidget: (value, meta) {
-                final int year = value.toInt() + 2023; // Adjusted year display
-                return Text('$year');
-              },
-            ),
-          ),
-        ),
-        gridData: FlGridData(show: false),
-        borderData: FlBorderData(show: false),
       ),
     );
   }
-}
 
-// Assuming AmortizationEntry is a data model containing fields for principal, interest, totalPayment, and balance
-class AmortizationEntry {
-  final int year;
-  final double principal;
-  final double interest;
-  final double totalPayment;
-  final double balance;
-  final DateTime paymentDate;
+  List<BarChartGroupData> _createBarGroups() {
+    List<BarChartGroupData> barGroups = [];
 
-  AmortizationEntry({
-    required this.year,
-    required this.principal,
-    required this.interest,
-    required this.totalPayment,
-    required this.balance,
-    required this.paymentDate,
-  });
-}
+    for (int i = 0; i < years.length; i++) {
+      final year = years[i];
+      final totalPayment = principalAmounts[i];
 
-class AmortizationScheduleTable extends StatelessWidget {
-  final List<AmortizationEntry> entries;
-  final int tenure;
-
-  AmortizationScheduleTable({required this.entries, required this.tenure});
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: entries.map((entry) {
-        return Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text('${entry.year}'),
-            Text('${entry.principal.toStringAsFixed(2)}'),
-            Text('${entry.interest.toStringAsFixed(2)}'),
-            Text('${entry.totalPayment.toStringAsFixed(2)}'),
-            Text('${entry.balance.toStringAsFixed(2)}'),
+      barGroups.add(
+        BarChartGroupData(
+          x: i,
+          barRods: [
+            BarChartRodData(
+              toY: totalPayment,
+              rodStackItems: [
+                BarChartRodStackItem(0, principalAmounts[i], Colors.green),
+                BarChartRodStackItem(principalAmounts[i], totalPayment, Colors.orange),
+              ],
+              width: 20,
+              borderRadius: BorderRadius.zero,
+            ),
           ],
-        );
-      }).toList(),
-    );
+        ),
+      );
+    }
+
+    return barGroups;
+  }
+
+  double _getMaxY() {
+    double maxY = 0;
+    for (int i = 0; i < balances.length; i++) {
+      final totalPayment = principalAmounts[i] + interestAmounts[i];
+      maxY = [maxY, totalPayment, balances[i]].reduce((a, b) => a > b ? a : b);
+    }
+    return maxY * 1.1; // Add 10% padding for better visualization
+  }
+
+  String _formatTitle(double value) {
+    if (value >= 1e6) {
+      return '${(value / 1e6).toStringAsFixed(0)}M';
+    } else if (value >= 1e3) {
+      return '${(value / 1e3).toStringAsFixed(0)}K';
+    } else {
+      return value.toStringAsFixed(0);
+    }
   }
 }
