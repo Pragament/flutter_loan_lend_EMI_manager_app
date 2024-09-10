@@ -60,14 +60,17 @@ class _AmortizationScheduleTableState extends State<AmortizationScheduleTable> {
   }
 
   List<DataRow> _buildYearlyEntries(List<int> years) {
-    return years.map((year) {
+    List<DataRow> rows = [];
+
+    for (var year in years) {
       final yearlyData = _groupedByYear[year] ?? [];
       final totalPrincipal = yearlyData.fold(0.0, (sum, entry) => sum + entry.principal);
       final totalInterest = yearlyData.fold(0.0, (sum, entry) => sum + entry.interest);
       final totalPayment = yearlyData.fold(0.0, (sum, entry) => sum + entry.totalPayment);
       final totalBalance = yearlyData.isNotEmpty ? yearlyData.last.balance : 0.0;
 
-      return DataRow(
+      // Add year row
+      rows.add(DataRow(
         cells: [
           DataCell(
             Row(
@@ -92,13 +95,17 @@ class _AmortizationScheduleTableState extends State<AmortizationScheduleTable> {
           DataCell(Text(totalPayment.toStringAsFixed(2))),
           DataCell(Text(totalBalance.toStringAsFixed(2))),
         ],
-      );
-    }).toList()
-      ..addAll(
-        _expandedYear != null
-            ? _buildMonthlyDataRows(_groupedByMonth[_expandedYear!] ?? [])
-            : [],
-      );
+      ));
+
+      // Add month rows if this year is expanded
+      if (_expandedYear == year) {
+        rows.addAll(
+          _buildMonthlyDataRows(yearlyData),
+        );
+      }
+    }
+
+    return rows;
   }
 
   List<DataRow> _buildMonthlyDataRows(List<AmortizationEntry> entries) {
@@ -107,11 +114,15 @@ class _AmortizationScheduleTableState extends State<AmortizationScheduleTable> {
     List<DataRow> rows = [];
 
     for (var entry in entries) {
-      // Add rows for months starting from the startDate
       if (entry.year > startYear || (entry.year == startYear && entry.month >= startMonth)) {
         rows.add(DataRow(
           cells: [
-            DataCell(Text(_getMonthName(entry.month))),
+            DataCell(
+              Padding(
+                padding: const EdgeInsets.only(left: 32.0), // Indent month rows
+                child: Text(_getMonthName(entry.month)),
+              ),
+            ),
             DataCell(Text(entry.principal.toStringAsFixed(2))),
             DataCell(Text(entry.interest.toStringAsFixed(2))),
             DataCell(Text(entry.totalPayment.toStringAsFixed(2))),
