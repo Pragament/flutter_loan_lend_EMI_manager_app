@@ -18,8 +18,7 @@ class AmortizationScheduleTable extends StatefulWidget {
 
 class _AmortizationScheduleTableState extends State<AmortizationScheduleTable> {
   final Map<int, List<AmortizationEntry>> _groupedByYear = {};
-  final Map<int, List<AmortizationEntry>> _groupedByMonth = {};
-  int? _expandedYear;
+  int? _expandedYear; // To track which year is expanded
 
   @override
   void initState() {
@@ -29,8 +28,8 @@ class _AmortizationScheduleTableState extends State<AmortizationScheduleTable> {
 
   void _groupData() {
     for (var entry in widget.schedule) {
+      // Group amortization data by year
       _groupedByYear.putIfAbsent(entry.year, () => []).add(entry);
-      _groupedByMonth.putIfAbsent(entry.year, () => []).add(entry);
     }
   }
 
@@ -40,7 +39,8 @@ class _AmortizationScheduleTableState extends State<AmortizationScheduleTable> {
       return Center(child: Text('No data available.'));
     }
 
-    List<int> years = List.generate(widget.tenureInYears + 1, (index) {
+    // Generate years dynamically based on tenure and startDate
+    List<int> years = List.generate(widget.tenureInYears, (index) {
       return widget.startDate.year + index;
     });
 
@@ -54,11 +54,12 @@ class _AmortizationScheduleTableState extends State<AmortizationScheduleTable> {
           DataColumn(label: Text('Total Payment')),
           DataColumn(label: Text('Balance')),
         ],
-        rows: _buildYearlyEntries(years),
+        rows: _buildYearlyEntries(years), // Build rows dynamically
       ),
     );
   }
 
+  // Build yearly entries for the table, and handle expansion for months
   List<DataRow> _buildYearlyEntries(List<int> years) {
     List<DataRow> rows = [];
 
@@ -83,7 +84,7 @@ class _AmortizationScheduleTableState extends State<AmortizationScheduleTable> {
                   ),
                   onPressed: () {
                     setState(() {
-                      _expandedYear = _expandedYear == year ? null : year;
+                      _expandedYear = _expandedYear == year ? null : year; // Toggle expanded state
                     });
                   },
                 ),
@@ -99,21 +100,22 @@ class _AmortizationScheduleTableState extends State<AmortizationScheduleTable> {
 
       // Add month rows if this year is expanded
       if (_expandedYear == year) {
-        rows.addAll(
-          _buildMonthlyDataRows(yearlyData),
-        );
+        rows.addAll(_buildMonthlyDataRows(yearlyData, year));
       }
     }
 
     return rows;
   }
 
-  List<DataRow> _buildMonthlyDataRows(List<AmortizationEntry> entries) {
-    final startMonth = widget.startDate.month;
-    final startYear = widget.startDate.year;
+  // Build monthly rows for expanded year
+  List<DataRow> _buildMonthlyDataRows(List<AmortizationEntry> yearlyData, int year) {
     List<DataRow> rows = [];
 
-    for (var entry in entries) {
+    final startMonth = widget.startDate.month;
+    final startYear = widget.startDate.year;
+
+    for (var entry in yearlyData) {
+      // Ensure entries are only shown starting from the start date's month/year
       if (entry.year > startYear || (entry.year == startYear && entry.month >= startMonth)) {
         rows.add(DataRow(
           cells: [
@@ -135,6 +137,7 @@ class _AmortizationScheduleTableState extends State<AmortizationScheduleTable> {
     return rows;
   }
 
+  // Utility function to get month name from month number
   String _getMonthName(int month) {
     const months = [
       'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
@@ -144,6 +147,7 @@ class _AmortizationScheduleTableState extends State<AmortizationScheduleTable> {
   }
 }
 
+// Model for amortization entry
 class AmortizationEntry {
   final DateTime paymentDate;
   final double principal;

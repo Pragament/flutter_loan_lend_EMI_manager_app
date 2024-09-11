@@ -40,6 +40,7 @@ class EmiDetailsPage extends ConsumerWidget {
       principalAmount: principalAmount,
       interestAmount: interestAmount,
       totalAmount: totalAmount,
+      startDate: startDate,
     );
 
 
@@ -209,9 +210,10 @@ class EmiDetailsPage extends ConsumerWidget {
     required double principalAmount,
     required double interestAmount,
     required double totalAmount,
+    required DateTime startDate, // Use start date from EMI details
   }) {
     List<AmortizationEntry> schedule = [];
-    DateTime startDate = DateTime.now();
+    DateTime paymentDate = startDate;
 
     // Monthly interest rate assuming a flat interest rate model
     double monthlyInterestRate = (interestAmount / principalAmount) / (tenureYears * 12);
@@ -228,20 +230,18 @@ class EmiDetailsPage extends ConsumerWidget {
       double monthlyPrincipal = monthlyEmi - monthlyInterest;
       remainingPrincipal -= monthlyPrincipal;
 
-      // Calculate year and month correctly
-      DateTime paymentDate = DateTime(startDate.year, startDate.month + month);
-      int year = paymentDate.year;
-      int monthOfYear = paymentDate.month;
+      // Ensure payment starts from the exact month and year of the start date
+      DateTime currentMonth = DateTime(paymentDate.year, paymentDate.month + month);
 
-      // Add amortization entry for each month
+      // Add amortization entry for each month from startDate onwards
       schedule.add(AmortizationEntry(
-        paymentDate: paymentDate,
+        paymentDate: currentMonth,
         principal: monthlyPrincipal,
         interest: monthlyInterest,
         totalPayment: monthlyEmi,
         balance: remainingPrincipal,
-        year: year,
-        month: monthOfYear,
+        year: currentMonth.year,
+        month: currentMonth.month,
       ));
     }
 
