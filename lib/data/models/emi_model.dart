@@ -52,6 +52,10 @@ class Emi {
   @HiveField(23)
   List<Tag> tags;
 
+  // Remove the year field from here
+  // @HiveField(24)
+  // final int year;
+
   Emi({
     required this.id,
     required this.title,
@@ -76,7 +80,12 @@ class Emi {
     required this.totalEmi,
     required this.paid,
     required this.tags,
+    // Remove the year parameter from here
+    // required this.year,
   });
+
+  // Add a getter for year
+  int get year => startDate.year;
 
   Emi copyWith({
     String? id,
@@ -130,54 +139,54 @@ class Emi {
       );
 
   factory Emi.fromMap(Map<String, dynamic> map, String id) => Emi(
-        id: map["id"],
-        title: map["title"],
-        emiType: map["emiType"],
-        principalAmount: map["principalAmount"]?.toDouble(),
-        interestRate: map["interestRate"]?.toDouble(),
-        startDate: DateTime.parse(map["startDate"]),
-        endDate: DateTime.parse(map["endDate"]),
-        contactPersonName: map["contactPersonName"],
-        contactPersonPhone: map["contactPersonPhone"],
-        contactPersonEmail: map["contactPersonEmail"],
-        otherInfo: map["otherInfo"],
-        processingFee: map["processingFee"]?.toDouble(),
-        otherCharges: map["otherCharges"]?.toDouble(),
-        partPayment: map["partPayment"]?.toDouble(),
-        advancePayment: map["advancePayment"]?.toDouble(),
-        insuranceCharges: map["insuranceCharges"]?.toDouble(),
-        moratorium: map["moratorium"],
-        moratoriumMonth: map["moratoriumMonth"],
-        moratoriumType: map["moratoriumType"],
-        monthlyEmi: map["monthlyEmi"]?.toDouble(),
-        totalEmi: map["totalEmi"]?.toDouble(),
-        paid: map["paid"]?.toDouble(),
-        tags: map["tags"],
-      );
+    id: map["id"],
+    title: map["title"],
+    emiType: map["emiType"],
+    principalAmount: map["principalAmount"]?.toDouble(),
+    interestRate: map["interestRate"]?.toDouble(),
+    startDate: DateTime.parse(map["startDate"]),
+    endDate: DateTime.parse(map["endDate"]),
+    contactPersonName: map["contactPersonName"],
+    contactPersonPhone: map["contactPersonPhone"],
+    contactPersonEmail: map["contactPersonEmail"],
+    otherInfo: map["otherInfo"],
+    processingFee: map["processingFee"]?.toDouble(),
+    otherCharges: map["otherCharges"]?.toDouble(),
+    partPayment: map["partPayment"]?.toDouble(),
+    advancePayment: map["advancePayment"]?.toDouble(),
+    insuranceCharges: map["insuranceCharges"]?.toDouble(),
+    moratorium: map["moratorium"],
+    moratoriumMonth: map["moratoriumMonth"],
+    moratoriumType: map["moratoriumType"],
+    monthlyEmi: map["monthlyEmi"]?.toDouble(),
+    totalEmi: map["totalEmi"]?.toDouble(),
+    paid: map["paid"]?.toDouble(),
+    tags: map["tags"],
+  );
 
   Map<String, dynamic> toMap() => {
-        "id": id,
-        "title": title,
-        "emiType": emiType,
-        "principalAmount": principalAmount,
-        "interestRate": interestRate,
-        "startDate": startDate.toIso8601String(),
-        "endDate": endDate?.toIso8601String(),
-        "contactPersonName": contactPersonName,
-        "contactPersonPhone": contactPersonPhone,
-        "contactPersonEmail": contactPersonEmail,
-        "otherInfo": otherInfo,
-        "processingFee": processingFee,
-        "otherCharges": otherCharges,
-        "partPayment": partPayment,
-        "advancePayment": advancePayment,
-        "insuranceCharges": insuranceCharges,
-        "moratorium": moratorium,
-        "moratoriumMonth": moratoriumMonth,
-        "moratoriumType": moratoriumType,
-        "monthlyEmi": monthlyEmi,
-        "totalEmi": totalEmi,
-        "paid": paid,
-        "tags": tags,
-      };
+    "id": id,
+    "title": title,
+    "emiType": emiType,
+    "principalAmount": principalAmount,
+    "interestRate": interestRate,
+    "startDate": startDate.toIso8601String(),
+    "endDate": endDate?.toIso8601String(),
+    "contactPersonName": contactPersonName,
+    "contactPersonPhone": contactPersonPhone,
+    "contactPersonEmail": contactPersonEmail,
+    "otherInfo": otherInfo,
+    "processingFee": processingFee,
+    "otherCharges": otherCharges,
+    "partPayment": partPayment,
+    "advancePayment": advancePayment,
+    "insuranceCharges": insuranceCharges,
+    "moratorium": moratorium,
+    "moratoriumMonth": moratoriumMonth,
+    "moratoriumType": moratoriumType,
+    "monthlyEmi": monthlyEmi,
+    "totalEmi": totalEmi,
+    "paid": paid,
+    "tags": tags,
+  };
 }

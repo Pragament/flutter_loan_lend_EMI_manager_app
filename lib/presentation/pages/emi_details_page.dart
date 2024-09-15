@@ -215,7 +215,7 @@ class EmiDetailsPage extends ConsumerWidget {
     List<AmortizationEntry> schedule = [];
     DateTime paymentDate = startDate;
 
-    // Monthly interest rate assuming a flat interest rate model
+
     double monthlyInterestRate = (interestAmount / principalAmount) / (tenureYears * 12);
     int totalMonths = tenureYears * 12;
 

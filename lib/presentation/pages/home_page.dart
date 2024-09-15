@@ -11,6 +11,7 @@ import 'package:fl_chart/fl_chart.dart'; // Import fl_chart
 import 'package:go_router/go_router.dart';
 
 import '../widgets/locale_selector_popup_menu.dart';
+import '../widgets/BarGraph.dart'; // Import the BarGraph widget
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key, this.actionCallback});
@@ -27,6 +28,19 @@ class HomePageState extends ConsumerState<HomePage> {
     final l10n = AppLocalizations.of(context)!;
     final allEmis = ref.watch(homeStateNotifierProvider).emis;
 
+    // Prepare data for the BarGraph
+    List<double> principalAmounts = [];
+    List<double> interestAmounts = [];
+    List<double> balances = [];
+    List<int> years = [];
+
+    for (var emi in allEmis) {
+      principalAmounts.add(emi.principalAmount);
+      interestAmounts.add(emi.totalEmi! - emi.principalAmount);
+      balances.add(emi.totalEmi!); // Assuming balances is the total amount
+      years.add(emi.year); // Assuming EMI model has a year field
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.appTitle),
@@ -37,6 +51,17 @@ class HomePageState extends ConsumerState<HomePage> {
       body: Column(
         children: [
           const TagsStrip(),
+          // Add the BarGraph widget here
+          Container(
+            padding: const EdgeInsets.all(16.0),
+            height: 300, // Adjust the height as needed
+            child: BarGraph(
+              principalAmounts: principalAmounts,
+              interestAmounts: interestAmounts,
+              balances: balances,
+              years: years,
+            ),
+          ),
           Expanded(
             child: ListView.builder(
               itemCount: allEmis.length,

@@ -23,6 +23,7 @@
   "processingFee": "Processing Fee",
   "otherCharges": "Other Charges",
   "partPayment": "Part Payment",
+  "showAmortizationTable": "Show Amortization Table",
   "advancePayment": "Advance Payment",
   "insuranceCharges": "Insurance Charges",
   "moratorium": "Moratorium",
@@ -51,5 +52,6 @@
   "switchToYears": "Switch to Years",
   "tags": "Tags",
   "legendBalanceAmount": "Balance Amount",
-  "noTenure": "No Tenure"
+  "noTenure": "No Tenure",
+  "addEmi": "Add EMI"
 }
