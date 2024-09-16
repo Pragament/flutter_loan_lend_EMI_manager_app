@@ -53,5 +53,7 @@
   "tags": "Tags",
   "legendBalanceAmount": "Balance Amount",
   "noTenure": "No Tenure",
-  "addEmi": "Add EMI"
+  "addEmi": "Add EMI",
+  "principalAmount": "principalAmount",
+  "deleteEmi": "deleteEmi"
 }

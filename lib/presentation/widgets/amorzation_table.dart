@@ -1,24 +1,28 @@
 import 'package:flutter/material.dart';
 
-class AmortizationTable extends StatefulWidget {
-  final List<AmortizationEntry> schedule;
+class AmortizationSummaryTable extends StatefulWidget {
+  final List<AmortizationEntry> entries;
   final DateTime startDate;
-  final int tenureInYears;
+  final double totalEMI;
+  final double totalInterest;
+  final double totalAmount;
 
-  const AmortizationTable({
+  const AmortizationSummaryTable({
     Key? key,
-    required this.schedule,
+    required this.entries,
     required this.startDate,
-    required this.tenureInYears,
+    required this.totalEMI,
+    required this.totalInterest,
+    required this.totalAmount,
   }) : super(key: key);
 
   @override
-  _AmortizationTableState createState() => _AmortizationTableState();
+  _AmortizationSummaryTableState createState() => _AmortizationSummaryTableState();
 }
 
-class _AmortizationTableState extends State<AmortizationTable> {
+class _AmortizationSummaryTableState extends State<AmortizationSummaryTable> {
   final Map<int, List<AmortizationEntry>> _groupedByYear = {};
-  int? _expandedYear;
+  int? _expandedYear; // To track which year is expanded
 
   @override
   void initState() {
@@ -27,22 +31,18 @@ class _AmortizationTableState extends State<AmortizationTable> {
   }
 
   void _groupData() {
-    for (var entry in widget.schedule) {
-      // Group amortization data by year
+    for (var entry in widget.entries) {
       _groupedByYear.putIfAbsent(entry.year, () => []).add(entry);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (widget.schedule.isEmpty) {
+    if (widget.entries.isEmpty) {
       return Center(child: Text('No data available.'));
     }
 
-    // Generate years dynamically based on tenure and startDate
-    List<int> years = List.generate(widget.tenureInYears, (index) {
-      return widget.startDate.year + index;
-    });
+    List<int> years = _generateYears();
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
@@ -58,6 +58,13 @@ class _AmortizationTableState extends State<AmortizationTable> {
     );
   }
 
+  List<int> _generateYears() {
+    final endDate = widget.startDate.add(Duration(days: 365 * (widget.totalAmount / widget.totalEMI).toInt()));
+    return List.generate(endDate.year - widget.startDate.year + 1, (index) {
+      return widget.startDate.year + index;
+    });
+  }
+
   List<DataRow> _buildYearlyEntries(List<int> years) {
     List<DataRow> rows = [];
 
@@ -66,7 +73,6 @@ class _AmortizationTableState extends State<AmortizationTable> {
       final totalPrincipal = yearlyData.fold(0.0, (sum, entry) => sum + entry.principal);
       final totalInterest = yearlyData.fold(0.0, (sum, entry) => sum + entry.interest);
 
-      // Add year row
       rows.add(DataRow(
         cells: [
           DataCell(
@@ -93,7 +99,6 @@ class _AmortizationTableState extends State<AmortizationTable> {
         ],
       ));
 
-      // Add loan/lend details if this year is expanded
       if (_expandedYear == year) {
         rows.addAll(_buildLoanLendDetails(yearlyData));
       }
@@ -111,14 +116,14 @@ class _AmortizationTableState extends State<AmortizationTable> {
           DataCell(
             Padding(
               padding: const EdgeInsets.only(left: 32.0),
-              child: Text('Loan/Lend ${entry.loanLendName}'),
+              child: Text('Loan/Lend ${entry.loanLendName} (${entry.loanLendType == LoanLendType.loan ? 'Loan' : 'Lend'})'),
             ),
           ),
           DataCell(Text('₹${entry.principal.toStringAsFixed(2)}')),
           DataCell(Text('₹${entry.interest.toStringAsFixed(2)}')),
           DataCell(
             Text(
-              '${entry.loanLendType == LoanLendType.loan ? "(Pink)" : "(Blue)"}',
+              '(${entry.loanLendType == LoanLendType.loan ? "Pink" : "Blue"})',
               style: TextStyle(
                 color: entry.loanLendType == LoanLendType.loan ? Colors.pink : Colors.blue,
               ),

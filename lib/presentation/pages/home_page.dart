@@ -12,6 +12,7 @@ import 'package:go_router/go_router.dart';
 
 import '../widgets/locale_selector_popup_menu.dart';
 import '../widgets/BarGraph.dart'; // Import the BarGraph widget
+import '../widgets/amorzation_table.dart'; // Import the AmortizationSummaryTable widget
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key, this.actionCallback});
@@ -23,6 +24,8 @@ class HomePage extends ConsumerStatefulWidget {
 }
 
 class HomePageState extends ConsumerState<HomePage> {
+  bool _showTable = false; // State variable to control the visibility of the table
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -62,6 +65,36 @@ class HomePageState extends ConsumerState<HomePage> {
               years: years,
             ),
           ),
+          // Checkbox to toggle the visibility of the AmortizationSummaryTable
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              children: [
+                Checkbox(
+                  value: _showTable,
+                  onChanged: (value) {
+                    setState(() {
+                      _showTable = value ?? false;
+                    });
+                  },
+                ),
+                Text(l10n.showAmortizationTable), // Adjust the text according to your localization
+              ],
+            ),
+          ),
+          // Conditionally show the AmortizationSummaryTable based on the checkbox
+          if (_showTable)
+            Container(
+              padding: const EdgeInsets.all(16.0),
+              height: 300, // Adjust the height as needed
+              child: AmortizationSummaryTable(
+                entries: _groupAmortizationEntries(allEmis),
+                startDate: DateTime.now(), // Provide the appropriate start date
+                totalEMI: _calculateTotalEMI(allEmis),
+                totalInterest: _calculateTotalInterest(allEmis),
+                totalAmount: _calculateTotalAmount(allEmis),
+              ),
+            ),
           Expanded(
             child: ListView.builder(
               itemCount: allEmis.length,
@@ -91,6 +124,33 @@ class HomePageState extends ConsumerState<HomePage> {
       ),
       floatingActionButton: Fab(l10n: l10n),
     );
+  }
+
+  // Method to group amortization entries by year
+  List<AmortizationEntry> _groupAmortizationEntries(List<Emi> emis) {
+    // Implement grouping logic here and return a list of AmortizationEntry
+    // Placeholder implementation
+    return emis.map((emi) => AmortizationEntry(
+      loanLendName: emi.title,
+      loanLendType: emi.emiType == 'lend' ? LoanLendType.lend : LoanLendType.loan,
+      principal: emi.principalAmount,
+      interest: emi.totalEmi! - emi.principalAmount,
+      year: emi.year,
+      month: DateTime.now().month,
+    )).toList();
+  }
+
+  // Methods to calculate totals
+  double _calculateTotalEMI(List<Emi> emis) {
+    return emis.fold(0.0, (sum, emi) => sum + emi.totalEmi!);
+  }
+
+  double _calculateTotalInterest(List<Emi> emis) {
+    return emis.fold(0.0, (sum, emi) => sum + (emi.totalEmi! - emi.principalAmount));
+  }
+
+  double _calculateTotalAmount(List<Emi> emis) {
+    return emis.fold(0.0, (sum, emi) => sum + emi.totalEmi!);
   }
 }
 
@@ -129,7 +189,7 @@ class EmiCard extends ConsumerWidget {
           side: BorderSide(
               color: emiTypeColor, width: 2), // Outline color and width
           borderRadius:
-              BorderRadius.circular(borderRadius), // Card corner radius
+          BorderRadius.circular(borderRadius), // Card corner radius
         ),
         child: Padding(
           padding: const EdgeInsets.all(8.0),
@@ -230,7 +290,7 @@ class EmiCard extends ConsumerWidget {
                                   color: Colors.blue,
                                   value: interestAmount,
                                   title:
-                                      '${interestPercentage.toStringAsFixed(1)}%',
+                                  '${interestPercentage.toStringAsFixed(1)}%',
                                   radius: 60,
                                   titleStyle: const TextStyle(
                                     fontSize: 14,
@@ -242,7 +302,7 @@ class EmiCard extends ConsumerWidget {
                                   color: Colors.green,
                                   value: principalAmount,
                                   title:
-                                      '${principalPercentage.toStringAsFixed(1)}%',
+                                  '${principalPercentage.toStringAsFixed(1)}%',
                                   radius: 60,
                                   titleStyle: const TextStyle(
                                     fontSize: 14,
