@@ -7,31 +7,31 @@ import 'package:emi_manager/presentation/router/routes.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fl_chart/fl_chart.dart'; // Import fl_chart
+import 'package:fl_chart/fl_chart.dart'; // For charting widgets
 import 'package:go_router/go_router.dart';
 
 import '../widgets/locale_selector_popup_menu.dart';
-import '../widgets/BarGraph.dart'; // Import the BarGraph widget
-import '../widgets/amorzation_table.dart'; // Import the AmortizationSummaryTable widget
+import '../widgets/BarGraph.dart'; // Custom BarGraph widget
+import '../widgets/amorzation_table.dart'; // Custom AmortizationTable widget
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key, this.actionCallback});
 
-  final Function? actionCallback; // Optional callback
+  final Function? actionCallback;
 
   @override
   HomePageState createState() => HomePageState();
 }
 
 class HomePageState extends ConsumerState<HomePage> {
-  bool _showTable = false; // State variable to control the visibility of the table
+  bool _showTable = false; // Toggle for the Amortization Table
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final allEmis = ref.watch(homeStateNotifierProvider).emis;
 
-    // Prepare data for the BarGraph
+    // Collect data for the BarGraph
     List<double> principalAmounts = [];
     List<double> interestAmounts = [];
     List<double> balances = [];
@@ -40,8 +40,8 @@ class HomePageState extends ConsumerState<HomePage> {
     for (var emi in allEmis) {
       principalAmounts.add(emi.principalAmount);
       interestAmounts.add(emi.totalEmi! - emi.principalAmount);
-      balances.add(emi.totalEmi!); // Assuming balances is the total amount
-      years.add(emi.year); // Assuming EMI model has a year field
+      balances.add(emi.totalEmi!); // Assuming balances as total EMI
+      years.add(emi.year); // Assuming EMI model has a 'year' field
     }
 
     return Scaffold(
@@ -53,11 +53,12 @@ class HomePageState extends ConsumerState<HomePage> {
       ),
       body: Column(
         children: [
-          const TagsStrip(),
-          // Add the BarGraph widget here
+          const TagsStrip(), // Top tags
+
+          // BarGraph Widget showing aggregate values
           Container(
             padding: const EdgeInsets.all(16.0),
-            height: 300, // Adjust the height as needed
+            height: 300, // Adjust height if needed
             child: BarGraph(
               principalAmounts: principalAmounts,
               interestAmounts: interestAmounts,
@@ -65,7 +66,8 @@ class HomePageState extends ConsumerState<HomePage> {
               years: years,
             ),
           ),
-          // Checkbox to toggle the visibility of the AmortizationSummaryTable
+
+          // Toggle button to show/hide the Amortization Table
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Row(
@@ -78,45 +80,45 @@ class HomePageState extends ConsumerState<HomePage> {
                     });
                   },
                 ),
-                Text(l10n.showAmortizationTable), // Adjust the text according to your localization
+                Text(l10n.showAmortizationTable), // Localized text
               ],
             ),
           ),
-          // Conditionally show the AmortizationSummaryTable based on the checkbox
+
+          // Conditionally render the Amortization Table based on _showTable state
           if (_showTable)
             Container(
               padding: const EdgeInsets.all(16.0),
-              height: 300, // Adjust the height as needed
+              height: 300, // Adjust height if needed
               child: AmortizationSummaryTable(
-                entries: _groupAmortizationEntries(allEmis),
-                startDate: DateTime.now(), // Provide the appropriate start date
-                totalEMI: _calculateTotalEMI(allEmis),
-                totalInterest: _calculateTotalInterest(allEmis),
-                totalAmount: _calculateTotalAmount(allEmis),
+                entries: _groupAmortizationEntries(allEmis), // Grouped EMI data
+                startDate: DateTime.now(), // Assuming current start date
+                tenureInYears: _calculateTenure(allEmis), // Provide tenure in years
               ),
             ),
+
+          // List of EMI cards
           Expanded(
             child: ListView.builder(
               itemCount: allEmis.length,
               itemBuilder: (context, index) {
                 final emi = allEmis.elementAt(index);
-
                 final emiTypeColor = emi.emiType == 'lend'
                     ? lendColor(context, true)
                     : loanColor(context, true);
 
                 final double principalAmount = emi.principalAmount;
-                final double interestAmount =
-                    emi.totalEmi! - emi.principalAmount;
+                final double interestAmount = emi.totalEmi! - emi.principalAmount;
                 final double totalAmount = emi.totalEmi!;
 
                 return EmiCard(
-                    emiTypeColor: emiTypeColor,
-                    l10n: l10n,
-                    emi: emi,
-                    interestAmount: interestAmount,
-                    totalAmount: totalAmount,
-                    principalAmount: principalAmount);
+                  emiTypeColor: emiTypeColor,
+                  l10n: l10n,
+                  emi: emi,
+                  interestAmount: interestAmount,
+                  totalAmount: totalAmount,
+                  principalAmount: principalAmount,
+                );
               },
             ),
           ),
@@ -125,11 +127,15 @@ class HomePageState extends ConsumerState<HomePage> {
       floatingActionButton: Fab(l10n: l10n),
     );
   }
+  int _calculateTenure(List<Emi> allEmis) {
+    int earliestYear = allEmis.map((emi) => emi.year).reduce((a, b) => a < b ? a : b);
+    int latestYear = allEmis.map((emi) => emi.year).reduce((a, b) => a > b ? a : b);
+    return latestYear - earliestYear + 1;
+  }
 
-  // Method to group amortization entries by year
+
+  // Group amortization entries by year for the Amortization Table
   List<AmortizationEntry> _groupAmortizationEntries(List<Emi> emis) {
-    // Implement grouping logic here and return a list of AmortizationEntry
-    // Placeholder implementation
     return emis.map((emi) => AmortizationEntry(
       loanLendName: emi.title,
       loanLendType: emi.emiType == 'lend' ? LoanLendType.lend : LoanLendType.loan,
@@ -140,7 +146,7 @@ class HomePageState extends ConsumerState<HomePage> {
     )).toList();
   }
 
-  // Methods to calculate totals
+  // Total calculations for EMI, Interest, and Amount
   double _calculateTotalEMI(List<Emi> emis) {
     return emis.fold(0.0, (sum, emi) => sum + emi.totalEmi!);
   }

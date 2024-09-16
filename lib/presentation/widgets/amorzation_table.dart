@@ -3,17 +3,13 @@ import 'package:flutter/material.dart';
 class AmortizationSummaryTable extends StatefulWidget {
   final List<AmortizationEntry> entries;
   final DateTime startDate;
-  final double totalEMI;
-  final double totalInterest;
-  final double totalAmount;
+  final int tenureInYears;
 
   const AmortizationSummaryTable({
     Key? key,
     required this.entries,
     required this.startDate,
-    required this.totalEMI,
-    required this.totalInterest,
-    required this.totalAmount,
+    required this.tenureInYears,
   }) : super(key: key);
 
   @override
@@ -30,6 +26,7 @@ class _AmortizationSummaryTableState extends State<AmortizationSummaryTable> {
     _groupData();
   }
 
+  // Group amortization entries by year
   void _groupData() {
     for (var entry in widget.entries) {
       _groupedByYear.putIfAbsent(entry.year, () => []).add(entry);
@@ -42,7 +39,10 @@ class _AmortizationSummaryTableState extends State<AmortizationSummaryTable> {
       return Center(child: Text('No data available.'));
     }
 
-    List<int> years = _generateYears();
+    // Generate the list of years based on the tenure
+    List<int> years = List.generate(widget.tenureInYears, (index) {
+      return widget.startDate.year + index;
+    });
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
@@ -51,20 +51,14 @@ class _AmortizationSummaryTableState extends State<AmortizationSummaryTable> {
           DataColumn(label: Text('Year')),
           DataColumn(label: Text('Principal')),
           DataColumn(label: Text('Interest')),
-          DataColumn(label: Text('Detailed Data')),
+          DataColumn(label: Text('Details')),
         ],
         rows: _buildYearlyEntries(years),
       ),
     );
   }
 
-  List<int> _generateYears() {
-    final endDate = widget.startDate.add(Duration(days: 365 * (widget.totalAmount / widget.totalEMI).toInt()));
-    return List.generate(endDate.year - widget.startDate.year + 1, (index) {
-      return widget.startDate.year + index;
-    });
-  }
-
+  // Build yearly entries and handle expansion for loans/lends details
   List<DataRow> _buildYearlyEntries(List<int> years) {
     List<DataRow> rows = [];
 
@@ -73,6 +67,7 @@ class _AmortizationSummaryTableState extends State<AmortizationSummaryTable> {
       final totalPrincipal = yearlyData.fold(0.0, (sum, entry) => sum + entry.principal);
       final totalInterest = yearlyData.fold(0.0, (sum, entry) => sum + entry.interest);
 
+      // Add the year row
       rows.add(DataRow(
         cells: [
           DataCell(
@@ -86,7 +81,7 @@ class _AmortizationSummaryTableState extends State<AmortizationSummaryTable> {
                   ),
                   onPressed: () {
                     setState(() {
-                      _expandedYear = _expandedYear == year ? null : year;
+                      _expandedYear = _expandedYear == year ? null : year; // Toggle expanded state
                     });
                   },
                 ),
@@ -99,6 +94,7 @@ class _AmortizationSummaryTableState extends State<AmortizationSummaryTable> {
         ],
       ));
 
+      // Show loan/lend details if the year is expanded
       if (_expandedYear == year) {
         rows.addAll(_buildLoanLendDetails(yearlyData));
       }
@@ -107,6 +103,7 @@ class _AmortizationSummaryTableState extends State<AmortizationSummaryTable> {
     return rows;
   }
 
+  // Build loan/lend details for the expanded year
   List<DataRow> _buildLoanLendDetails(List<AmortizationEntry> yearlyData) {
     List<DataRow> rows = [];
 
@@ -115,20 +112,23 @@ class _AmortizationSummaryTableState extends State<AmortizationSummaryTable> {
         cells: [
           DataCell(
             Padding(
-              padding: const EdgeInsets.only(left: 32.0),
-              child: Text('Loan/Lend ${entry.loanLendName} (${entry.loanLendType == LoanLendType.loan ? 'Loan' : 'Lend'})'),
+              padding: const EdgeInsets.only(left: 32.0), // Indent for loan/lend details
+              child: Text(
+                '${entry.loanLendName} (${entry.loanLendType == LoanLendType.loan ? 'Loan' : 'Lend'})',
+                style: TextStyle(
+                  color: entry.loanLendType == LoanLendType.loan ? Colors.pink : Colors.blue,
+                ),
+              ),
             ),
           ),
           DataCell(Text('₹${entry.principal.toStringAsFixed(2)}')),
           DataCell(Text('₹${entry.interest.toStringAsFixed(2)}')),
-          DataCell(
-            Text(
-              '(${entry.loanLendType == LoanLendType.loan ? "Pink" : "Blue"})',
-              style: TextStyle(
-                color: entry.loanLendType == LoanLendType.loan ? Colors.pink : Colors.blue,
-              ),
+          DataCell(Text(
+            '${entry.loanLendType == LoanLendType.loan ? 'Pink' : 'Blue'}',
+            style: TextStyle(
+              color: entry.loanLendType == LoanLendType.loan ? Colors.pink : Colors.blue,
             ),
-          ),
+          )),
         ],
       ));
     }
