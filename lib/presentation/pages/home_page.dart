@@ -31,6 +31,22 @@ class HomePageState extends ConsumerState<HomePage> {
     final l10n = AppLocalizations.of(context)!;
     final allEmis = ref.watch(homeStateNotifierProvider).emis;
 
+    if (allEmis.isEmpty) {
+      return Scaffold(
+        appBar: AppBar(
+          title: Text(l10n.appTitle),
+          actions: const [
+            LocaleSelectorPopupMenu(),
+          ],
+        ),
+        body: Center(
+
+        ),
+        floatingActionButton: Fab(l10n: l10n),
+      );
+    }
+
+
     // Collect data for the BarGraph
     List<double> principalAmounts = [];
     List<double> interestAmounts = [];
@@ -51,55 +67,49 @@ class HomePageState extends ConsumerState<HomePage> {
           LocaleSelectorPopupMenu(),
         ],
       ),
-      body: Column(
-        children: [
-          const TagsStrip(), // Top tags
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            const TagsStrip(), // Top tags
 
-          // BarGraph Widget showing aggregate values
-          Container(
-            padding: const EdgeInsets.all(16.0),
-            height: 300, // Adjust height if needed
-            child: BarGraph(
-              principalAmounts: principalAmounts,
-              interestAmounts: interestAmounts,
-              balances: balances,
-              years: years,
-            ),
-          ),
-
-          // Toggle button to show/hide the Amortization Table
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Row(
-              children: [
-                Checkbox(
-                  value: _showTable,
-                  onChanged: (value) {
-                    setState(() {
-                      _showTable = value ?? false;
-                    });
-                  },
-                ),
-                Text(l10n.showAmortizationTable), // Localized text
-              ],
-            ),
-          ),
-
-          // Conditionally render the Amortization Table based on _showTable state
-          if (_showTable)
+            // BarGraph Widget showing aggregate values
             Container(
               padding: const EdgeInsets.all(16.0),
               height: 300, // Adjust height if needed
-              child: AmortizationSummaryTable(
-                entries: _groupAmortizationEntries(allEmis), // Grouped EMI data
-                startDate: DateTime.now(), // Assuming current start date
-                tenureInYears: _calculateTenure(allEmis), // Provide tenure in years
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal, // Enable horizontal scrolling
+                child: SizedBox(
+                  width: years.length * 100.0, // Adjust width based on number of years or bars
+                  child: BarGraph(
+                    principalAmounts: principalAmounts,
+                    interestAmounts: interestAmounts,
+                    balances: balances,
+                    years: years,
+                  ),
+                ),
+              ),
+            ),
+            _buildLegend(context),
+
+            // Toggle button to show/hide the Amortization Table
+
+            // Always visible Amortization Table
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: AmortizationSummaryTable(
+                  entries: _groupAmortizationEntries(allEmis), // Grouped EMI data
+                  startDate: DateTime.now(), // Assuming current start date
+                  tenureInYears: _calculateTenure(allEmis), // Provide tenure in years
+                ),
               ),
             ),
 
-          // List of EMI cards
-          Expanded(
-            child: ListView.builder(
+            // List of EMI cards
+            ListView.builder(
+              shrinkWrap: true, // Ensures the list scrolls with the rest of the page
+              physics: const NeverScrollableScrollPhysics(), // Disable scrolling for the list, let the parent scroll
               itemCount: allEmis.length,
               itemBuilder: (context, index) {
                 final emi = allEmis.elementAt(index);
@@ -121,18 +131,18 @@ class HomePageState extends ConsumerState<HomePage> {
                 );
               },
             ),
-          ),
-        ],
+          ],
+        ),
       ),
       floatingActionButton: Fab(l10n: l10n),
     );
   }
+
   int _calculateTenure(List<Emi> allEmis) {
     int earliestYear = allEmis.map((emi) => emi.year).reduce((a, b) => a < b ? a : b);
     int latestYear = allEmis.map((emi) => emi.year).reduce((a, b) => a > b ? a : b);
     return latestYear - earliestYear + 1;
   }
-
 
   // Group amortization entries by year for the Amortization Table
   List<AmortizationEntry> _groupAmortizationEntries(List<Emi> emis) {
@@ -145,7 +155,6 @@ class HomePageState extends ConsumerState<HomePage> {
       month: DateTime.now().month,
     )).toList();
   }
-
   // Total calculations for EMI, Interest, and Amount
   double _calculateTotalEMI(List<Emi> emis) {
     return emis.fold(0.0, (sum, emi) => sum + emi.totalEmi!);
@@ -158,6 +167,23 @@ class HomePageState extends ConsumerState<HomePage> {
   double _calculateTotalAmount(List<Emi> emis) {
     return emis.fold(0.0, (sum, emi) => sum + emi.totalEmi!);
   }
+  // Build legend for the BarGraph
+  Widget _buildLegend(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          _LegendItem(color: Colors.pink, label: l10n.loan),
+          _LegendItem(color: Colors.blue, label: l10n.lend),
+          _LegendItem(color: Colors.grey, label: l10n.legendAggregate),
+        ],
+      ),
+    );
+  }
+
 }
 
 class EmiCard extends ConsumerWidget {

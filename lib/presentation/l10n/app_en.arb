@@ -23,7 +23,6 @@
   "processingFee": "Processing Fee",
   "otherCharges": "Other Charges",
   "partPayment": "Part Payment",
-  "showAmortizationTable": "Show Amortization Table",
   "advancePayment": "Advance Payment",
   "insuranceCharges": "Insurance Charges",
   "moratorium": "Moratorium",
@@ -55,5 +54,8 @@
   "noTenure": "No Tenure",
   "addEmi": "Add EMI",
   "principalAmount": "principalAmount",
-  "deleteEmi": "deleteEmi"
+  "deleteEmi": "deleteEmi",
+  "emiPerMonth": "emiPerMonth",
+  "legendAggregate": "legendAggregate",
+  "noDataAvailable": "noDataAvailable"
 }
