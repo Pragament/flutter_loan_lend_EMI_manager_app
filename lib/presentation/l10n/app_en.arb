@@ -49,5 +49,6 @@
   "preview": "Preview",
   "switchToMonths": "Switch to Months",
   "switchToYears": "Switch to Years",
-  "tags": "Tags"
+  "tags": "Tags",
+  "next":"next"
 }
