@@ -36,10 +36,10 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
   final interestRateC = TextEditingController();
 
   // Slider values
-  double principalAmount = 0.0;
-  double interestRate = 0.0;
-  double years = 1.0;
-  double months = 0.0;
+  double principalAmount = 110.0;
+  double interestRate = 10.0;
+  double years = 0.0;
+  double months = 1.0;
 
   // tags
   List<Tag> tags = [];
@@ -404,7 +404,7 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
                         Expanded(
                           child: Slider(
                             value: years,
-                            min: 1,
+                            min: 0,
                             max: 30,
                             divisions: 29,
                             label: years.toStringAsFixed(0),
