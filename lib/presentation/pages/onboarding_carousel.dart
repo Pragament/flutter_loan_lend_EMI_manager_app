@@ -2,9 +2,8 @@ import 'package:emi_manager/logic/locale_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:onboarding/onboarding.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart'; // Make sure to import this
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart'; // Import Riverpod for state management
+import 'package:flutter_gen/gen_l10n/app_localizations.dart'; // Import localization
 
 void completeOnboarding(BuildContext context) {
   var prefsBox = Hive.box('preferences');
@@ -19,62 +18,90 @@ class OnboardingScreen extends ConsumerStatefulWidget {
 
 class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   int currentIndex = 0;
-@override
-Widget build(BuildContext context) {
-  final localeNotifier = ref.read(localeNotifierProvider.notifier); // Use ref here
-  return Scaffold(
-    body: Onboarding(
-      swipeableBody: [
-        _buildFirstPage(localeNotifier),
-        _buildPage(),
-        _buildPage(),
-      ],
-      startIndex: currentIndex,
-      onPageChanges: (netDragDistance, pagesLength, currentIndex, slideDirection) {
-        // Handle page change logic here
-        setState(() {
-          this.currentIndex = currentIndex;
-        });
-      },
-      buildFooter: (context, netDragDistance, pagesLength, currentIndex, setIndex, slideDirection) {
-        // Don't show the button on the first screen
-        if (currentIndex == 0) {
-          return SizedBox.shrink();
-        }
+  final PageController _pageController = PageController(); // Page controller for swiping
 
-        return Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: ElevatedButton(
-            onPressed: () {
-              if (currentIndex < pagesLength - 1) {
-                setIndex(currentIndex + 1);
-              } else {
-                completeOnboarding(context); // Complete onboarding
-              }
+  @override
+  Widget build(BuildContext context) {
+    final localeNotifier =
+        ref.read(localeNotifierProvider.notifier); // Get the locale notifier
+    return Scaffold(
+      body: Stack(
+        children: [
+          PageView(
+            controller: _pageController,
+            onPageChanged: (index) {
+              setState(() {
+                currentIndex = index; // Update current index on swipe
+              });
             },
-            child: Center(
-              child: Text(
-                currentIndex == pagesLength - 1
-                    ? AppLocalizations.of(context)!.completeOnboarding
-                    : AppLocalizations.of(context)!.next,
-              ),
+            children: [
+              _buildFirstPage(localeNotifier),
+              _buildSecondPage(),
+              _buildThirdPage(),
+              _buildFourthPage(),
+            ],
+          ),
+          Positioned(
+            bottom: 60,
+            left: 0,
+            right: 0,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(4, (index) => _buildDot(index)),
             ),
           ),
-        );
-      },
-      animationInMilliseconds: 300,
-    ),
-  );
-}
+          if (currentIndex > 0 && currentIndex < 3) // Skip button only on 2nd and 3rd screen
+            Positioned(
+              top: 40,
+              right: 16,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.blueAccent.withOpacity(0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: IconButton(
+                  icon: const Icon(Icons.arrow_forward, color: Colors.blueAccent, size: 28),
+                  onPressed: () {
+                    completeOnboarding(context); // Skip and complete onboarding
+                  },
+                ),
+              ),
+            ),
+          if (currentIndex == 3) // Complete button on the 4th page
+            Positioned(
+              bottom: 20,
+              left: 0,
+              right: 0,
+              child: Center(
+                child: ElevatedButton(
+                  onPressed: () {
+                    completeOnboarding(context); // Complete onboarding
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blueAccent,
+                    padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 15),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                  ),
+                  child: const Text(
+                    'Complete Onboarding',
+                    style: TextStyle(fontSize: 18, color: Colors.white),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
 
-  Widget _buildFirstPage(
-     LocaleNotifier localeNotifier) {
+  Widget _buildFirstPage(LocaleNotifier localeNotifier) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             const Text(
               "Select Language", // Localized text for "Select Language"
@@ -85,88 +112,67 @@ Widget build(BuildContext context) {
               ),
             ),
             const SizedBox(height: 40),
-            SizedBox(
-              width: 200,
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  localeNotifier.changeLanguage(const Locale('en'));
-                  // Move to the next screen
-                  setState(() {
-                    currentIndex = 1; // Update currentIndex
-                  });
-                },
-                icon: const Icon(Icons.language, color: Colors.white),
-                label: const Text('English'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blueAccent, // Background color
-                  padding: const EdgeInsets.symmetric(vertical: 16.0),
-                  shape: RoundedRectangleBorder(
-                    borderRadius:
-                        BorderRadius.circular(30.0), // Rounded corners
-                  ),
-                ),
-              ),
-            ),
+            _buildLanguageButton(
+                localeNotifier, const Locale('en'), 'English', Colors.blueAccent),
             const SizedBox(height: 20),
-            SizedBox(
-              width: 200,
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  localeNotifier.changeLanguage(const Locale('hi'));
-                  // Move to the next screen
-                  setState(() {
-                    currentIndex = 1; // Update currentIndex
-                  });
-                },
-                icon: const Icon(Icons.language, color: Colors.white),
-                label: const Text('हिन्दी'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.orangeAccent, // Background color
-                  padding: const EdgeInsets.symmetric(vertical: 16.0),
-                  shape: RoundedRectangleBorder(
-                    borderRadius:
-                        BorderRadius.circular(30.0), // Rounded corners
-                  ),
-                ),
-              ),
-            ),
+            _buildLanguageButton(
+                localeNotifier, const Locale('hi'), 'हिन्दी', Colors.orangeAccent),
             const SizedBox(height: 20),
-            SizedBox(
-              width: 200,
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  localeNotifier.changeLanguage(const Locale('te'));
-                  // Move to the next screen
-                  setState(() {
-                    currentIndex = 1; // Update currentIndex
-                  });
-                },
-                icon: const Icon(Icons.language, color: Colors.white),
-                label: const Text('తెలుగు'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.greenAccent, // Background color
-                  padding: const EdgeInsets.symmetric(vertical: 16.0),
-                  shape: RoundedRectangleBorder(
-                    borderRadius:
-                        BorderRadius.circular(30.0), // Rounded corners
-                  ),
-                ),
-              ),
-            ),
+            _buildLanguageButton(
+                localeNotifier, const Locale('te'), 'తెలుగు', Colors.greenAccent),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildPage() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(AppLocalizations.of(context)!.caroselHeading),
-          SizedBox(height: 20),
-        ],
+  Widget _buildLanguageButton(LocaleNotifier localeNotifier, Locale locale,
+      String label, Color backgroundColor) {
+    return SizedBox(
+      width: 200,
+      child: ElevatedButton.icon(
+        onPressed: () {
+          localeNotifier.changeLanguage(locale);
+          _pageController.nextPage(
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+          );
+        },
+        icon: const Icon(Icons.language, color: Colors.white),
+        label: Text(label),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: backgroundColor,
+          padding: const EdgeInsets.symmetric(vertical: 16.0),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(30.0),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSecondPage() {
+    return Center(child: Image.asset('assets/english.png'));
+  }
+
+  Widget _buildThirdPage() {
+    return Center(child: Image.asset('assets/hindi.png'));
+  }
+
+  Widget _buildFourthPage() {
+    return Center(child: Image.asset('assets/telugu.png'));
+  }
+
+  // Build a dot indicator to show the current page
+  Widget _buildDot(int index) {
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      margin: const EdgeInsets.symmetric(horizontal: 5),
+      height: 12,
+      width: currentIndex == index ? 24 : 12,
+      decoration: BoxDecoration(
+        color: currentIndex == index ? Colors.blueAccent : Colors.grey,
+        borderRadius: BorderRadius.circular(6),
       ),
     );
   }
