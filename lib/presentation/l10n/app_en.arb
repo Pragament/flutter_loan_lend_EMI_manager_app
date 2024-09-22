@@ -46,9 +46,11 @@
   "years": "years",
   "month": "month",
   "months": "months",
-  "preview": "Preview",
+  "preview": "Preview", 
+  "skip": "Skip",
   "switchToMonths": "Switch to Months",
   "switchToYears": "Switch to Years",
   "tags": "Tags",
-  "next":"next"
+  "next":"next",
+  "welcome": "Welcome to the English version of our app. Here you can manage your loans and EMIs efficiently."
 }

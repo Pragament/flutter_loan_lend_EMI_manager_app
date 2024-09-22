@@ -14,8 +14,8 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await Hive.initFlutter();
-  Hive.deleteBoxFromDisk('preferences');
-  Hive.deleteBoxFromDisk('emis');
+  // Hive.deleteBoxFromDisk('preferences');
+  // Hive.deleteBoxFromDisk('emis');
   Hive.registerAdapter(EmiAdapter());
   Hive.registerAdapter(TagAdapter());
   await Hive.openBox<Emi>('emis');
