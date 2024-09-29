@@ -57,5 +57,9 @@
   "deleteEmi": "deleteEmi",
   "emiPerMonth": "emiPerMonth",
   "legendAggregate": "legendAggregate",
-  "noDataAvailable": "noDataAvailable"
+  "noDataAvailable": "noDataAvailable",
+  "noEmiMessage": "noEmiMessage",
+  "amortizationTableTitle": "Amortization Table",
+  "manageTags": "manageTags",
+  "noEmis": "noEmis"
 }

@@ -63,7 +63,7 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
   void _loadEmiData() async {
     // Fetch EMI data using emiId and populate fields
     final emi =
-        await ref.read(emisNotifierProvider.notifier).getEmiById(emiId!);
+    await ref.read(emisNotifierProvider.notifier).getEmiById(emiId!);
 
     if (emi != null) {
       setState(() {
@@ -102,57 +102,11 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
     }
   }
 
-  void _showPreviewDialog() {
-    final l10n = AppLocalizations.of(context)!;
-
-    final totalMonths = (years * 12 + months).toInt();
-    final monthlyInterestRate = interestRate / 12 / 100;
-    final powTerm = pow((1 + monthlyInterestRate), totalMonths);
-    final numerator = principalAmount * monthlyInterestRate * powTerm;
-    final denominator = powTerm - 1;
-    final monthlyEmi = numerator / denominator;
-    final totalEmi = monthlyEmi * totalMonths;
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.preview),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('${l10n.title}: ${titleC.text}'),
-            Text('${l10n.loanAmount}: ₹${principalAmount.toStringAsFixed(0)}'),
-            Text('${l10n.interestRate}: ${interestRate.toStringAsFixed(1)}%'),
-            Text('${l10n.startDate}: ${startDateC.text}'),
-            Text(
-                '${l10n.endDate}: ${DateTime.parse(startDateC.text).add(Duration(days: (totalMonths * 30))).toLocal().toString().split(' ')[0]}'),
-            Text('${l10n.monthlyEmi}: ₹${monthlyEmi.toStringAsFixed(2)}'),
-            Text('${l10n.totalEmi}: ₹${totalEmi.toStringAsFixed(2)}'),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              _saveEmi();
-            },
-            child: Text(l10n.save),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(l10n.cancel),
-          ),
-        ],
-      ),
-    );
-  }
-
   void _saveEmi() {
     final startDate = DateTime.parse(startDateC.text);
     final totalMonths = (years * 12 + months).toInt();
     final endDate =
-        startDate.add(Duration(days: (totalMonths * 30))); // Approximation
+    startDate.add(Duration(days: (totalMonths * 30))); // Approximation
 
     // EMI Calculation using the formula
     final monthlyInterestRate = interestRate / 12 / 100;
@@ -163,8 +117,7 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
     final totalEmi = monthlyEmi * totalMonths;
 
     final emi = Emi(
-      id: emiId ??
-          const Uuid().v4(), // Use provided emiId or generate a new one
+      id: emiId ?? const Uuid().v4(), // Use provided emiId or generate a new one
       title: titleC.text,
       principalAmount: principalAmount,
       interestRate: interestRate,
@@ -222,7 +175,7 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
                 padding: const EdgeInsets.all(4.0),
                 child: InkWell(
                   borderRadius:
-                      const BorderRadius.all(Radius.circular(borderRadius)),
+                  const BorderRadius.all(Radius.circular(borderRadius)),
                   onTap: () => setState(() => emiType = 'lend'),
                   child: Container(
                     padding: const EdgeInsets.all(4.0),
@@ -241,7 +194,7 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
                 padding: const EdgeInsets.all(4.0),
                 child: InkWell(
                   borderRadius:
-                      const BorderRadius.all(Radius.circular(borderRadius)),
+                  const BorderRadius.all(Radius.circular(borderRadius)),
                   onTap: () => setState(() => emiType = 'loan'),
                   child: Container(
                     padding: const EdgeInsets.all(4.0),
@@ -280,8 +233,7 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
                     padding: const EdgeInsets.all(4.0),
                     child: Row(
                       children: [
-                        Text(
-                            '${l10n.loanAmount}: ₹${principalAmount.toStringAsFixed(0)}'),
+                        Text('${l10n.loanAmount}: ₹${principalAmount.toStringAsFixed(0)}'),
                         Expanded(
                           child: Slider(
                             value: principalAmount,
@@ -305,7 +257,6 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
                             keyboardType: TextInputType.number,
                             decoration: const InputDecoration(
                               border: OutlineInputBorder(),
-                              //labelText: l10n.loanAmount,
                             ),
                             onChanged: (value) {
                               setState(() {
@@ -322,8 +273,7 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
                     padding: const EdgeInsets.all(4.0),
                     child: Row(
                       children: [
-                        Text(
-                            '${l10n.interestRate}: ${interestRate.toStringAsFixed(1)}%'),
+                        Text('${l10n.interestRate}: ${interestRate.toStringAsFixed(1)}%'),
                         Expanded(
                           child: Slider(
                             value: interestRate,
@@ -346,7 +296,6 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
                             keyboardType: TextInputType.number,
                             decoration: const InputDecoration(
                               border: OutlineInputBorder(),
-                              //labelText: l10n.interestRate,
                             ),
                             onChanged: (value) {
                               setState(() {
@@ -358,7 +307,6 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
                       ],
                     ),
                   ),
-                  // Start Date Field
                   // Start Date Field with Date Picker
                   Padding(
                     padding: const EdgeInsets.all(4.0),
@@ -374,12 +322,11 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
                         if (pickedDate != null) {
                           setState(() {
                             startDateC.text =
-                                pickedDate.toLocal().toString().split(' ')[0];
+                            pickedDate.toLocal().toString().split(' ')[0];
                           });
                         }
                       },
                       child: IgnorePointer(
-                        // To prevent keyboard from appearing
                         child: TextFormField(
                           controller: startDateC,
                           decoration: InputDecoration(
@@ -393,14 +340,12 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
                       ),
                     ),
                   ),
-
                   // Years Slider
                   Padding(
                     padding: const EdgeInsets.all(4.0),
                     child: Row(
                       children: [
-                        Text(
-                            '${l10n.tenure}: ${years.toStringAsFixed(0)} ${l10n.years}'),
+                        Text('${l10n.tenure}: ${years.toStringAsFixed(0)} ${l10n.years}'),
                         Expanded(
                           child: Slider(
                             value: years,
@@ -423,8 +368,7 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
                     padding: const EdgeInsets.all(4.0),
                     child: Row(
                       children: [
-                        Text(
-                            '${l10n.tenure}: ${months.toStringAsFixed(0)} ${l10n.months}'),
+                        Text('${l10n.tenure}: ${months.toStringAsFixed(0)} ${l10n.months}'),
                         Expanded(
                           child: Slider(
                             value: months,
@@ -473,6 +417,7 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
                       ),
                     ),
                   ),
+                  // Tags Field
                   Padding(
                     padding: const EdgeInsets.all(4.0),
                     child: Card(
@@ -492,59 +437,59 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
                           ),
                           tags.isEmpty
                               ? Expanded(
-                                  child: GestureDetector(
-                                    child: const Text(
-                                      'Tap to add a tag',
-                                      style: TextStyle(color: Colors.grey),
-                                      textAlign: TextAlign.center,
-                                    ),
-                                    onTap: () async {
-                                      tags = await showDialog(
-                                        barrierDismissible: false,
-                                        context: context,
-                                        builder: (context) =>
-                                            TagsSelectionDialog(
-                                                selectedTags: tags),
-                                      );
+                            child: GestureDetector(
+                              child: const Text(
+                                'Tap to add a tag',
+                                style: TextStyle(color: Colors.grey),
+                                textAlign: TextAlign.center,
+                              ),
+                              onTap: () async {
+                                tags = await showDialog(
+                                  barrierDismissible: false,
+                                  context: context,
+                                  builder: (context) =>
+                                      TagsSelectionDialog(
+                                          selectedTags: tags),
+                                );
 
-                                      setState(() {});
-                                    },
-                                  ),
-                                )
+                                setState(() {});
+                              },
+                            ),
+                          )
                               : Expanded(
-                                  child: SingleChildScrollView(
-                                    scrollDirection: Axis.horizontal,
-                                    child: Row(
-                                      children: List.generate(
-                                        tags.length,
-                                        (index) {
-                                          final tag = tags.elementAt(index);
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Row(
+                                children: List.generate(
+                                  tags.length,
+                                      (index) {
+                                    final tag = tags.elementAt(index);
 
-                                          return Padding(
-                                            padding: const EdgeInsets.all(2.0),
-                                            child: FittedBox(
-                                              fit: BoxFit.contain,
-                                              child: FilterChip(
-                                                padding:
-                                                    const EdgeInsets.all(4.0),
-                                                label: Text('# ${tag.name}'),
-                                                shape: RoundedRectangleBorder(
-                                                    side: const BorderSide(
-                                                        color: Colors.grey),
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            borderRadius)),
-                                                onSelected: (selected) =>
-                                                    setState(
-                                                        () => tags.remove(tag)),
-                                              ),
-                                            ),
-                                          );
-                                        },
+                                    return Padding(
+                                      padding: const EdgeInsets.all(2.0),
+                                      child: FittedBox(
+                                        fit: BoxFit.contain,
+                                        child: FilterChip(
+                                          padding:
+                                          const EdgeInsets.all(4.0),
+                                          label: Text('# ${tag.name}'),
+                                          shape: RoundedRectangleBorder(
+                                              side: const BorderSide(
+                                                  color: Colors.grey),
+                                              borderRadius:
+                                              BorderRadius.circular(
+                                                  borderRadius)),
+                                          onSelected: (selected) =>
+                                              setState(
+                                                      () => tags.remove(tag)),
+                                        ),
                                       ),
-                                    ),
-                                  ),
+                                    );
+                                  },
                                 ),
+                              ),
+                            ),
+                          ),
                           IconButton(
                             onPressed: () async {
                               tags = await showDialog(
@@ -569,7 +514,7 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
                     child: ElevatedButton(
                       onPressed: () {
                         if (_formKey.currentState?.validate() ?? false) {
-                          _showPreviewDialog();
+                          _saveEmi();
                         }
                       },
                       child: Text(l10n.save),
