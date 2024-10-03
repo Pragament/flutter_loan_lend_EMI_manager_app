@@ -212,7 +212,9 @@ class EmiCard extends ConsumerWidget {
 
     return InkWell(
       onTap: () {
-        GoRouter.of(context).go('/emiDetails/${emi.id}');
+       EmiDetailsRoute(emiId: emi.id).push(context);
+
+
       },
       child: Card(
         elevation: 4,
