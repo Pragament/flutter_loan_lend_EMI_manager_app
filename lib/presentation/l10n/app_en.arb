@@ -51,6 +51,18 @@
   "switchToMonths": "Switch to Months",
   "switchToYears": "Switch to Years",
   "tags": "Tags",
+  "legendBalanceAmount": "Balance Amount",
+  "noTenure": "No Tenure",
+  "addEmi": "Add EMI",
+  "principalAmount": "principalAmount",
+  "deleteEmi": "deleteEmi",
+  "emiPerMonth": "emiPerMonth",
+  "legendAggregate": "legendAggregate",
+  "noDataAvailable": "noDataAvailable",
+  "noEmiMessage": "noEmiMessage",
+  "amortizationTableTitle": "Amortization Table",
+  "manageTags": "manageTags",
+  "noEmis": "noEmis",
   "next":"next",
   "welcome": "Welcome to the English version of our app. Here you can manage your loans and EMIs efficiently."
 }

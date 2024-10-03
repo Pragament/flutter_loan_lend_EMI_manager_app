@@ -7,25 +7,58 @@ import 'package:emi_manager/presentation/router/routes.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:fl_chart/fl_chart.dart'; // Import fl_chart
+import 'package:fl_chart/fl_chart.dart'; // For charting widgets
 import 'package:go_router/go_router.dart';
 
 import '../widgets/locale_selector_popup_menu.dart';
+import '../widgets/BarGraph.dart'; // Custom BarGraph widget
+import '../widgets/amorzation_table.dart'; // Custom AmortizationTable widget
 
 class HomePage extends ConsumerStatefulWidget {
   const HomePage({super.key, this.actionCallback});
 
-  final Function? actionCallback; // Optional callback
+  final Function? actionCallback;
 
   @override
   HomePageState createState() => HomePageState();
 }
 
 class HomePageState extends ConsumerState<HomePage> {
+  bool _showTable = false; // Toggle for the Amortization Table
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final allEmis = ref.watch(homeStateNotifierProvider).emis;
+
+    if (allEmis.isEmpty) {
+      return Scaffold(
+        appBar: AppBar(
+          title: Text(l10n.appTitle),
+          actions: const [
+            LocaleSelectorPopupMenu(),
+          ],
+        ),
+        body: Center(
+
+        ),
+        floatingActionButton: Fab(l10n: l10n),
+      );
+    }
+
+
+    // Collect data for the BarGraph
+    List<double> principalAmounts = [];
+    List<double> interestAmounts = [];
+    List<double> balances = [];
+    List<int> years = [];
+
+    for (var emi in allEmis) {
+      principalAmounts.add(emi.principalAmount);
+      interestAmounts.add(emi.totalEmi! - emi.principalAmount);
+      balances.add(emi.totalEmi!); // Assuming balances as total EMI
+      years.add(emi.year); // Assuming EMI model has a 'year' field
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -34,39 +67,123 @@ class HomePageState extends ConsumerState<HomePage> {
           LocaleSelectorPopupMenu(),
         ],
       ),
-      body: Column(
-        children: [
-          const TagsStrip(),
-          Expanded(
-            child: ListView.builder(
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            const TagsStrip(), // Top tags
+
+            // BarGraph Widget showing aggregate values
+            Container(
+              padding: const EdgeInsets.all(16.0),
+              height: 300, // Adjust height if needed
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal, // Enable horizontal scrolling
+                child: SizedBox(
+                  width: years.length * 100.0, // Adjust width based on number of years or bars
+                  child: BarGraph(
+                    principalAmounts: principalAmounts,
+                    interestAmounts: interestAmounts,
+                    balances: balances,
+                    years: years,
+                  ),
+                ),
+              ),
+            ),
+            _buildLegend(context),
+
+            // Toggle button to show/hide the Amortization Table
+
+            // Always visible Amortization Table
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: AmortizationSummaryTable(
+                  entries: _groupAmortizationEntries(allEmis), // Grouped EMI data
+                  startDate: DateTime.now(), // Assuming current start date
+                  tenureInYears: _calculateTenure(allEmis), // Provide tenure in years
+                ),
+              ),
+            ),
+
+            // List of EMI cards
+            ListView.builder(
+              shrinkWrap: true, // Ensures the list scrolls with the rest of the page
+              physics: const NeverScrollableScrollPhysics(), // Disable scrolling for the list, let the parent scroll
               itemCount: allEmis.length,
               itemBuilder: (context, index) {
                 final emi = allEmis.elementAt(index);
-
                 final emiTypeColor = emi.emiType == 'lend'
                     ? lendColor(context, true)
                     : loanColor(context, true);
 
                 final double principalAmount = emi.principalAmount;
-                final double interestAmount =
-                    emi.totalEmi! - emi.principalAmount;
+                final double interestAmount = emi.totalEmi! - emi.principalAmount;
                 final double totalAmount = emi.totalEmi!;
 
                 return EmiCard(
-                    emiTypeColor: emiTypeColor,
-                    l10n: l10n,
-                    emi: emi,
-                    interestAmount: interestAmount,
-                    totalAmount: totalAmount,
-                    principalAmount: principalAmount);
+                  emiTypeColor: emiTypeColor,
+                  l10n: l10n,
+                  emi: emi,
+                  interestAmount: interestAmount,
+                  totalAmount: totalAmount,
+                  principalAmount: principalAmount,
+                );
               },
             ),
-          ),
-        ],
+          ],
+        ),
       ),
       floatingActionButton: Fab(l10n: l10n),
     );
   }
+
+  int _calculateTenure(List<Emi> allEmis) {
+    int earliestYear = allEmis.map((emi) => emi.year).reduce((a, b) => a < b ? a : b);
+    int latestYear = allEmis.map((emi) => emi.year).reduce((a, b) => a > b ? a : b);
+    return latestYear - earliestYear + 1;
+  }
+
+  // Group amortization entries by year for the Amortization Table
+  List<AmortizationEntry> _groupAmortizationEntries(List<Emi> emis) {
+    return emis.map((emi) => AmortizationEntry(
+      loanLendName: emi.title,
+      loanLendType: emi.emiType == 'lend' ? LoanLendType.lend : LoanLendType.loan,
+      principal: emi.principalAmount,
+      interest: emi.totalEmi! - emi.principalAmount,
+      year: emi.year,
+      month: DateTime.now().month,
+    )).toList();
+  }
+  // Total calculations for EMI, Interest, and Amount
+  double _calculateTotalEMI(List<Emi> emis) {
+    return emis.fold(0.0, (sum, emi) => sum + emi.totalEmi!);
+  }
+
+  double _calculateTotalInterest(List<Emi> emis) {
+    return emis.fold(0.0, (sum, emi) => sum + (emi.totalEmi! - emi.principalAmount));
+  }
+
+  double _calculateTotalAmount(List<Emi> emis) {
+    return emis.fold(0.0, (sum, emi) => sum + emi.totalEmi!);
+  }
+  // Build legend for the BarGraph
+  Widget _buildLegend(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          _LegendItem(color: Colors.pink, label: l10n.loan),
+          _LegendItem(color: Colors.blue, label: l10n.lend),
+          _LegendItem(color: Colors.grey, label: l10n.legendAggregate),
+        ],
+      ),
+    );
+  }
+
 }
 
 class EmiCard extends ConsumerWidget {
@@ -106,7 +223,7 @@ class EmiCard extends ConsumerWidget {
           side: BorderSide(
               color: emiTypeColor, width: 2), // Outline color and width
           borderRadius:
-              BorderRadius.circular(borderRadius), // Card corner radius
+          BorderRadius.circular(borderRadius), // Card corner radius
         ),
         child: Padding(
           padding: const EdgeInsets.all(8.0),
@@ -207,7 +324,7 @@ class EmiCard extends ConsumerWidget {
                                   color: Colors.blue,
                                   value: interestAmount,
                                   title:
-                                      '${interestPercentage.toStringAsFixed(1)}%',
+                                  '${interestPercentage.toStringAsFixed(1)}%',
                                   radius: 60,
                                   titleStyle: const TextStyle(
                                     fontSize: 14,
@@ -219,7 +336,7 @@ class EmiCard extends ConsumerWidget {
                                   color: Colors.green,
                                   value: principalAmount,
                                   title:
-                                      '${principalPercentage.toStringAsFixed(1)}%',
+                                  '${principalPercentage.toStringAsFixed(1)}%',
                                   radius: 60,
                                   titleStyle: const TextStyle(
                                     fontSize: 14,
