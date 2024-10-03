@@ -36,10 +36,10 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
   final interestRateC = TextEditingController();
 
   // Slider values
-  double principalAmount = 0.0;
-  double interestRate = 0.0;
+  double principalAmount = 110.0;
+  double interestRate = 10.0;
   double years = 1.0;
-  double months = 0.0;
+  double months = 1.0;
 
   // tags
   List<Tag> tags = [];
@@ -96,7 +96,7 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
         } else {
           // If endDate is null, set default values for years and months
           years = 1.0;
-          months = 0.0;
+          months = 1.0;
         }
       });
     }
@@ -428,7 +428,7 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
                         Expanded(
                           child: Slider(
                             value: months,
-                            min: 0,
+                            min: 1,
                             max: 11,
                             divisions: 11,
                             label: months.toStringAsFixed(0),
