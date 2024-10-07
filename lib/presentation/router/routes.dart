@@ -15,7 +15,7 @@ class OnboardingRoute extends GoRouteData {
 
   @override
   Widget build(BuildContext context, GoRouterState state) {
-    return const OnboardingCarousel(); // Display the onboarding carousel
+    return OnboardingScreen(); // Display the onboarding carousel
   }
 }
 
