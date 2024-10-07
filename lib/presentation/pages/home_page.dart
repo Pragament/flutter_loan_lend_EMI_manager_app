@@ -59,16 +59,40 @@ class HomePageState extends ConsumerState<HomePage> {
       balances.add(emi.totalEmi!); // Assuming balances as total EMI
       years.add(emi.year); // Assuming EMI model has a 'year' field
     }
-
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.appTitle),
-        actions: const [
-          LocaleSelectorPopupMenu(),
-        ],
+        // Automatically shows the drawer icon on the left
       ),
+        drawer: Drawer(
+          child: ListView(
+            padding: EdgeInsets.zero,
+            children: <Widget>[
+              DrawerHeader(
+                decoration: BoxDecoration(
+                  color: Colors.blue,
+                ),
+                child: Text(
+                  'Menu',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                  ),
+                ),
+              ),
+              // Move the LocaleSelectorPopupMenu inside the Drawer
+              ListTile(
+
+                title: Text('Select Language'),
+                trailing: LocaleSelectorPopupMenu(),
+              ),
+              // Add other items if needed
+
+            ],
+          ),
+        ),
       body: SingleChildScrollView(
-        child: Column(
+          child: Column(
           children: [
             const TagsStrip(), // Top tags
 
@@ -178,7 +202,7 @@ class HomePageState extends ConsumerState<HomePage> {
         children: [
           _LegendItem(color: Colors.pink, label: l10n.loan),
           _LegendItem(color: Colors.blue, label: l10n.lend),
-          _LegendItem(color: Colors.grey, label: l10n.legendAggregate),
+          _LegendItem(color: Colors.grey, label: l10n.aggregate),
         ],
       ),
     );

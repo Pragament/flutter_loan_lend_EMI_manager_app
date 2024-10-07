@@ -56,10 +56,12 @@
   "principalAmount": "principalAmount",
   "deleteEmi": "deleteEmi",
   "emiPerMonth": "emiPerMonth",
-  "legendAggregate": "legendAggregate",
+  "aggregate": "aggregate",
   "noDataAvailable": "noDataAvailable",
   "noEmiMessage": "noEmiMessage",
   "amortizationTableTitle": "Amortization Table",
   "manageTags": "manageTags",
-  "noEmis": "noEmis"
+  "noEmis": "noEmis",
+  "language": "language",
+  "selectLanguage": "selectLanguage"
 }
