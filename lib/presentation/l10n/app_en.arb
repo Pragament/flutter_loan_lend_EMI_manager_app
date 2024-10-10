@@ -57,12 +57,14 @@
   "principalAmount": "principalAmount",
   "deleteEmi": "deleteEmi",
   "emiPerMonth": "emiPerMonth",
-  "legendAggregate": "legendAggregate",
+  "aggregate": "aggregate",
   "noDataAvailable": "noDataAvailable",
   "noEmiMessage": "noEmiMessage",
   "amortizationTableTitle": "Amortization Table",
   "manageTags": "manageTags",
   "noEmis": "noEmis",
+  "language": "language",
+  "selectLanguage": "selectLanguage",
   "next":"next",
   "welcome": "Welcome to the English version of our app. Here you can manage your loans and EMIs efficiently."
 }
