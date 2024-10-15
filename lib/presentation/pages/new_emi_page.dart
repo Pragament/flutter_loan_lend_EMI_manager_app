@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:showcaseview/showcaseview.dart';
 import 'package:uuid/uuid.dart';
 
 class NewEmiPage extends ConsumerStatefulWidget {
@@ -21,7 +22,9 @@ class NewEmiPage extends ConsumerStatefulWidget {
 class _NewEmiPageState extends ConsumerState<NewEmiPage> {
   late String emiType;
   String? emiId;
-
+  GlobalKey tagsKey = GlobalKey();
+  GlobalKey selectTagsKey = GlobalKey();
+  GlobalKey createTagsKey = GlobalKey();
   final _formKey = GlobalKey<FormState>();
 
   // Controllers
@@ -63,7 +66,7 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
   void _loadEmiData() async {
     // Fetch EMI data using emiId and populate fields
     final emi =
-    await ref.read(emisNotifierProvider.notifier).getEmiById(emiId!);
+        await ref.read(emisNotifierProvider.notifier).getEmiById(emiId!);
 
     if (emi != null) {
       setState(() {
@@ -106,7 +109,7 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
     final startDate = DateTime.parse(startDateC.text);
     final totalMonths = (years * 12 + months).toInt();
     final endDate =
-    startDate.add(Duration(days: (totalMonths * 30))); // Approximation
+        startDate.add(Duration(days: (totalMonths * 30))); // Approximation
 
     // EMI Calculation using the formula
     final monthlyInterestRate = interestRate / 12 / 100;
@@ -117,7 +120,8 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
     final totalEmi = monthlyEmi * totalMonths;
 
     final emi = Emi(
-      id: emiId ?? const Uuid().v4(), // Use provided emiId or generate a new one
+      id: emiId ??
+          const Uuid().v4(), // Use provided emiId or generate a new one
       title: titleC.text,
       principalAmount: principalAmount,
       interestRate: interestRate,
@@ -153,15 +157,46 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
     GoRouter.of(context).pop();
   }
 
+  void _showHelpOptions(BuildContext parentContext) {
+    showModalBottomSheet(
+      context: parentContext, //parentModel context
+      builder: (BuildContext context) {
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            ListTile(
+              leading: const Icon(Icons.home),
+              title: Text('Tags Help'),
+              onTap: () async {
+                Navigator.pop(context); // Close the modal with current context
+                ShowCaseWidget.of(parentContext)
+                    .startShowCase([tagsKey]); //language help model context
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.emi),
+    return ShowCaseWidget(
+      builder: (context) => Scaffold(
+        appBar: AppBar(
+          title: Text(l10n.emi),
+          actions: [
+            IconButton(
+                icon: const Icon(Icons.help_outline),
+                onPressed: () {
+                  _showHelpOptions(context);
+                }),
+          ],
+        ),
+        body: body(context, l10n),
       ),
-      body: body(context, l10n),
     );
   }
 
@@ -175,7 +210,7 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
                 padding: const EdgeInsets.all(4.0),
                 child: InkWell(
                   borderRadius:
-                  const BorderRadius.all(Radius.circular(borderRadius)),
+                      const BorderRadius.all(Radius.circular(borderRadius)),
                   onTap: () => setState(() => emiType = 'lend'),
                   child: Container(
                     padding: const EdgeInsets.all(4.0),
@@ -194,7 +229,7 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
                 padding: const EdgeInsets.all(4.0),
                 child: InkWell(
                   borderRadius:
-                  const BorderRadius.all(Radius.circular(borderRadius)),
+                      const BorderRadius.all(Radius.circular(borderRadius)),
                   onTap: () => setState(() => emiType = 'loan'),
                   child: Container(
                     padding: const EdgeInsets.all(4.0),
@@ -233,7 +268,8 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
                     padding: const EdgeInsets.all(4.0),
                     child: Row(
                       children: [
-                        Text('${l10n.loanAmount}: ₹${principalAmount.toStringAsFixed(0)}'),
+                        Text(
+                            '${l10n.loanAmount}: ₹${principalAmount.toStringAsFixed(0)}'),
                         Expanded(
                           child: Slider(
                             value: principalAmount,
@@ -273,7 +309,8 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
                     padding: const EdgeInsets.all(4.0),
                     child: Row(
                       children: [
-                        Text('${l10n.interestRate}: ${interestRate.toStringAsFixed(1)}%'),
+                        Text(
+                            '${l10n.interestRate}: ${interestRate.toStringAsFixed(1)}%'),
                         Expanded(
                           child: Slider(
                             value: interestRate,
@@ -322,7 +359,7 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
                         if (pickedDate != null) {
                           setState(() {
                             startDateC.text =
-                            pickedDate.toLocal().toString().split(' ')[0];
+                                pickedDate.toLocal().toString().split(' ')[0];
                           });
                         }
                       },
@@ -345,7 +382,8 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
                     padding: const EdgeInsets.all(4.0),
                     child: Row(
                       children: [
-                        Text('${l10n.tenure}: ${years.toStringAsFixed(0)} ${l10n.years}'),
+                        Text(
+                            '${l10n.tenure}: ${years.toStringAsFixed(0)} ${l10n.years}'),
                         Expanded(
                           child: Slider(
                             value: years,
@@ -368,7 +406,8 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
                     padding: const EdgeInsets.all(4.0),
                     child: Row(
                       children: [
-                        Text('${l10n.tenure}: ${months.toStringAsFixed(0)} ${l10n.months}'),
+                        Text(
+                            '${l10n.tenure}: ${months.toStringAsFixed(0)} ${l10n.months}'),
                         Expanded(
                           child: Slider(
                             value: months,
@@ -437,59 +476,59 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
                           ),
                           tags.isEmpty
                               ? Expanded(
-                            child: GestureDetector(
-                              child: const Text(
-                                'Tap to add a tag',
-                                style: TextStyle(color: Colors.grey),
-                                textAlign: TextAlign.center,
-                              ),
-                              onTap: () async {
-                                tags = await showDialog(
-                                  barrierDismissible: false,
-                                  context: context,
-                                  builder: (context) =>
-                                      TagsSelectionDialog(
-                                          selectedTags: tags),
-                                );
+                                  child: GestureDetector(
+                                    child: const Text(
+                                      'Tap to add a tag',
+                                      style: TextStyle(color: Colors.grey),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                    onTap: () async {
+                                      tags = await showDialog(
+                                        barrierDismissible: false,
+                                        context: context,
+                                        builder: (context) =>
+                                            TagsSelectionDialog(
+                                                selectedTags: tags),
+                                      );
 
-                                setState(() {});
-                              },
-                            ),
-                          )
+                                      setState(() {});
+                                    },
+                                  ),
+                                )
                               : Expanded(
-                            child: SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              child: Row(
-                                children: List.generate(
-                                  tags.length,
-                                      (index) {
-                                    final tag = tags.elementAt(index);
+                                  child: SingleChildScrollView(
+                                    scrollDirection: Axis.horizontal,
+                                    child: Row(
+                                      children: List.generate(
+                                        tags.length,
+                                        (index) {
+                                          final tag = tags.elementAt(index);
 
-                                    return Padding(
-                                      padding: const EdgeInsets.all(2.0),
-                                      child: FittedBox(
-                                        fit: BoxFit.contain,
-                                        child: FilterChip(
-                                          padding:
-                                          const EdgeInsets.all(4.0),
-                                          label: Text('# ${tag.name}'),
-                                          shape: RoundedRectangleBorder(
-                                              side: const BorderSide(
-                                                  color: Colors.grey),
-                                              borderRadius:
-                                              BorderRadius.circular(
-                                                  borderRadius)),
-                                          onSelected: (selected) =>
-                                              setState(
-                                                      () => tags.remove(tag)),
-                                        ),
+                                          return Padding(
+                                            padding: const EdgeInsets.all(2.0),
+                                            child: FittedBox(
+                                              fit: BoxFit.contain,
+                                              child: FilterChip(
+                                                padding:
+                                                    const EdgeInsets.all(4.0),
+                                                label: Text('# ${tag.name}'),
+                                                shape: RoundedRectangleBorder(
+                                                    side: const BorderSide(
+                                                        color: Colors.grey),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            borderRadius)),
+                                                onSelected: (selected) =>
+                                                    setState(
+                                                        () => tags.remove(tag)),
+                                              ),
+                                            ),
+                                          );
+                                        },
                                       ),
-                                    );
-                                  },
+                                    ),
+                                  ),
                                 ),
-                              ),
-                            ),
-                          ),
                           IconButton(
                             onPressed: () async {
                               tags = await showDialog(
@@ -501,8 +540,12 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
 
                               setState(() {});
                             },
-                            icon: Icon(Icons.add,
-                                color: Theme.of(context).colorScheme.primary),
+                            icon: Showcase(
+                              key: tagsKey,
+                              description: "Create New Tags or Select From Previous Tags",
+                              child: Icon(Icons.add,
+                                  color: Theme.of(context).colorScheme.primary),
+                            ),
                           ),
                         ],
                       ),

@@ -74,10 +74,10 @@ class _TagsSelectionDialogState extends ConsumerState<TagsSelectionDialog> {
                                   controller: tagNameC,
                                   autofocus: true,
                                   autovalidateMode:
-                                      AutovalidateMode.onUserInteraction,
+                                  AutovalidateMode.onUserInteraction,
                                   cursorColor: Theme.of(context).focusColor,
                                   style:
-                                      Theme.of(context).textTheme.titleMedium,
+                                  Theme.of(context).textTheme.titleMedium,
                                   validator: (value) {
                                     if (value == null || value.isEmpty) {
                                       return 'Cannot be empty';
@@ -106,8 +106,8 @@ class _TagsSelectionDialogState extends ConsumerState<TagsSelectionDialog> {
                                   await ref
                                       .read(tagsNotifierProvider.notifier)
                                       .add(Tag(
-                                          id: const Uuid().v1(),
-                                          name: tagNameC.text));
+                                      id: const Uuid().v1(),
+                                      name: tagNameC.text));
                                   context.pop();
                                 }
                               },
@@ -127,25 +127,25 @@ class _TagsSelectionDialogState extends ConsumerState<TagsSelectionDialog> {
         content: allTags.isEmpty
             ? const Text('No tags exist.\nTap + icon to create a new tag.')
             : SingleChildScrollView(
-                child: Column(
-                  children: List.generate(
-                    allTags.length,
-                    (index) {
-                      final tag = allTags.elementAt(index);
+          child: Column(
+            children: List.generate(
+              allTags.length,
+                  (index) {
+                final tag = allTags.elementAt(index);
 
-                      return CheckboxListTile(
-                        title: Text(tag.name),
-                        value: selectedTags.map((e) => e.id).contains(tag.id),
-                        onChanged: (enabled) => setState(
-                          () => enabled ?? false
-                              ? selectedTags.add(tag)
-                              : selectedTags.remove(tag),
-                        ),
-                      );
-                    },
+                return CheckboxListTile(
+                  title: Text(tag.name),
+                  value: selectedTags.map((e) => e.id).contains(tag.id),
+                  onChanged: (enabled) => setState(
+                        () => enabled ?? false
+                        ? selectedTags.add(tag)
+                        : selectedTags.remove(tag),
                   ),
-                ),
-              ),
+                );
+              },
+            ),
+          ),
+        ),
         actions: [
           FilledButton(
             onPressed: () => context.pop(selectedTags),
