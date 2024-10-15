@@ -10,6 +10,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:emi_manager/data/models/emi_model.dart';
 import 'package:emi_manager/logic/locale_provider.dart';
 import 'package:emi_manager/presentation/router/router.dart';
+import 'package:showcaseview/showcaseview.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -42,24 +43,26 @@ class MainApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final locale = ref.watch(localeNotifierProvider);
 
-    return MaterialApp.router(
-      locale: locale,
-      supportedLocales: const [
-        Locale('en'), // English
-        Locale('hi'), // Hindi
-        Locale('te') // Telugu
-      ],
-      localizationsDelegates: const [
-        AppLocalizations.delegate,
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
-      ],
-      theme: ThemeData(
-          useMaterial3: true, colorScheme: _colorScheme(Brightness.light)),
-      darkTheme: ThemeData(
-          useMaterial3: true, colorScheme: _colorScheme(Brightness.dark)),
-      routerConfig: ref.watch(routerProvider),
+    return ShowCaseWidget(
+      builder: (context)=> MaterialApp.router(
+        locale: locale,
+        supportedLocales: const [
+          Locale('en'), // English
+          Locale('hi'), // Hindi
+          Locale('te') // Telugu
+        ],
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        theme: ThemeData(
+            useMaterial3: true, colorScheme: _colorScheme(Brightness.light)),
+        darkTheme: ThemeData(
+            useMaterial3: true, colorScheme: _colorScheme(Brightness.dark)),
+        routerConfig: ref.watch(routerProvider),
+      ),
     );
   }
 }

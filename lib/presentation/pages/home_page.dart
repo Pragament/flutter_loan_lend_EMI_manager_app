@@ -4,18 +4,22 @@ import 'package:emi_manager/presentation/constants.dart';
 import 'package:emi_manager/presentation/pages/home/logic/home_state_provider.dart';
 import 'package:emi_manager/presentation/pages/home/widgets/tags_strip.dart';
 import 'package:emi_manager/presentation/router/routes.dart';
+import 'package:emi_manager/presentation/widgets/help_selector_popup_menu.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_chart/fl_chart.dart'; // For charting widgets
 import 'package:go_router/go_router.dart';
+import 'package:showcaseview/showcaseview.dart';
 
 import '../widgets/locale_selector_popup_menu.dart';
 import '../widgets/BarGraph.dart'; // Custom BarGraph widget
 import '../widgets/amorzation_table.dart'; // Custom AmortizationTable widget
 
 class HomePage extends ConsumerStatefulWidget {
-  const HomePage({super.key, this.actionCallback});
+  // GlobalKey loanHelpKey, GlobalKey lendHelpKey, GlobalKey langHelpKey, GlobalKey helpHelpKey
+
+  HomePage({super.key, this.actionCallback});
 
   final Function? actionCallback;
 
@@ -25,27 +29,119 @@ class HomePage extends ConsumerStatefulWidget {
 
 class HomePageState extends ConsumerState<HomePage> {
   bool _showTable = false; // Toggle for the Amortization Table
+  bool noEmis = false;
+  final GlobalKey loanHelpKey = GlobalKey();
+  final GlobalKey lendHelpKey = GlobalKey();
+  final GlobalKey langHelpKey = GlobalKey();
+  final GlobalKey helpHelpKey = GlobalKey();
+  final GlobalKey filterHelpKey = GlobalKey();
+  final GlobalKey<ScaffoldState> _scaffoldKey =
+      GlobalKey<ScaffoldState>(); //for drawer
+
+  void _showHelpOptions(BuildContext parentContext) {
+    showModalBottomSheet(
+      context: parentContext, //parentModel context
+      builder: (BuildContext context) {
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            ListTile(
+              leading: const Icon(Icons.home),
+              title: Text('All Home Bottons'),
+              onTap: () async {
+                Navigator.pop(context); // Close the bumodal with current context
+                //language
+                if(noEmis==false)
+                  {
+                    _scaffoldKey.currentState?.openDrawer();
+                    ShowCaseWidget.of(parentContext).startShowCase(
+                        [langHelpKey]); //language help model context
+                    await Future.delayed(Duration(seconds: 2));
+                    ShowCaseWidget.of(parentContext).startShowCase([helpHelpKey]);
+                    await Future.delayed(Duration(seconds: 2));
+                  }
+                if (_scaffoldKey.currentState?.isDrawerOpen ??
+                    false) //if drawer open
+                  Navigator.pop(parentContext); //close drawer
+                ShowCaseWidget.of(parentContext).startShowCase([loanHelpKey]);
+                await Future.delayed(Duration(seconds: 2));
+                ShowCaseWidget.of(parentContext).startShowCase([lendHelpKey]);
+              },
+            ),
+
+
+            if (noEmis == false)
+              ListTile(
+                leading: const Icon(Icons.tag),
+                title: Text('Filter By Tag'),
+                onTap: () {
+                  Navigator.pop(context); // Close the modal
+                  //if no emis present
+                  if (_scaffoldKey.currentState?.isDrawerOpen ??
+                      false) //if drawer open
+                    Navigator.pop(parentContext); //close drawer
+                  ShowCaseWidget.of(parentContext).startShowCase([filterHelpKey]);
+                },
+              ),
+
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final allEmis = ref.watch(homeStateNotifierProvider).emis;
-
     if (allEmis.isEmpty) {
-      return Scaffold(
-        appBar: AppBar(
-          title: Text(l10n.appTitle),
-          actions: const [
-            LocaleSelectorPopupMenu(),
-          ],
+      return ShowCaseWidget(
+        builder: (context) => Scaffold(
+          appBar: AppBar(
+            title: Text(l10n.appTitle),
+            actions: [
+              IconButton(
+                  icon: const Icon(Icons.help_outline),
+                  onPressed: () {
+                    noEmis = true;
+                    _showHelpOptions(context);
+                  }),
+            ],
+          ),
+          body: Center(),
+          floatingActionButton: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Showcase(
+                key: lendHelpKey,
+                description: "Add New Lend from Here",
+                child: FloatingActionButton.extended(
+                  onPressed: () =>
+                      const NewEmiRoute(emiType: 'lend').push(context),
+                  heroTag: 'newLendBtn',
+                  backgroundColor: lendColor(context, false),
+                  label: Text(l10n.lend),
+                  icon: const Icon(Icons.add),
+                ),
+              ),
+              Showcase(
+                key: loanHelpKey,
+                description: "Add new Loan from Here",
+                child: FloatingActionButton.extended(
+                  onPressed: () =>
+                      const NewEmiRoute(emiType: 'loan').push(context),
+                  heroTag: 'newLoanBtn',
+                  backgroundColor: loanColor(context, false),
+                  label: Text(l10n.loan),
+                  icon: const Icon(Icons.add),
+                ),
+              ),
+            ],
+          ),
         ),
-        body: Center(
-
-        ),
-        floatingActionButton: Fab(l10n: l10n),
       );
     }
-
 
     // Collect data for the BarGraph
     List<double> principalAmounts = [];
@@ -59,11 +155,21 @@ class HomePageState extends ConsumerState<HomePage> {
       balances.add(emi.totalEmi!); // Assuming balances as total EMI
       years.add(emi.year); // Assuming EMI model has a 'year' field
     }
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.appTitle),
-        // Automatically shows the drawer icon on the left
-      ),
+    return ShowCaseWidget(
+      builder: (context) => Scaffold(
+        appBar: AppBar(
+          title: Text(l10n.appTitle),
+          // Automatically shows the drawer icon on the left
+          actions: [
+            IconButton(
+                icon: const Icon(Icons.help_outline),
+                onPressed: () {
+                  noEmis = false;
+                  _showHelpOptions(context);
+                }),
+          ],
+        ),
+        key: _scaffoldKey, //for opening drawer
         drawer: Drawer(
           child: ListView(
             padding: EdgeInsets.zero,
@@ -81,116 +187,181 @@ class HomePageState extends ConsumerState<HomePage> {
                 ),
               ),
               // Move the LocaleSelectorPopupMenu inside the Drawer
-              ListTile(
-
-                title: Text('Select Language'),
-                trailing: LocaleSelectorPopupMenu(),
+              Showcase(
+                key: langHelpKey,
+                description: "You Can Choose Your Regional Language",
+                child: ListTile(
+                  title: Text('Select Language'),
+                  trailing: LocaleSelectorPopupMenu(),
+                ),
               ),
-              // Add other items if needed
-
-            ],
-          ),
-        ),
-      body: SingleChildScrollView(
-          child: Column(
-          children: [
-            const TagsStrip(), // Top tags
-
-            // BarGraph Widget showing aggregate values
-            Container(
-              padding: const EdgeInsets.all(16.0),
-              height: 300, // Adjust height if needed
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal, // Enable horizontal scrolling
-                child: SizedBox(
-                  width: years.length * 100.0, // Adjust width based on number of years or bars
-                  child: BarGraph(
-                    principalAmounts: principalAmounts,
-                    interestAmounts: interestAmounts,
-                    balances: balances,
-                    years: years,
+              Showcase(
+                key: helpHelpKey,
+                description: "Help Button",
+                child: ListTile(
+                  title: Text('Help'),
+                  trailing: IconButton(
+                    icon: const Icon(Icons.help_outline),
+                    onPressed: () {
+                      _showHelpOptions(context);
+                    },
                   ),
                 ),
               ),
-            ),
-            _buildLegend(context),
+              // Add other items if needed
+            ],
+          ),
+        ),
+        body: SingleChildScrollView(
+          child: Column(
+            children: [
+              Showcase(
+                  key: filterHelpKey,
+                  description: "Filter By Multiple Tags",
+                  child: const TagsStrip()
+              ), // Top tags
 
-            // Toggle button to show/hide the Amortization Table
-
-            // Always visible Amortization Table
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: AmortizationSummaryTable(
-                  entries: _groupAmortizationEntries(allEmis), // Grouped EMI data
-                  startDate: DateTime.now(), // Assuming current start date
-                  tenureInYears: _calculateTenure(allEmis), // Provide tenure in years
+              // BarGraph Widget showing aggregate values
+              Container(
+                padding: const EdgeInsets.all(16.0),
+                height: 300, // Adjust height if needed
+                child: SingleChildScrollView(
+                  scrollDirection:
+                      Axis.horizontal, // Enable horizontal scrolling
+                  child: SizedBox(
+                    width: years.length *
+                        100.0, // Adjust width based on number of years or bars
+                    child: BarGraph(
+                      principalAmounts: principalAmounts,
+                      interestAmounts: interestAmounts,
+                      balances: balances,
+                      years: years,
+                    ),
+                  ),
                 ),
               ),
+              _buildLegend(context),
+
+              // Toggle button to show/hide the Amortization Table
+
+              // Always visible Amortization Table
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: AmortizationSummaryTable(
+                    entries:
+                        _groupAmortizationEntries(allEmis), // Grouped EMI data
+                    startDate: DateTime.now(), // Assuming current start date
+                    tenureInYears:
+                        _calculateTenure(allEmis), // Provide tenure in years
+                  ),
+                ),
+              ),
+
+              // List of EMI cards
+              ListView.builder(
+                shrinkWrap:
+                    true, // Ensures the list scrolls with the rest of the page
+                physics:
+                    const NeverScrollableScrollPhysics(), // Disable scrolling for the list, let the parent scroll
+                itemCount: allEmis.length,
+                itemBuilder: (context, index) {
+                  final emi = allEmis.elementAt(index);
+                  final emiTypeColor = emi.emiType == 'lend'
+                      ? lendColor(context, true)
+                      : loanColor(context, true);
+
+                  final double principalAmount = emi.principalAmount;
+                  final double interestAmount =
+                      emi.totalEmi! - emi.principalAmount;
+                  final double totalAmount = emi.totalEmi!;
+
+                  return EmiCard(
+                    emiTypeColor: emiTypeColor,
+                    l10n: l10n,
+                    emi: emi,
+                    interestAmount: interestAmount,
+                    totalAmount: totalAmount,
+                    principalAmount: principalAmount,
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+        floatingActionButton: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Showcase(
+              key: lendHelpKey,
+              description: "Add New Lend from Here",
+              targetBorderRadius: BorderRadius.circular(35),
+              child: FloatingActionButton.extended(
+                onPressed: () =>
+                    const NewEmiRoute(emiType: 'lend').push(context),
+                heroTag: 'newLendBtn',
+                backgroundColor: lendColor(context, false),
+                label: Text(l10n.lend),
+                icon: const Icon(Icons.add),
+              ),
             ),
-
-            // List of EMI cards
-            ListView.builder(
-              shrinkWrap: true, // Ensures the list scrolls with the rest of the page
-              physics: const NeverScrollableScrollPhysics(), // Disable scrolling for the list, let the parent scroll
-              itemCount: allEmis.length,
-              itemBuilder: (context, index) {
-                final emi = allEmis.elementAt(index);
-                final emiTypeColor = emi.emiType == 'lend'
-                    ? lendColor(context, true)
-                    : loanColor(context, true);
-
-                final double principalAmount = emi.principalAmount;
-                final double interestAmount = emi.totalEmi! - emi.principalAmount;
-                final double totalAmount = emi.totalEmi!;
-
-                return EmiCard(
-                  emiTypeColor: emiTypeColor,
-                  l10n: l10n,
-                  emi: emi,
-                  interestAmount: interestAmount,
-                  totalAmount: totalAmount,
-                  principalAmount: principalAmount,
-                );
-              },
+            Showcase(
+              key: loanHelpKey,
+              description: "Add new Loan from Here",
+              child: FloatingActionButton.extended(
+                onPressed: () =>
+                    const NewEmiRoute(emiType: 'loan').push(context),
+                heroTag: 'newLoanBtn',
+                backgroundColor: loanColor(context, false),
+                label: Text(l10n.loan),
+                icon: const Icon(Icons.add),
+              ),
             ),
           ],
         ),
       ),
-      floatingActionButton: Fab(l10n: l10n),
     );
   }
 
   int _calculateTenure(List<Emi> allEmis) {
-    int earliestYear = allEmis.map((emi) => emi.year).reduce((a, b) => a < b ? a : b);
-    int latestYear = allEmis.map((emi) => emi.year).reduce((a, b) => a > b ? a : b);
+    int earliestYear =
+        allEmis.map((emi) => emi.year).reduce((a, b) => a < b ? a : b);
+    int latestYear =
+        allEmis.map((emi) => emi.year).reduce((a, b) => a > b ? a : b);
     return latestYear - earliestYear + 1;
   }
 
   // Group amortization entries by year for the Amortization Table
   List<AmortizationEntry> _groupAmortizationEntries(List<Emi> emis) {
-    return emis.map((emi) => AmortizationEntry(
-      loanLendName: emi.title,
-      loanLendType: emi.emiType == 'lend' ? LoanLendType.lend : LoanLendType.loan,
-      principal: emi.principalAmount,
-      interest: emi.totalEmi! - emi.principalAmount,
-      year: emi.year,
-      month: DateTime.now().month,
-    )).toList();
+    return emis
+        .map((emi) => AmortizationEntry(
+              loanLendName: emi.title,
+              loanLendType:
+                  emi.emiType == 'lend' ? LoanLendType.lend : LoanLendType.loan,
+              principal: emi.principalAmount,
+              interest: emi.totalEmi! - emi.principalAmount,
+              year: emi.year,
+              month: DateTime.now().month,
+            ))
+        .toList();
   }
+
   // Total calculations for EMI, Interest, and Amount
   double _calculateTotalEMI(List<Emi> emis) {
     return emis.fold(0.0, (sum, emi) => sum + emi.totalEmi!);
   }
 
   double _calculateTotalInterest(List<Emi> emis) {
-    return emis.fold(0.0, (sum, emi) => sum + (emi.totalEmi! - emi.principalAmount));
+    return emis.fold(
+        0.0, (sum, emi) => sum + (emi.totalEmi! - emi.principalAmount));
   }
 
   double _calculateTotalAmount(List<Emi> emis) {
     return emis.fold(0.0, (sum, emi) => sum + emi.totalEmi!);
   }
+
   // Build legend for the BarGraph
   Widget _buildLegend(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -207,7 +378,6 @@ class HomePageState extends ConsumerState<HomePage> {
       ),
     );
   }
-
 }
 
 class EmiCard extends ConsumerWidget {
@@ -236,9 +406,7 @@ class EmiCard extends ConsumerWidget {
 
     return InkWell(
       onTap: () {
-       EmiDetailsRoute(emiId: emi.id).push(context);
-
-
+        EmiDetailsRoute(emiId: emi.id).push(context);
       },
       child: Card(
         elevation: 4,
@@ -247,7 +415,7 @@ class EmiCard extends ConsumerWidget {
           side: BorderSide(
               color: emiTypeColor, width: 2), // Outline color and width
           borderRadius:
-          BorderRadius.circular(borderRadius), // Card corner radius
+              BorderRadius.circular(borderRadius), // Card corner radius
         ),
         child: Padding(
           padding: const EdgeInsets.all(8.0),
@@ -348,7 +516,7 @@ class EmiCard extends ConsumerWidget {
                                   color: Colors.blue,
                                   value: interestAmount,
                                   title:
-                                  '${interestPercentage.toStringAsFixed(1)}%',
+                                      '${interestPercentage.toStringAsFixed(1)}%',
                                   radius: 60,
                                   titleStyle: const TextStyle(
                                     fontSize: 14,
@@ -360,7 +528,7 @@ class EmiCard extends ConsumerWidget {
                                   color: Colors.green,
                                   value: principalAmount,
                                   title:
-                                  '${principalPercentage.toStringAsFixed(1)}%',
+                                      '${principalPercentage.toStringAsFixed(1)}%',
                                   radius: 60,
                                   titleStyle: const TextStyle(
                                     fontSize: 14,
@@ -451,35 +619,50 @@ class _LegendItem extends StatelessWidget {
   }
 }
 
-class Fab extends StatelessWidget {
-  const Fab({
-    super.key,
-    required this.l10n,
-  });
-
-  final AppLocalizations l10n;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      crossAxisAlignment: CrossAxisAlignment.end,
-      children: [
-        FloatingActionButton.extended(
-          onPressed: () => const NewEmiRoute(emiType: 'lend').push(context),
-          heroTag: 'newLendBtn',
-          backgroundColor: lendColor(context, false),
-          label: Text(l10n.lend),
-          icon: const Icon(Icons.add),
-        ),
-        FloatingActionButton.extended(
-          onPressed: () => const NewEmiRoute(emiType: 'loan').push(context),
-          heroTag: 'newLoanBtn',
-          backgroundColor: loanColor(context, false),
-          label: Text(l10n.loan),
-          icon: const Icon(Icons.add),
-        ),
-      ],
-    );
-  }
-}
+// class Fab extends StatelessWidget {
+//   const Fab({
+//     super.key,
+//     required this.l10n,
+//     required this.fabLendHelpKey,
+//     required this.fabLoanHelpKey,
+//
+//   });
+//
+//   final AppLocalizations l10n;
+//   final GlobalKey fabLendHelpKey;
+//   final GlobalKey fabLoanHelpKey;
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     return ShowCaseWidget(
+//       builder: (context)=> Row(
+//         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+//         crossAxisAlignment: CrossAxisAlignment.end,
+//         children: [
+//           Showcase(
+//             key: fabLendHelpKey,
+//             description: "Add New Lend from Here",
+//             child: FloatingActionButton.extended(
+//               onPressed: () => const NewEmiRoute(emiType: 'lend').push(context),
+//               heroTag: 'newLendBtn',
+//               backgroundColor: lendColor(context, false),
+//               label: Text(l10n.lend),
+//               icon: const Icon(Icons.add),
+//             ),
+//           ),
+//           Showcase(
+//             key: fabLoanHelpKey,
+//             description: "Add new Loan from Here",
+//             child: FloatingActionButton.extended(
+//               onPressed: () => const NewEmiRoute(emiType: 'loan').push(context),
+//               heroTag: 'newLoanBtn',
+//               backgroundColor: loanColor(context, false),
+//               label: Text(l10n.loan),
+//               icon: const Icon(Icons.add),
+//             ),
+//           ),
+//         ],
+//       ),
+//     );
+//   }
+//}
