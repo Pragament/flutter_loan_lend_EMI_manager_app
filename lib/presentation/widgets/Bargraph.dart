@@ -1,6 +1,8 @@
 import 'dart:math';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:emi_manager/data/models/emi_model.dart'; // Adjust the import based on your file structure
+
 
 class BarGraph extends StatelessWidget {
   final List<double> principalAmounts;
@@ -18,6 +20,7 @@ class BarGraph extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final w = MediaQuery.of(context).size.width;
     List<BarChartGroupData> barGroups = [];
     double maxPayment = principalAmounts.isNotEmpty
         ? principalAmounts.reduce((a, b) => max(a, b)) +
@@ -31,77 +34,116 @@ class BarGraph extends StatelessWidget {
 
       barGroups.add(
         BarChartGroupData(
-          x: i, // Use index for x-axis
+          x: i,
           barRods: [
             BarChartRodData(
               toY: totalPayment,
               rodStackItems: [
                 BarChartRodStackItem(0, principalAmount, Colors.green),
-                // Using the same green color with opacity for the interest portion
                 BarChartRodStackItem(
                   principalAmount,
                   totalPayment,
-                  Colors.green.withOpacity(0.5), // Interest with opacity
+                  Colors.green.withOpacity(0.5),
                 ),
               ],
               width: 20,
-              borderRadius: BorderRadius.zero, // Ensure bars are perfect rectangles
+              borderRadius: BorderRadius.zero,
             ),
           ],
         ),
       );
     }
-
-    return AspectRatio(
-      aspectRatio: 1.5,
-      child: BarChart(
-        BarChartData(
-          barGroups: barGroups,
-          titlesData: FlTitlesData(
-            leftTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: false, // Hide left titles
-              ),
-            ),
-            bottomTitles: AxisTitles(
-              sideTitles: SideTitles(
-                showTitles: true,
-                reservedSize: 50, // Increase reserved size
-                getTitlesWidget: (value, meta) {
-                  int index = value.toInt();
-                  String title = years.isNotEmpty && index < years.length
-                      ? years[index].toString()
-                      : '';
-                  return SideTitleWidget(
-                    axisSide: meta.axisSide,
-                    child: Container(
-                      margin: EdgeInsets.symmetric(horizontal: 4.0),
-                      child: Text(
-                        title,
-                        style: TextStyle(
-                          color: Colors.black,
-                          fontSize: 14, // Increase font size if necessary
-                        ),
-                      ),
+    // Change the size according to total number of loans.
+    final len = years.length;
+    var prod = len<5 ? 0.95: len<10? 1.25: len<15 ?1.75: 2.5;
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Container(
+        width: w*prod,
+        child: AspectRatio(
+          aspectRatio: 1.5,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 5),
+            child: BarChart(
+              BarChartData(
+                barGroups: barGroups,
+                titlesData: FlTitlesData(
+                  leftTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 45,  // Adjust this value to increase left margin
+                      getTitlesWidget: (value, meta) {
+                        return SideTitleWidget(
+                          axisSide: meta.axisSide,
+                          child: Text(
+                            '${(value / 1000).toStringAsFixed(0)}K',
+                            style: const TextStyle(color: Colors.black, fontSize: 12),
+                          ),
+                        );
+                      },
                     ),
-                  );
-                },
+                  ),
+                  bottomTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 50,
+                      getTitlesWidget: (value, meta) {
+                        int index = value.toInt();
+                        String title = years.isNotEmpty && index < years.length
+                            ?  years[index].toString()
+                            : '';
+
+                        return SideTitleWidget(
+                          axisSide: meta.axisSide,
+                          child: Container(
+                            margin: const EdgeInsets.symmetric(horizontal: 2.0),
+                            // child: Text(
+                            //   title,
+                            //   textAlign: TextAlign.center,
+                            //   style: TextStyle(
+                            //     color: Colors.black,
+                            //     fontSize: 12,
+                            //   ),
+                            // ),
+                            child: Transform.rotate(
+                              angle: -1.0, // Rotate to avoid overlap
+                              child: Text(
+                                title,
+                                style: TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 11,
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  topTitles: AxisTitles(
+                    sideTitles: SideTitles(showTitles: false),
+                  ),
+                ),
+                borderData: FlBorderData(show: false),
+                barTouchData: BarTouchData(enabled: true),
+                gridData: FlGridData(show: true),
+                backgroundColor: Colors.white,
+                maxY: maxPayment * 1.25,
+                minY: 0,
               ),
             ),
-            topTitles: AxisTitles(
-              sideTitles: SideTitles(showTitles: false), // Hide top titles
-            ),
           ),
-          borderData: FlBorderData(
-            show: false,
-          ),
-          barTouchData: BarTouchData(enabled: true),
-          gridData: FlGridData(show: true),
-          backgroundColor: Colors.white, // Set background color to white
-          maxY: maxPayment,
-          minY: 0,
         ),
       ),
     );
   }
 }
+
+
+
+
+
+
+
+
+

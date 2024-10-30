@@ -248,7 +248,6 @@ class EmiDetailsPage extends ConsumerWidget {
     return schedule;
   }
 
-
   List<double> _getPrincipalAmounts(List<AmortizationEntry> schedule) {
     final groupByYear = groupBy(schedule, (AmortizationEntry entry) => entry.year);
     return groupByYear.values.map((entries) =>

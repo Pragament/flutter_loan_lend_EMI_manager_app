@@ -154,7 +154,7 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
       ref.read(emisNotifierProvider.notifier).add(emi);
     }
 
-    GoRouter.of(context).pop();
+    GoRouter.of(context).pushReplacement('/');
   }
 
   void _showHelpOptions(BuildContext parentContext) {

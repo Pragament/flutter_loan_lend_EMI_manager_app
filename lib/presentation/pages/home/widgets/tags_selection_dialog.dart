@@ -18,11 +18,13 @@ class TagsSelectionDialog extends ConsumerStatefulWidget {
 
 class _TagsSelectionDialogState extends ConsumerState<TagsSelectionDialog> {
   List<Tag> selectedTags = [];
+  List<Tag> filteredTags = []; // Added a list of tags to show the searched tags.
+  final TextEditingController searchController = TextEditingController();
+
 
   @override
   void initState() {
     selectedTags = widget.selectedTags;
-
     super.initState();
   }
 
@@ -30,17 +32,24 @@ class _TagsSelectionDialogState extends ConsumerState<TagsSelectionDialog> {
   Widget build(BuildContext context) {
     final allTags = ref.watch(tagsNotifierProvider);
 
+    // Filter tags based on search input
+    filteredTags = allTags.where((tag) {
+      return tag.name.toLowerCase().contains(searchController.text.toLowerCase());
+    }).toList();
     return SizedBox(
       height: 500,
       width: 400,
       child: AlertDialog(
         scrollable: true,
         title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween, // changed spaceAround to spaceBetween
           children: [
-            const Text('Select Tags:'),
-            IconButton.filledTonal(
-              onPressed: () {
+            const Text(
+              'Select a Tag:',
+              style: TextStyle(fontSize: 15), // Reduce the font size
+            ),
+            InkWell(
+              onTap: () {
                 final tagNameC = TextEditingController();
                 final formKey = GlobalKey<FormState>();
 
@@ -120,31 +129,78 @@ class _TagsSelectionDialogState extends ConsumerState<TagsSelectionDialog> {
                   ),
                 );
               },
-              icon: const Icon(Icons.add),
+              // Changed the widget to text
+              child: const Text(
+                  "Create Tag +",
+                style: TextStyle(fontSize: 15),
+              ),
             ),
           ],
         ),
-        content: allTags.isEmpty
-            ? const Text('No tags exist.\nTap + icon to create a new tag.')
-            : SingleChildScrollView(
-          child: Column(
-            children: List.generate(
-              allTags.length,
-                  (index) {
-                final tag = allTags.elementAt(index);
-
-                return CheckboxListTile(
-                  title: Text(tag.name),
-                  value: selectedTags.map((e) => e.id).contains(tag.id),
-                  onChanged: (enabled) => setState(
-                        () => enabled ?? false
-                        ? selectedTags.add(tag)
-                        : selectedTags.remove(tag),
-                  ),
-                );
+        content: Column(
+          children: [
+            // Search bar
+            TextField(
+              controller: searchController,
+              onChanged: (value) {
+                setState(() {});
               },
+              decoration: InputDecoration(
+                labelText: 'Search...',
+              ),
             ),
-          ),
+            const SizedBox(height: 10,),
+            filteredTags.isEmpty
+                ? const Text('No tags exist.\nTap + icon to create a new tag.')
+                : SizedBox(
+                  height: 250,
+                  child: SingleChildScrollView(
+                                child: Column(
+                    children: List.generate(
+                      filteredTags.length,
+                          (index) {
+                        final tag = filteredTags[index];
+
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4.0),
+                          child: Material(
+                            elevation: 2,
+                            borderRadius: BorderRadius.circular(10),
+                            color: Colors.grey[100],
+                            child: Row(
+                              children: [
+                                Expanded(
+                                  child: CheckboxListTile(
+                                    title: Text(
+                                        "# ${tag.name}",
+                                      style: const TextStyle(fontSize: 13),
+                                    ),
+                                    value: selectedTags.map((e) => e.id).contains(tag.id),
+                                    onChanged: (enabled) => setState(
+                                          () => enabled ?? false
+                                          ? selectedTags.add(tag)
+                                          : selectedTags.remove(tag),
+                                    ),
+                                  ),
+                                ),
+                                IconButton(
+                                  icon: const Icon(Icons.delete, color: Colors.red,),
+                                    onPressed: () async {
+                                      await ref.read(tagsNotifierProvider.notifier)
+                                          .remove(tag);
+                                      setState(() {});
+                                    }
+                                )
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                                  ),
+                                ),
+                ),
+          ],
         ),
         actions: [
           FilledButton(
