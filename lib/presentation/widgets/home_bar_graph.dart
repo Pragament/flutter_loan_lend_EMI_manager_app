@@ -120,7 +120,7 @@ class HomeBarGraph extends StatelessWidget {
     // Find the maximum Y value for proper scaling
     final maxY = barGroups.map((group) => group.barRods.map((rod) => rod.toY).reduce(max)).reduce(max);
     var total = tenureMonths*allEmis.length;
-    print("Total: $total");
+    // print("Total: $total");
     if(total < 500) {
       total = 2*total;
     }
@@ -131,7 +131,7 @@ class HomeBarGraph extends StatelessWidget {
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Container(
-              width: w * total * 0.009,
+              width: w * total * 0.01,
               height: 320,
               child: AspectRatio(
                 aspectRatio: 0.5,

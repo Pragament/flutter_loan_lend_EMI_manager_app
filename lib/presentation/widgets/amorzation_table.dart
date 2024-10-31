@@ -159,8 +159,11 @@
 // enum LoanLendType { loan, lend }
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class AmortizationSummaryTable extends StatefulWidget {
+import '../pages/home/logic/home_state_provider.dart';
+
+class AmortizationSummaryTable extends ConsumerStatefulWidget {
   final List<AmortizationEntry> entries; // Full schedule for all loans/lends
   final DateTime startDate;
   final int tenureInYears;
@@ -176,18 +179,14 @@ class AmortizationSummaryTable extends StatefulWidget {
   _AmortizationSummaryTableState createState() => _AmortizationSummaryTableState();
 }
 
-class _AmortizationSummaryTableState extends State<AmortizationSummaryTable> {
+class _AmortizationSummaryTableState extends ConsumerState<AmortizationSummaryTable> {
   final Map<int, List<AmortizationEntry>> _groupedByYear = {};
   final Map<int, bool> _expandedYear = {}; // Track expanded year states
   final Map<String, bool> _expandedMonth = {}; // Track expanded month states
 
-  @override
-  void initState() {
-    super.initState();
-    _groupDataByYear();
-  }
 
   void _groupDataByYear() {
+    // print(widget.entries.length.toString());
     for (var entry in widget.entries) {
       _groupedByYear.putIfAbsent(entry.year, () => []).add(entry);
     }
@@ -195,9 +194,15 @@ class _AmortizationSummaryTableState extends State<AmortizationSummaryTable> {
 
   @override
   Widget build(BuildContext context) {
-    if (widget.entries.isEmpty) {
+    final allEmi = ref.watch(homeStateNotifierProvider.select((state) => state.emis));
+    print("EMI: ${allEmi.length}");
+    // print(widget.entries.length.toString());
+    if (allEmi.isEmpty) {
       return Center(child: Text('No data available.'));
     }
+
+    _groupedByYear.clear();
+    _groupDataByYear();
 
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
@@ -215,7 +220,6 @@ class _AmortizationSummaryTableState extends State<AmortizationSummaryTable> {
 
   List<DataRow> _buildYearlyRows() {
     List<DataRow> rows = [];
-
     for (var year in _groupedByYear.keys) {
       final yearlyData = _groupedByYear[year] ?? [];
       final totalPrincipal = yearlyData.fold(0.0, (sum, e) => sum + e.principal);

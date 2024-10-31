@@ -40,7 +40,7 @@ class HomePageState extends ConsumerState<HomePage> {
   final GlobalKey helpHelpKey = GlobalKey();
   final GlobalKey filterHelpKey = GlobalKey();
   final GlobalKey<ScaffoldState> _scaffoldKey =
-      GlobalKey<ScaffoldState>(); //for drawer
+  GlobalKey<ScaffoldState>(); //for drawer
 
   void _showHelpOptions(BuildContext parentContext) {
     showModalBottomSheet(
@@ -56,14 +56,14 @@ class HomePageState extends ConsumerState<HomePage> {
                 Navigator.pop(context); // Close the bumodal with current context
                 //language
                 if(noEmis==false)
-                  {
-                    _scaffoldKey.currentState?.openDrawer();
-                    ShowCaseWidget.of(parentContext).startShowCase(
-                        [langHelpKey]); //language help model context
-                    await Future.delayed(Duration(seconds: 2));
-                    ShowCaseWidget.of(parentContext).startShowCase([helpHelpKey]);
-                    await Future.delayed(Duration(seconds: 2));
-                  }
+                {
+                  _scaffoldKey.currentState?.openDrawer();
+                  ShowCaseWidget.of(parentContext).startShowCase(
+                      [langHelpKey]); //language help model context
+                  await Future.delayed(Duration(seconds: 2));
+                  ShowCaseWidget.of(parentContext).startShowCase([helpHelpKey]);
+                  await Future.delayed(Duration(seconds: 2));
+                }
                 if (_scaffoldKey.currentState?.isDrawerOpen ??
                     false) //if drawer open
                   Navigator.pop(parentContext); //close drawer
@@ -535,9 +535,9 @@ class HomePageState extends ConsumerState<HomePage> {
 
   int _calculateTenure(List<Emi> allEmis) {
     int earliestYear =
-        allEmis.map((emi) => emi.year).reduce((a, b) => a < b ? a : b);
+    allEmis.map((emi) => emi.year).reduce((a, b) => a < b ? a : b);
     int latestYear =
-        allEmis.map((emi) => emi.year).reduce((a, b) => a > b ? a : b);
+    allEmis.map((emi) => emi.year).reduce((a, b) => a > b ? a : b);
     return latestYear - earliestYear + 1;
   }
 
@@ -607,6 +607,7 @@ class HomePageState extends ConsumerState<HomePage> {
     List<AmortizationEntry> amortizationEntries = [];
 
     for (var emi in allEmis) {
+      // print(emi.title);
       DateTime startDate = emi.startDate;
       final int tenureInYears = ((emi.endDate?.year ?? 0) - emi.startDate.year);
 
@@ -623,13 +624,13 @@ class HomePageState extends ConsumerState<HomePage> {
         int adjustedYear = startDate.year + ((startDate.month - 1 + month) ~/ 12);
         int adjustedMonth = (startDate.month - 1 + month) % 12 + 1;
         amortizationEntries.add(AmortizationEntry(
-          title: emi.title,
-          principal: sign*monthlyPrincipal,
-          interest: sign*monthlyInterest,
-          totalPayment: sign*monthlyEmi,
-          year: adjustedYear,
-          month: adjustedMonth,
-          type: emi.emiType=='loan'? 0: 1
+            title: emi.title,
+            principal: sign*monthlyPrincipal,
+            interest: sign*monthlyInterest,
+            totalPayment: sign*monthlyEmi,
+            year: adjustedYear,
+            month: adjustedMonth,
+            type: emi.emiType=='loan'? 0: 1
         ));
       }
     }
@@ -639,8 +640,6 @@ class HomePageState extends ConsumerState<HomePage> {
     double totalAmount = _calculateTotalAmount(amortizationEntries);
 
     // Print or log totals if needed
-    print("Total Interest: $totalInterest");
-    print("Total Amount: $totalAmount");
 
     return amortizationEntries;
   }
@@ -717,7 +716,7 @@ class EmiCard extends ConsumerWidget {
           side: BorderSide(
               color: emiTypeColor, width: 2), // Outline color and width
           borderRadius:
-              BorderRadius.circular(borderRadius), // Card corner radius
+          BorderRadius.circular(borderRadius), // Card corner radius
         ),
         child: Padding(
           padding: const EdgeInsets.all(8.0),
@@ -818,7 +817,7 @@ class EmiCard extends ConsumerWidget {
                                   color: Colors.blue,
                                   value: interestAmount,
                                   title:
-                                      '${interestPercentage.toStringAsFixed(1)}%',
+                                  '${interestPercentage.toStringAsFixed(1)}%',
                                   radius: 60,
                                   titleStyle: const TextStyle(
                                     fontSize: 14,
@@ -830,7 +829,7 @@ class EmiCard extends ConsumerWidget {
                                   color: Colors.green,
                                   value: principalAmount,
                                   title:
-                                      '${principalPercentage.toStringAsFixed(1)}%',
+                                  '${principalPercentage.toStringAsFixed(1)}%',
                                   radius: 60,
                                   titleStyle: const TextStyle(
                                     fontSize: 14,
