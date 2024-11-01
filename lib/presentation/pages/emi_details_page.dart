@@ -27,6 +27,7 @@ class EmiDetailsPage extends ConsumerWidget {
 
     final double principalAmount = emi.principalAmount;
     final double interestAmount = emi.totalEmi != null ? emi.totalEmi! - principalAmount : 0.0;
+    // final double interestAmount = (emi.interestRate/(100))*(emi.principalAmount);
     final double totalAmount = emi.totalEmi ?? 0.0;
 
     final DateTime startDate = emi.startDate;
@@ -38,7 +39,7 @@ class EmiDetailsPage extends ConsumerWidget {
     final List<AmortizationEntry> schedule = _generateAmortizationSchedule(
       tenureYears: tenureInYears,
       principalAmount: principalAmount,
-      interestAmount: interestAmount,
+      interestAmount: emi.interestRate,
       totalAmount: totalAmount,
       startDate: startDate,
     );
@@ -216,9 +217,10 @@ class EmiDetailsPage extends ConsumerWidget {
     DateTime paymentDate = startDate;
 
 
-    double monthlyInterestRate = (interestAmount / principalAmount) / (tenureYears * 12);
+    double monthlyInterestRate = interestAmount / (12 * 100);
     int totalMonths = tenureYears * 12;
 
+    // Calculate monthly EMI
     double monthlyEmi = (principalAmount * monthlyInterestRate *
         pow(1 + monthlyInterestRate, totalMonths)) /
         (pow(1 + monthlyInterestRate, totalMonths) - 1);
@@ -247,7 +249,6 @@ class EmiDetailsPage extends ConsumerWidget {
 
     return schedule;
   }
-
 
   List<double> _getPrincipalAmounts(List<AmortizationEntry> schedule) {
     final groupByYear = groupBy(schedule, (AmortizationEntry entry) => entry.year);
