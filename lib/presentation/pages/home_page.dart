@@ -367,8 +367,10 @@ class HomePageState extends ConsumerState<HomePage> {
               Showcase(
                 key: lendHelpKey,
                 description: "Add New Lend from Here",
+                targetBorderRadius: BorderRadius.circular(35),
                 child: FloatingActionButton.extended(
-                  onPressed: () => const NewEmiRoute(emiType: 'lend').pushReplacement(context),
+                  onPressed: () =>
+                      const NewEmiRoute(emiType: 'lend').push(context),
                   heroTag: 'newLendBtn',
                   backgroundColor: lendColor(context, false),
                   label: Text(l10n.lend),
@@ -379,7 +381,8 @@ class HomePageState extends ConsumerState<HomePage> {
                 key: loanHelpKey,
                 description: "Add new Loan from Here",
                 child: FloatingActionButton.extended(
-                  onPressed: () => const NewEmiRoute(emiType: 'loan').pushReplacement(context),
+                  onPressed: () =>
+                      const NewEmiRoute(emiType: 'loan').push(context),
                   heroTag: 'newLoanBtn',
                   backgroundColor: loanColor(context, false),
                   label: Text(l10n.loan),
@@ -422,22 +425,28 @@ class HomePageState extends ConsumerState<HomePage> {
                 child: Text('Menu', style: TextStyle(color: Colors.white, fontSize: 24)),
               ),
               Showcase(
-                key: langHelpKey,
-                description: "You Can Choose Your Regional Language",
-                child: ListTile(
-                  title: Text('Select Language'),
-                  trailing: LocaleSelectorPopupMenu(),
+                key: lendHelpKey,
+                description: "Add New Lend from Here",
+                targetBorderRadius: BorderRadius.circular(35),
+                child: FloatingActionButton.extended(
+                  onPressed: () =>
+                      const NewEmiRoute(emiType: 'lend').push(context),
+                  heroTag: 'newLendBtn',
+                  backgroundColor: lendColor(context, false),
+                  label: Text(l10n.lend),
+                  icon: const Icon(Icons.add),
                 ),
               ),
               Showcase(
-                key: helpHelpKey,
-                description: "Help Button",
-                child: ListTile(
-                  title: Text('Help'),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.help_outline),
-                    onPressed: () => _showHelpOptions(context),
-                  ),
+                key: loanHelpKey,
+                description: "Add new Loan from Here",
+                child: FloatingActionButton.extended(
+                  onPressed: () =>
+                      const NewEmiRoute(emiType: 'loan').push(context),
+                  heroTag: 'newLoanBtn',
+                  backgroundColor: loanColor(context, false),
+                  label: Text(l10n.loan),
+                  icon: const Icon(Icons.add),
                 ),
               ),
             ],
@@ -615,7 +624,7 @@ class HomePageState extends ConsumerState<HomePage> {
       final int sign = emi.emiType=='loan'? (-1): 1;
       double monthlyEmi = _calculateEMI(emi.principalAmount, emi.interestRate, tenureInYears);
       double remainingPrincipal = emi.principalAmount;
-      for (int month = 0; month < 4 * 12; month++) {
+      for (int month = 0; month < tenureInYears * 12; month++) {
         double monthlyInterestRate = emi.interestRate / (12 * 100);
         double monthlyInterest = remainingPrincipal * monthlyInterestRate;
         double monthlyPrincipal = monthlyEmi - monthlyInterest;
