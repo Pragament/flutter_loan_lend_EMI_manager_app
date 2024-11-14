@@ -1,4 +1,5 @@
 import 'package:collection/collection.dart';
+import 'package:emi_manager/logic/currency_provider.dart';
 import 'package:emi_manager/logic/emis_provider.dart';
 import 'package:emi_manager/presentation/constants.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -12,13 +13,14 @@ import 'dart:math';
 
 class EmiDetailsPage extends ConsumerWidget {
   const EmiDetailsPage({super.key, required this.emiId});
-
   final String emiId;
+
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final emi = ref.watch(emisNotifierProvider
         .select((emis) => emis.firstWhere((emi) => emi.id == emiId)));
+
 
     final l10n = AppLocalizations.of(context)!;
     final emiTypeColor = emi.emiType == 'lend'
@@ -70,7 +72,7 @@ class EmiDetailsPage extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildEmiInfoSection(context, emi, l10n, interestAmount, principalAmount, totalAmount, tenure),
+              _buildEmiInfoSection(context,ref, emi, l10n, interestAmount, principalAmount, totalAmount, tenure),
               const SizedBox(height: 24),
               _buildPieChart(interestAmount, principalAmount, totalAmount),
               Center(
@@ -119,28 +121,30 @@ class EmiDetailsPage extends ConsumerWidget {
 
   Widget _buildEmiInfoSection(
       BuildContext context,
+      WidgetRef ref,
       dynamic emi,
       AppLocalizations l10n,
       double interestAmount,
       double principalAmount,
       double totalAmount,
       String tenure) {
+    final currencySymbol = ref.watch(currencyProvider);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildInfoRow(l10n.emi, emi.monthlyEmi?.toStringAsFixed(2) ?? 'N/A',
+        _buildInfoRow(ref,l10n.emi, '$currencySymbol${emi.monthlyEmi?.toStringAsFixed(2) ?? 'N/A'}',
             isBold: true, fontSize: 20),
         const Divider(thickness: 1, color: Colors.grey),
-        _buildInfoRow(l10n.interestAmount, interestAmount.toStringAsFixed(2)),
-        _buildInfoRow(l10n.totalAmount, totalAmount.toStringAsFixed(2)),
+        _buildInfoRow(ref,l10n.interestAmount, '$currencySymbol${interestAmount.toStringAsFixed(2)}'),
+        _buildInfoRow(ref,l10n.totalAmount,'$currencySymbol${totalAmount.toStringAsFixed(2)}'),
         const SizedBox(height: 16),
-        _buildInfoRow(l10n.loanAmount, principalAmount.toStringAsFixed(2)),
-        _buildInfoRow(l10n.tenure, tenure),
+        _buildInfoRow(ref,l10n.loanAmount,'$currencySymbol${principalAmount.toStringAsFixed(2)}'),
+        _buildInfoRow(ref,l10n.tenure, tenure),
       ],
     );
   }
 
-  Widget _buildInfoRow(String label, String value, {bool isBold = false, double fontSize = 16}) {
+  Widget _buildInfoRow(WidgetRef ref ,String label, String value, {bool isBold = false, double fontSize = 16}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(

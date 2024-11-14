@@ -42,7 +42,6 @@ class MainApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final locale = ref.watch(localeNotifierProvider);
-
     return ShowCaseWidget(
       builder: (context)=> MaterialApp.router(
         locale: locale,
