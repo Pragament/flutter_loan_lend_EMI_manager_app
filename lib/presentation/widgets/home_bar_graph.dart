@@ -84,7 +84,6 @@ class HomeBarGraph extends StatelessWidget {
         var emi = allEmis[i];
         Color principalColor = loanColors[i % loanColors.length];
         Color interestColor = interestColors[i % interestColors.length];
-
         // Total principal and interest for each loan per year
         double principal = yearlyData[year]?['principal_${emi.id}'] ?? 0.0;
         double interest = yearlyData[year]?['interest_${emi.id}'] ?? 0.0;

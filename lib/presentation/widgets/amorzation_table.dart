@@ -158,6 +158,7 @@
 //
 // enum LoanLendType { loan, lend }
 
+import 'package:emi_manager/logic/currency_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -195,6 +196,7 @@ class _AmortizationSummaryTableState extends ConsumerState<AmortizationSummaryTa
   @override
   Widget build(BuildContext context) {
     final allEmi = ref.watch(homeStateNotifierProvider.select((state) => state.emis));
+    final currencySymbol = ref.watch(currencyProvider);
     print("EMI: ${allEmi.length}");
     // print(widget.entries.length.toString());
     if (allEmi.isEmpty) {
@@ -207,11 +209,11 @@ class _AmortizationSummaryTableState extends ConsumerState<AmortizationSummaryTa
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: DataTable(
-        columns: const [
-          DataColumn(label: Text('Year/Month')),
-          DataColumn(label: Text('Principal')),
-          DataColumn(label: Text('Interest')),
-          DataColumn(label: Text('Total Payment')),
+        columns:  [
+          DataColumn(label: Text(' Year/Month')),
+          DataColumn(label: Text('Principal ($currencySymbol)')),
+          DataColumn(label: Text('Interest ($currencySymbol)')),
+          DataColumn(label: Text('Total Payment ($currencySymbol)')),
         ],
         rows: _buildYearlyRows(),
       ),
@@ -219,6 +221,7 @@ class _AmortizationSummaryTableState extends ConsumerState<AmortizationSummaryTa
   }
 
   List<DataRow> _buildYearlyRows() {
+
     List<DataRow> rows = [];
     for (var year in _groupedByYear.keys) {
       final yearlyData = _groupedByYear[year] ?? [];
@@ -247,7 +250,7 @@ class _AmortizationSummaryTableState extends ConsumerState<AmortizationSummaryTa
             ),
           ),
           DataCell(Text(
-            totalPrincipal.toStringAsFixed(2),
+       totalPrincipal.toStringAsFixed(2),
             style: TextStyle(color: totalPrincipal < 0 ? Colors.red : Colors.blue),
           )),
           DataCell(Text(

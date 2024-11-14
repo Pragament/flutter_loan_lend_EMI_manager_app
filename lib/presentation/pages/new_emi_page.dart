@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'package:emi_manager/data/models/emi_model.dart';
 import 'package:emi_manager/data/models/tag_model.dart';
+import 'package:emi_manager/logic/currency_provider.dart';
 import 'package:emi_manager/logic/emis_provider.dart';
 import 'package:emi_manager/presentation/constants.dart';
 import 'package:emi_manager/presentation/pages/home/widgets/tags_selection_dialog.dart';
@@ -181,6 +182,7 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
 
   @override
   Widget build(BuildContext context) {
+    final currencySymbol= ref.watch(currencyProvider);
     final l10n = AppLocalizations.of(context)!;
 
     return ShowCaseWidget(
@@ -201,6 +203,7 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
   }
 
   Column body(BuildContext context, AppLocalizations l10n) {
+    final currencySymbol= ref.watch(currencyProvider);
     return Column(
       children: [
         Row(
@@ -269,7 +272,7 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
                     child: Row(
                       children: [
                         Text(
-                            '${l10n.loanAmount}: ₹${principalAmount.toStringAsFixed(0)}'),
+                            '${l10n.loanAmount}: $currencySymbol${principalAmount.toStringAsFixed(0)}'),
                         Expanded(
                           child: Slider(
                             value: principalAmount,

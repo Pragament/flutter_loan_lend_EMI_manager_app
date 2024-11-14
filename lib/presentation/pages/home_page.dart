@@ -1,21 +1,28 @@
+import 'dart:convert';
+import 'dart:io';
 import 'dart:math';
-
+import 'package:csv/csv.dart';
+import 'package:currency_picker/currency_picker.dart';
 import 'package:emi_manager/data/models/emi_model.dart';
+import 'package:emi_manager/data/models/tag_model.dart';
+import 'package:emi_manager/logic/currency_provider.dart';
 import 'package:emi_manager/logic/emis_provider.dart';
 import 'package:emi_manager/presentation/constants.dart';
 import 'package:emi_manager/presentation/pages/home/logic/home_state_provider.dart';
 import 'package:emi_manager/presentation/pages/home/widgets/tags_strip.dart';
 import 'package:emi_manager/presentation/router/routes.dart';
 import 'package:emi_manager/presentation/widgets/home_bar_graph.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_chart/fl_chart.dart'; // For charting widgets
 import 'package:go_router/go_router.dart';
+import 'package:open_file/open_file.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:showcaseview/showcaseview.dart';
-
-import '../widgets/locale_selector_popup_menu.dart';
-import '../widgets/BarGraph.dart'; // Custom BarGraph widget
 import '../widgets/amorzation_table.dart';
 
 
@@ -335,12 +342,212 @@ class HomePageState extends ConsumerState<HomePage> {
   //   );
   // }
 
+  Future<void> exportToCSV(BuildContext context, List<Emi> allemis) async {
+    try {
+      // Reverse the payments list to ensure correct order
+      final Emis= List<Emi>.from(allemis);
+      // List to hold the CSV data
+      List<List<String>> csvData = [];
+      // Add the header row
+      // Add the header row
+      csvData.add([
+        "ID",
+        "Title",
+        "EMI Type",
+        "Principal Amount",
+        "Interest Rate",
+        "Start Date",
+        "End Date",
+        "Monthly EMI",
+        "Total EMI",
+        "Paid",
+        "Contact Person Name",
+        "Contact Person Phone",
+        "Contact Person Email",
+        "Other Info",
+        "Processing Fee",
+        "Other Charges",
+        "Part Payment",
+        "Advance Payment",
+        "Insurance Charges",
+        "Moratorium",
+        "Moratorium Month",
+        "Moratorium Type",
+        "Tags",
+      ]);
+
+      // Add each emi's data
+      for (var emi in Emis) {
+        csvData.add([
+          emi.id.toString(),
+          emi.title,
+          emi.emiType,
+          emi.principalAmount.toString(),
+          emi.interestRate.toString(),
+          emi.startDate.toIso8601String(),
+          emi.endDate?.toIso8601String()??'',
+          emi.contactPersonName,
+          emi.contactPersonPhone,
+          emi.contactPersonEmail,
+          emi.otherInfo,
+          emi.processingFee.toString(),
+          emi.otherCharges.toString(),
+          emi.partPayment.toString(),
+          emi.advancePayment.toString(),
+          emi.insuranceCharges.toString(),
+          (emi.moratorium ?? false) ? "Yes" : "No",
+          emi.moratoriumMonth.toString(),
+          emi.moratoriumType ?? '',
+          emi.monthlyEmi.toString(),
+          emi.totalEmi.toString(),
+          emi.paid.toString(),
+          emi.tags.join(", "), // Join tags list as a comma-separated string
+        ]);
+      }
+      var status = await Permission.storage.status;
+      if (!status.isGranted) {
+        status = await Permission.storage.request();
+      }
+
+      // Convert to CSV string
+      String csv = const ListToCsvConverter().convert(csvData);
+      // Get the directory to save the file
+      Directory directory = await getApplicationDocumentsDirectory();
+      final path = "/storage/emulated/0/Download/${Emis[0].startDate.day}emi.csv";
+      final file = File(path);
+      await file.writeAsString(csv);
+      // Show the dialog box to let the user choose an action
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text("Export Options"),
+            content: Text(
+                "Would you like to download the CSV or share it via WhatsApp?"),
+            actions: [
+              TextButton(
+                onPressed: () async {
+
+                  Navigator.of(context).pop();
+
+                  // Open the file directly for the user to download it
+                  final result = await OpenFile.open(file.path);
+                  //  print(result.message);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('CSV saved to: ${file.path}')
+                    ),
+                  );
+
+                },
+                child: Text("Download"),
+              ),
+              TextButton(
+                onPressed: () async {
+                  // Open the file using XFile
+                  final xfile = XFile(file.path);
+                  // Share the file via WhatsApp
+                  final result = await Share.shareXFiles([xfile],
+                      text: "Here is the CSV file of Payment");
+                  if (result.status == ShareResultStatus.success)
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Shared Successfully')),
+                    );
+                  await file.delete();
+                  Navigator.of(context).pop(); // Close the dialog
+                },
+                child: Text("Share to WhatsApp"),
+              ),
+            ],
+          );
+        },
+      );
+    } catch (e) {
+      print("Error while exporting CSV: $e");
+    }
+  }
+  // Function to import CSV data and map it to your Payment model
+  Future<void> importPaymentsFromCSV(BuildContext context) async {
+    try {
+      // File picker to allow user to select CSV file
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['csv'], // CSV only
+      );
+
+      if (result != null && result.files.single.path != null) {
+        //if file exist
+        File file = File(result.files.single.path!);
+
+        // Read the file contents
+        final input = await file.readAsString();
+        // Parse the CSV file
+        List<List<dynamic>> csvData = const CsvToListConverter().convert(input);
+        // Skip the header row and process the rest
+        for (int i = 1; i < csvData.length; i++) {//oth row is heading
+          var row = csvData[i];
+          // Map CSV data to Payment fields
+    // Assuming row[22] is a JSON string of tags
+    String tagJson = row[22];
+    List<Tag> tags = [];
+    try {
+    // Parse JSON string into a list of maps
+    List<dynamic> tagList = json.decode(tagJson);
+
+    // Convert each map to a Tag object
+    tags = tagList.map((tagMap) => Tag.fromMap(tagMap)).toList();
+    } catch (e) {
+    print("Error parsing tags: $e");
+    }
+          Emi SingleEmi=Emi(
+              id: row[0].toString(),
+              title: row[1].toString(),
+              emiType: row[2].toString(),
+              principalAmount: double.tryParse(row[3].toString())??0.0,
+              interestRate: double.tryParse(row[4].toString())??0.0,
+              startDate: DateTime.parse(row[5].toString()),
+              endDate: DateTime.parse(row[6].toString()),
+              contactPersonName: row[7].toString(),
+              contactPersonPhone: row[8].toString(),
+              contactPersonEmail:  row[9].toString(),
+              otherInfo:  row[10].toString(),
+              processingFee: double.tryParse(row[11].toString()),
+              otherCharges: double.tryParse(row[12].toString()),
+              partPayment: double.tryParse(row[13].toString()),
+              advancePayment: double.tryParse(row[14].toString()),
+              insuranceCharges: double.tryParse(row[15].toString()),
+              moratorium:(row[16].toString()=="Yes"?true:false),
+              moratoriumMonth: int.tryParse(row[17].toString()),
+              moratoriumType:row[18].toString(),
+              monthlyEmi:double.tryParse(row[19].toString()),
+              totalEmi: double.tryParse(row[20].toString()),
+              paid: double.tryParse(row[21].toString()),
+              tags: tags,
+          );
+          ref.read(emisNotifierProvider.notifier).add(SingleEmi);
+        }
+        // Now, do something with the imported payments (e.g., add to your current list)
+        setState(() {
+          //refresh the ui
+        });
+
+        Navigator.of(context).pop();//pop the drawer
+        // Show a confirmation message
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Payments imported successfully!')),
+        );
+      }
+    } catch (e) {
+      print("Error while importing CSV: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error importing CSV: $e')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     // final allEmis = ref.watch(homeStateNotifierProvider).emis;
-
     final allEmis = ref.watch(homeStateNotifierProvider.select((state) => state.emis));
 
     // Check if there are any EMIs in the database
@@ -386,7 +593,7 @@ class HomePageState extends ConsumerState<HomePage> {
                   heroTag: 'newLoanBtn',
                   backgroundColor: loanColor(context, false),
                   label: Text(l10n.loan),
-                  icon: const Icon(Icons.add),
+                  icon: const Icon(Icons.remove),
                 ),
               ),
             ],
@@ -424,31 +631,52 @@ class HomePageState extends ConsumerState<HomePage> {
                 decoration: BoxDecoration(color: Colors.blue),
                 child: Text('Menu', style: TextStyle(color: Colors.white, fontSize: 24)),
               ),
-              Showcase(
-                key: lendHelpKey,
-                description: "Add New Lend from Here",
-                targetBorderRadius: BorderRadius.circular(35),
-                child: FloatingActionButton.extended(
-                  onPressed: () =>
-                      const NewEmiRoute(emiType: 'lend').push(context),
-                  heroTag: 'newLendBtn',
-                  backgroundColor: lendColor(context, false),
-                  label: Text(l10n.lend),
-                  icon: const Icon(Icons.add),
-                ),
+              FloatingActionButton.extended(
+                onPressed: () =>
+                    const NewEmiRoute(emiType: 'lend').push(context),
+                heroTag: 'newLendBtn',
+                backgroundColor: lendColor(context, false),
+                label: Text(l10n.lend),
+                icon: const Icon(Icons.add),
               ),
-              Showcase(
-                key: loanHelpKey,
-                description: "Add new Loan from Here",
+              FloatingActionButton.extended(
+                onPressed: () =>
+                    const NewEmiRoute(emiType: 'loan').push(context),
+                heroTag: 'newLoanBtn',
+                backgroundColor: loanColor(context, false),
+                label: Text(l10n.loan),
+                icon: const Icon(Icons.add),
+              ),
+              Padding(
+                  padding:EdgeInsets.all(10),
                 child: FloatingActionButton.extended(
-                  onPressed: () =>
-                      const NewEmiRoute(emiType: 'loan').push(context),
-                  heroTag: 'newLoanBtn',
+                  onPressed: () {
+                    showCurrencyPicker(
+                      context: context,
+                      showFlag: true,
+                      showCurrencyName: true,
+                      showCurrencyCode: true,
+                      onSelect: (Currency currency) {
+                        ref.read(currencyProvider.notifier).setCurrencySymbol(currency.symbol);
+                      },
+                    );
+                  },
                   backgroundColor: loanColor(context, false),
-                  label: Text(l10n.loan),
-                  icon: const Icon(Icons.add),
+                  label: Text("Change Currency"),
+                  icon: const Icon(Icons.currency_exchange),
+                ),
+              ),Padding(
+                  padding:EdgeInsets.only(top:0,left: 10,right:10),
+                child: FloatingActionButton.extended(
+                  onPressed: () {
+                    importPaymentsFromCSV(context);
+                  },
+                  backgroundColor: loanColor(context, false),
+                  label: Text("Import CSV"),
+                  icon: const Icon(Icons.arrow_downward),
                 ),
               ),
+
             ],
           ),
         ),
@@ -533,9 +761,19 @@ class HomePageState extends ConsumerState<HomePage> {
                 heroTag: 'newLoanBtn',
                 backgroundColor: loanColor(context, false),
                 label: Text(l10n.loan),
-                icon: const Icon(Icons.add),
+                icon: const Icon(Icons.remove),
               ),
             ),
+            FloatingActionButton.extended(
+              onPressed: () {
+                print("onpressed export csv");
+                exportToCSV(context, allEmis);
+              },
+              backgroundColor: Colors.green,
+              label: Text(l10n.share),
+              icon: const Icon(Icons.share),
+            ),
+
           ],
         ),
       ),
@@ -710,6 +948,7 @@ class EmiCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final currencySymbol = ref.watch(currencyProvider);
     final double totalAmount = interestAmount + principalAmount;
     final double interestPercentage = (interestAmount / totalAmount) * 100;
     final double principalPercentage = (principalAmount / totalAmount) * 100;
@@ -782,16 +1021,16 @@ class EmiCard extends ConsumerWidget {
                       children: [
                         const Divider(),
                         Text(
-                          '${l10n.emi}: ${emi.monthlyEmi?.toStringAsFixed(2) ?? l10n.enterAmount}',
+                          '${l10n.emi}: $currencySymbol${emi.monthlyEmi?.toStringAsFixed(2) ?? l10n.enterAmount}',
                           style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
                         const Divider(), // Add a divider after the first text
                         Text(
-                          '${l10n.interestAmount}: ${interestAmount.toStringAsFixed(2)}',
+                          '${l10n.interestAmount}: $currencySymbol${interestAmount.toStringAsFixed(2)}',
                         ),
                         const Divider(), // Add a divider after the second text
                         Text(
-                          '${l10n.totalAmount}: ${totalAmount.toStringAsFixed(2)}',
+                          '${l10n.totalAmount}: $currencySymbol${totalAmount.toStringAsFixed(2)}',
                         ),
                         const Divider()
                       ],
