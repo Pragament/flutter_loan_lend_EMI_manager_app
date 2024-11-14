@@ -24,6 +24,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:showcaseview/showcaseview.dart';
 import '../widgets/amorzation_table.dart';
+import '../widgets/locale_selector_popup_menu.dart';
 
 
 class HomePage extends ConsumerStatefulWidget {
@@ -631,21 +632,26 @@ class HomePageState extends ConsumerState<HomePage> {
                 decoration: BoxDecoration(color: Colors.blue),
                 child: Text('Menu', style: TextStyle(color: Colors.white, fontSize: 24)),
               ),
-              FloatingActionButton.extended(
-                onPressed: () =>
-                    const NewEmiRoute(emiType: 'lend').push(context),
-                heroTag: 'newLendBtn',
-                backgroundColor: lendColor(context, false),
-                label: Text(l10n.lend),
-                icon: const Icon(Icons.add),
+              Showcase(
+                key: langHelpKey,
+                description: "You Can Choose Your Regional Language",
+                child: ListTile(
+                  title: Text('Select Language'),
+                  trailing: LocaleSelectorPopupMenu(),
+                ),
               ),
-              FloatingActionButton.extended(
-                onPressed: () =>
-                    const NewEmiRoute(emiType: 'loan').push(context),
-                heroTag: 'newLoanBtn',
-                backgroundColor: loanColor(context, false),
-                label: Text(l10n.loan),
-                icon: const Icon(Icons.add),
+              Showcase(
+                key: helpHelpKey,
+                description: "Help Button",
+                child: ListTile(
+                  title: Text('Help'),
+                  trailing: IconButton(
+                    icon: const Icon(Icons.help_outline),
+                    onPressed: () {
+                      _showHelpOptions(context);
+                    },
+                  ),
+                ),
               ),
               Padding(
                   padding:EdgeInsets.all(10),
