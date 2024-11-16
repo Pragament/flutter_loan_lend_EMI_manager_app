@@ -7,6 +7,7 @@ import 'package:emi_manager/data/models/emi_model.dart';
 import 'package:emi_manager/data/models/tag_model.dart';
 import 'package:emi_manager/logic/currency_provider.dart';
 import 'package:emi_manager/logic/emis_provider.dart';
+import 'package:emi_manager/logic/tags_provider.dart';
 import 'package:emi_manager/presentation/constants.dart';
 import 'package:emi_manager/presentation/pages/home/logic/home_state_provider.dart';
 import 'package:emi_manager/presentation/pages/home/widgets/tags_strip.dart';
@@ -24,7 +25,6 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:showcaseview/showcaseview.dart';
 import '../widgets/amorzation_table.dart';
-
 
 class HomePage extends ConsumerStatefulWidget {
   // GlobalKey loanHelpKey, GlobalKey lendHelpKey, GlobalKey langHelpKey, GlobalKey helpHelpKey
@@ -47,7 +47,7 @@ class HomePageState extends ConsumerState<HomePage> {
   final GlobalKey helpHelpKey = GlobalKey();
   final GlobalKey filterHelpKey = GlobalKey();
   final GlobalKey<ScaffoldState> _scaffoldKey =
-  GlobalKey<ScaffoldState>(); //for drawer
+      GlobalKey<ScaffoldState>(); //for drawer
 
   void _showHelpOptions(BuildContext parentContext) {
     showModalBottomSheet(
@@ -60,10 +60,10 @@ class HomePageState extends ConsumerState<HomePage> {
               leading: const Icon(Icons.home),
               title: Text('All Home Bottons'),
               onTap: () async {
-                Navigator.pop(context); // Close the bumodal with current context
+                Navigator.pop(
+                    context); // Close the bumodal with current context
                 //language
-                if(noEmis==false)
-                {
+                if (noEmis == false) {
                   _scaffoldKey.currentState?.openDrawer();
                   ShowCaseWidget.of(parentContext).startShowCase(
                       [langHelpKey]); //language help model context
@@ -79,8 +79,6 @@ class HomePageState extends ConsumerState<HomePage> {
                 ShowCaseWidget.of(parentContext).startShowCase([lendHelpKey]);
               },
             ),
-
-
             if (noEmis == false)
               ListTile(
                 leading: const Icon(Icons.tag),
@@ -91,10 +89,10 @@ class HomePageState extends ConsumerState<HomePage> {
                   if (_scaffoldKey.currentState?.isDrawerOpen ??
                       false) //if drawer open
                     Navigator.pop(parentContext); //close drawer
-                  ShowCaseWidget.of(parentContext).startShowCase([filterHelpKey]);
+                  ShowCaseWidget.of(parentContext)
+                      .startShowCase([filterHelpKey]);
                 },
               ),
-
           ],
         );
       },
@@ -345,7 +343,7 @@ class HomePageState extends ConsumerState<HomePage> {
   Future<void> exportToCSV(BuildContext context, List<Emi> allemis) async {
     try {
       // Reverse the payments list to ensure correct order
-      final Emis= List<Emi>.from(allemis);
+      final Emis = List<Emi>.from(allemis);
       // List to hold the CSV data
       List<List<String>> csvData = [];
       // Add the header row
@@ -378,6 +376,11 @@ class HomePageState extends ConsumerState<HomePage> {
 
       // Add each emi's data
       for (var emi in Emis) {
+        // Convert each Tag object to a map and then encode the list as JSON
+        List<Map<String, dynamic>> tagMapList =
+            emi.tags.map((tag) => tag.toMap()).toList();
+        String tagJson = json.encode(tagMapList);
+        String tags = tagJson;
         csvData.add([
           emi.id.toString(),
           emi.title,
@@ -385,7 +388,7 @@ class HomePageState extends ConsumerState<HomePage> {
           emi.principalAmount.toString(),
           emi.interestRate.toString(),
           emi.startDate.toIso8601String(),
-          emi.endDate?.toIso8601String()??'',
+          emi.endDate?.toIso8601String() ?? '',
           emi.contactPersonName,
           emi.contactPersonPhone,
           emi.contactPersonEmail,
@@ -401,7 +404,7 @@ class HomePageState extends ConsumerState<HomePage> {
           emi.monthlyEmi.toString(),
           emi.totalEmi.toString(),
           emi.paid.toString(),
-          emi.tags.join(", "), // Join tags list as a comma-separated string
+          tags, // Join tags list as a comma-separated string
         ]);
       }
       var status = await Permission.storage.status;
@@ -413,7 +416,8 @@ class HomePageState extends ConsumerState<HomePage> {
       String csv = const ListToCsvConverter().convert(csvData);
       // Get the directory to save the file
       Directory directory = await getApplicationDocumentsDirectory();
-      final path = "/storage/emulated/0/Download/${Emis[0].startDate.day}emi.csv";
+      final path =
+          "/storage/emulated/0/Download/${Emis[0].startDate.day}emi.csv";
       final file = File(path);
       await file.writeAsString(csv);
       // Show the dialog box to let the user choose an action
@@ -427,17 +431,14 @@ class HomePageState extends ConsumerState<HomePage> {
             actions: [
               TextButton(
                 onPressed: () async {
-
                   Navigator.of(context).pop();
 
                   // Open the file directly for the user to download it
                   final result = await OpenFile.open(file.path);
                   //  print(result.message);
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('CSV saved to: ${file.path}')
-                    ),
+                    SnackBar(content: Text('CSV saved to: ${file.path}')),
                   );
-
                 },
                 child: Text("Download"),
               ),
@@ -465,6 +466,7 @@ class HomePageState extends ConsumerState<HomePage> {
       print("Error while exporting CSV: $e");
     }
   }
+
   // Function to import CSV data and map it to your Payment model
   Future<void> importPaymentsFromCSV(BuildContext context) async {
     try {
@@ -483,45 +485,55 @@ class HomePageState extends ConsumerState<HomePage> {
         // Parse the CSV file
         List<List<dynamic>> csvData = const CsvToListConverter().convert(input);
         // Skip the header row and process the rest
-        for (int i = 1; i < csvData.length; i++) {//oth row is heading
+        for (int i = 1; i < csvData.length; i++) {
+          //oth row is heading
           var row = csvData[i];
           // Map CSV data to Payment fields
-    // Assuming row[22] is a JSON string of tags
-    String tagJson = row[22];
-    List<Tag> tags = [];
-    try {
-    // Parse JSON string into a list of maps
-    List<dynamic> tagList = json.decode(tagJson);
+          // Assuming row[22] is a JSON string of tags
+          String tagJson = row[22];
+          List<Tag> tags = [];
+          try {
+            // Parse JSON string into a list of maps
+            List<dynamic> tagList = json.decode(tagJson);
+            print(tagList);
 
-    // Convert each map to a Tag object
-    tags = tagList.map((tagMap) => Tag.fromMap(tagMap)).toList();
-    } catch (e) {
-    print("Error parsing tags: $e");
-    }
-          Emi SingleEmi=Emi(
-              id: row[0].toString(),
-              title: row[1].toString(),
-              emiType: row[2].toString(),
-              principalAmount: double.tryParse(row[3].toString())??0.0,
-              interestRate: double.tryParse(row[4].toString())??0.0,
-              startDate: DateTime.parse(row[5].toString()),
-              endDate: DateTime.parse(row[6].toString()),
-              contactPersonName: row[7].toString(),
-              contactPersonPhone: row[8].toString(),
-              contactPersonEmail:  row[9].toString(),
-              otherInfo:  row[10].toString(),
-              processingFee: double.tryParse(row[11].toString()),
-              otherCharges: double.tryParse(row[12].toString()),
-              partPayment: double.tryParse(row[13].toString()),
-              advancePayment: double.tryParse(row[14].toString()),
-              insuranceCharges: double.tryParse(row[15].toString()),
-              moratorium:(row[16].toString()=="Yes"?true:false),
-              moratoriumMonth: int.tryParse(row[17].toString()),
-              moratoriumType:row[18].toString(),
-              monthlyEmi:double.tryParse(row[19].toString()),
-              totalEmi: double.tryParse(row[20].toString()),
-              paid: double.tryParse(row[21].toString()),
-              tags: tags,
+            // Convert each map to a Tag object
+            tags = tagList.map((tag) {
+              return Tag.fromMap(tag);
+            }).toList();
+            if (tags.isNotEmpty) // saving  tags in hive
+            {
+              for (var tag in tags) {
+                await ref.read(tagsNotifierProvider.notifier).add(tag);
+              }
+            }
+          } catch (e) {
+            print("Error parsing tags: $e");
+          }
+          Emi SingleEmi = Emi(
+            id: row[0].toString(),
+            title: row[1].toString(),
+            emiType: row[2].toString(),
+            principalAmount: double.tryParse(row[3].toString()) ?? 0.0,
+            interestRate: double.tryParse(row[4].toString()) ?? 0.0,
+            startDate: DateTime.parse(row[5].toString()),
+            endDate: DateTime.parse(row[6].toString()),
+            contactPersonName: row[7].toString(),
+            contactPersonPhone: row[8].toString(),
+            contactPersonEmail: row[9].toString(),
+            otherInfo: row[10].toString(),
+            processingFee: double.tryParse(row[11].toString()),
+            otherCharges: double.tryParse(row[12].toString()),
+            partPayment: double.tryParse(row[13].toString()),
+            advancePayment: double.tryParse(row[14].toString()),
+            insuranceCharges: double.tryParse(row[15].toString()),
+            moratorium: (row[16].toString() == "Yes" ? true : false),
+            moratoriumMonth: int.tryParse(row[17].toString()),
+            moratoriumType: row[18].toString(),
+            monthlyEmi: double.tryParse(row[19].toString()),
+            totalEmi: double.tryParse(row[20].toString()),
+            paid: double.tryParse(row[21].toString()),
+            tags: tags,
           );
           ref.read(emisNotifierProvider.notifier).add(SingleEmi);
         }
@@ -530,7 +542,7 @@ class HomePageState extends ConsumerState<HomePage> {
           //refresh the ui
         });
 
-        Navigator.of(context).pop();//pop the drawer
+        Navigator.of(context).pop(); //pop the drawer
         // Show a confirmation message
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Payments imported successfully!')),
@@ -547,9 +559,8 @@ class HomePageState extends ConsumerState<HomePage> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
-    // final allEmis = ref.watch(homeStateNotifierProvider).emis;
-    final allEmis = ref.watch(homeStateNotifierProvider.select((state) => state.emis));
-
+    final allEmis =
+        ref.watch(homeStateNotifierProvider.select((state) => state.emis));
     // Check if there are any EMIs in the database
     if (allEmis.isEmpty) {
       return ShowCaseWidget(
@@ -603,10 +614,15 @@ class HomePageState extends ConsumerState<HomePage> {
     }
 
     // Collect data for the BarGraph using actual EMIs from the database
-    List<double> principalAmounts = allEmis.map((emi) => emi.principalAmount).toList();
-    List<double> interestAmounts = allEmis.map((emi) => emi.totalEmi! - emi.principalAmount).toList();
+    List<double> principalAmounts =
+        allEmis.map((emi) => emi.principalAmount).toList();
+    List<double> interestAmounts =
+        allEmis.map((emi) => emi.totalEmi! - emi.principalAmount).toList();
     List<double> balances = allEmis.map((emi) => emi.totalEmi!).toList();
-    List<int> years = allEmis.map((emi) => emi.year).toSet().toList(); // Unique years for grouping
+    List<int> years = allEmis
+        .map((emi) => emi.year)
+        .toSet()
+        .toList(); // Unique years for grouping
 
     return ShowCaseWidget(
       builder: (context) => Scaffold(
@@ -629,7 +645,8 @@ class HomePageState extends ConsumerState<HomePage> {
             children: <Widget>[
               DrawerHeader(
                 decoration: BoxDecoration(color: Colors.blue),
-                child: Text('Menu', style: TextStyle(color: Colors.white, fontSize: 24)),
+                child: Text('Menu',
+                    style: TextStyle(color: Colors.white, fontSize: 24)),
               ),
               FloatingActionButton.extended(
                 onPressed: () =>
@@ -648,7 +665,7 @@ class HomePageState extends ConsumerState<HomePage> {
                 icon: const Icon(Icons.add),
               ),
               Padding(
-                  padding:EdgeInsets.all(10),
+                padding: EdgeInsets.all(10),
                 child: FloatingActionButton.extended(
                   onPressed: () {
                     showCurrencyPicker(
@@ -657,7 +674,9 @@ class HomePageState extends ConsumerState<HomePage> {
                       showCurrencyName: true,
                       showCurrencyCode: true,
                       onSelect: (Currency currency) {
-                        ref.read(currencyProvider.notifier).setCurrencySymbol(currency.symbol);
+                        ref
+                            .read(currencyProvider.notifier)
+                            .setCurrencySymbol(currency.symbol);
                       },
                     );
                   },
@@ -665,8 +684,9 @@ class HomePageState extends ConsumerState<HomePage> {
                   label: Text("Change Currency"),
                   icon: const Icon(Icons.currency_exchange),
                 ),
-              ),Padding(
-                  padding:EdgeInsets.only(top:0,left: 10,right:10),
+              ),
+              Padding(
+                padding: EdgeInsets.only(top: 0, left: 10, right: 10),
                 child: FloatingActionButton.extended(
                   onPressed: () {
                     importPaymentsFromCSV(context);
@@ -676,7 +696,6 @@ class HomePageState extends ConsumerState<HomePage> {
                   icon: const Icon(Icons.arrow_downward),
                 ),
               ),
-
             ],
           ),
         ),
@@ -722,7 +741,8 @@ class HomePageState extends ConsumerState<HomePage> {
                       : loanColor(context, true);
 
                   final double principalAmount = emi.principalAmount;
-                  final double interestAmount = emi.totalEmi! - emi.principalAmount;
+                  final double interestAmount =
+                      emi.totalEmi! - emi.principalAmount;
                   final double totalAmount = emi.totalEmi!;
 
                   return EmiCard(
@@ -746,7 +766,8 @@ class HomePageState extends ConsumerState<HomePage> {
               key: lendHelpKey,
               description: "Add New Lend from Here",
               child: FloatingActionButton.extended(
-                onPressed: () => const NewEmiRoute(emiType: 'lend').push(context),
+                onPressed: () =>
+                    const NewEmiRoute(emiType: 'lend').push(context),
                 heroTag: 'newLendBtn',
                 backgroundColor: lendColor(context, false),
                 label: Text(l10n.lend),
@@ -757,7 +778,8 @@ class HomePageState extends ConsumerState<HomePage> {
               key: loanHelpKey,
               description: "Add new Loan from Here",
               child: FloatingActionButton.extended(
-                onPressed: () => const NewEmiRoute(emiType: 'loan').push(context),
+                onPressed: () =>
+                    const NewEmiRoute(emiType: 'loan').push(context),
                 heroTag: 'newLoanBtn',
                 backgroundColor: loanColor(context, false),
                 label: Text(l10n.loan),
@@ -766,14 +788,12 @@ class HomePageState extends ConsumerState<HomePage> {
             ),
             FloatingActionButton.extended(
               onPressed: () {
-                print("onpressed export csv");
                 exportToCSV(context, allEmis);
               },
               backgroundColor: Colors.green,
               label: Text(l10n.share),
               icon: const Icon(Icons.share),
             ),
-
           ],
         ),
       ),
@@ -782,9 +802,9 @@ class HomePageState extends ConsumerState<HomePage> {
 
   int _calculateTenure(List<Emi> allEmis) {
     int earliestYear =
-    allEmis.map((emi) => emi.year).reduce((a, b) => a < b ? a : b);
+        allEmis.map((emi) => emi.year).reduce((a, b) => a < b ? a : b);
     int latestYear =
-    allEmis.map((emi) => emi.year).reduce((a, b) => a > b ? a : b);
+        allEmis.map((emi) => emi.year).reduce((a, b) => a > b ? a : b);
     return latestYear - earliestYear + 1;
   }
 
@@ -848,9 +868,7 @@ class HomePageState extends ConsumerState<HomePage> {
   //   return amortizationEntries;
   // }
 
-
   List<AmortizationEntry> _groupAmortizationEntries(List<Emi> allEmis) {
-
     List<AmortizationEntry> amortizationEntries = [];
 
     for (var emi in allEmis) {
@@ -859,8 +877,9 @@ class HomePageState extends ConsumerState<HomePage> {
       final int tenureInYears = ((emi.endDate?.year ?? 0) - emi.startDate.year);
 
       // Calculate monthly EMI for the current EMI item
-      final int sign = emi.emiType=='loan'? (-1): 1;
-      double monthlyEmi = _calculateEMI(emi.principalAmount, emi.interestRate, tenureInYears);
+      final int sign = emi.emiType == 'loan' ? (-1) : 1;
+      double monthlyEmi =
+          _calculateEMI(emi.principalAmount, emi.interestRate, tenureInYears);
       double remainingPrincipal = emi.principalAmount;
       for (int month = 0; month < tenureInYears * 12; month++) {
         double monthlyInterestRate = emi.interestRate / (12 * 100);
@@ -868,17 +887,17 @@ class HomePageState extends ConsumerState<HomePage> {
         double monthlyPrincipal = monthlyEmi - monthlyInterest;
         remainingPrincipal -= monthlyPrincipal;
 
-        int adjustedYear = startDate.year + ((startDate.month - 1 + month) ~/ 12);
+        int adjustedYear =
+            startDate.year + ((startDate.month - 1 + month) ~/ 12);
         int adjustedMonth = (startDate.month - 1 + month) % 12 + 1;
         amortizationEntries.add(AmortizationEntry(
             title: emi.title,
-            principal: sign*monthlyPrincipal,
-            interest: sign*monthlyInterest,
-            totalPayment: sign*monthlyEmi,
+            principal: sign * monthlyPrincipal,
+            interest: sign * monthlyInterest,
+            totalPayment: sign * monthlyEmi,
             year: adjustedYear,
             month: adjustedMonth,
-            type: emi.emiType=='loan'? 0: 1
-        ));
+            type: emi.emiType == 'loan' ? 0 : 1));
       }
     }
 
@@ -891,14 +910,16 @@ class HomePageState extends ConsumerState<HomePage> {
     return amortizationEntries;
   }
 
-  double _calculateEMI(double principalAmount, double interestRate, int tenureYears) {
+  double _calculateEMI(
+      double principalAmount, double interestRate, int tenureYears) {
     // Calculate monthly interest rate from the annual rate
     double monthlyInterestRate = interestRate / (12 * 100);
     int totalMonths = tenureYears * 12;
 
     // Calculate monthly EMI amount using the compound interest formula
-    return (principalAmount * monthlyInterestRate *
-        pow(1 + monthlyInterestRate, totalMonths)) /
+    return (principalAmount *
+            monthlyInterestRate *
+            pow(1 + monthlyInterestRate, totalMonths)) /
         (pow(1 + monthlyInterestRate, totalMonths) - 1);
   }
 
@@ -907,7 +928,8 @@ class HomePageState extends ConsumerState<HomePage> {
   }
 
   double _calculateTotalAmount(List<AmortizationEntry> amortizationEntries) {
-    return amortizationEntries.fold(0.0, (sum, entry) => sum + entry.totalPayment);
+    return amortizationEntries.fold(
+        0.0, (sum, entry) => sum + entry.totalPayment);
   }
 
   // Build legend for the BarGraph
@@ -964,7 +986,7 @@ class EmiCard extends ConsumerWidget {
           side: BorderSide(
               color: emiTypeColor, width: 2), // Outline color and width
           borderRadius:
-          BorderRadius.circular(borderRadius), // Card corner radius
+              BorderRadius.circular(borderRadius), // Card corner radius
         ),
         child: Padding(
           padding: const EdgeInsets.all(8.0),
@@ -1032,7 +1054,7 @@ class EmiCard extends ConsumerWidget {
                         Text(
                           '${l10n.totalAmount}: $currencySymbol${totalAmount.toStringAsFixed(2)}',
                         ),
-                        const Divider()
+                        const Divider(),
                       ],
                     ),
                   ),
@@ -1065,7 +1087,7 @@ class EmiCard extends ConsumerWidget {
                                   color: Colors.blue,
                                   value: interestAmount,
                                   title:
-                                  '${interestPercentage.toStringAsFixed(1)}%',
+                                      '${interestPercentage.toStringAsFixed(1)}%',
                                   radius: 60,
                                   titleStyle: const TextStyle(
                                     fontSize: 14,
@@ -1077,7 +1099,7 @@ class EmiCard extends ConsumerWidget {
                                   color: Colors.green,
                                   value: principalAmount,
                                   title:
-                                  '${principalPercentage.toStringAsFixed(1)}%',
+                                      '${principalPercentage.toStringAsFixed(1)}%',
                                   radius: 60,
                                   titleStyle: const TextStyle(
                                     fontSize: 14,
