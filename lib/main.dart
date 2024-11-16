@@ -12,6 +12,8 @@ import 'package:emi_manager/logic/locale_provider.dart';
 import 'package:emi_manager/presentation/router/router.dart';
 import 'package:showcaseview/showcaseview.dart';
 
+import 'data/models/transaction_model.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -20,8 +22,11 @@ void main() async {
   // Hive.deleteBoxFromDisk('emis');
   Hive.registerAdapter(EmiAdapter());
   Hive.registerAdapter(TagAdapter());
+  Hive.registerAdapter(TransactionAdapter());
+
   await Hive.openBox<Emi>('emis');
   await Hive.openBox<Tag>('tags');
+  await Hive.openBox<Transaction>('transactions');
 
   var prefsBox = await Hive.openBox('preferences');
 
