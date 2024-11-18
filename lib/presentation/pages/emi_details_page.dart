@@ -1,12 +1,15 @@
 import 'package:collection/collection.dart';
 import 'package:emi_manager/logic/currency_provider.dart';
 import 'package:emi_manager/logic/emis_provider.dart';
+import 'package:emi_manager/logic/transaction_provider.dart';
 import 'package:emi_manager/presentation/constants.dart';
+import 'package:emi_manager/presentation/pages/new_transaction_page.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
+import '../../data/models/transaction_model.dart';
 import '../widgets/amortization_schedule_table.dart';
 import '../widgets/bar_graph.dart';
 import 'dart:math';
@@ -21,6 +24,10 @@ class EmiDetailsPage extends ConsumerWidget {
     final emi = ref.watch(emisNotifierProvider
         .select((emis) => emis.firstWhere((emi) => emi.id == emiId)));
 
+    final List<Transaction> transactions = ref
+        .watch(transactionsNotifierProvider)
+        .where((transaction) => transaction.loanLendId == emiId)
+        .toList();
 
     final l10n = AppLocalizations.of(context)!;
     final emiTypeColor = emi.emiType == 'lend'
@@ -66,6 +73,69 @@ class EmiDetailsPage extends ConsumerWidget {
           },
         ),
       ),
+      // floatingActionButton: Row(
+      //   mainAxisAlignment: MainAxisAlignment.end, // Align buttons to the right
+      //   children: [
+      //     FloatingActionButton(
+      //       heroTag: 'CR', // Unique tag for the first button
+      //       backgroundColor: Colors.green,
+      //       onPressed: () {
+      //         Navigator.push(
+      //           context,
+      //           MaterialPageRoute(builder: (_) => NewTransactionPage(type: "CR", emiId: emiId)),
+      //         );
+      //       },
+      //       child: Icon(
+      //         Icons.add,
+      //         color: Colors.indigo[900],
+      //       ),
+      //     ),
+      //     const SizedBox(width: 10),
+      //     FloatingActionButton(
+      //       heroTag: 'DR', // Unique tag for the second button
+      //       backgroundColor: Colors.red,
+      //       onPressed: () {
+      //         Navigator.push(
+      //           context,
+      //           MaterialPageRoute(builder: (_) => NewTransactionPage(type: "DR", emiId: emiId,)),
+      //         );
+      //       },
+      //       child: Icon(
+      //         Icons.remove,
+      //         color: Colors.indigo[900],
+      //       ),
+      //     ),
+      //   ],
+      // ),
+      floatingActionButton: emi.emiType == 'lend'
+          ? FloatingActionButton(
+            heroTag: 'CR', // Unique tag for the first button
+            backgroundColor: Colors.green,
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => NewTransactionPage(type: "CR", emiId: emiId)),
+              );
+            },
+            child: Icon(
+              Icons.add,
+              color: Colors.indigo[900],
+            ),
+          )
+          : FloatingActionButton(
+            heroTag: 'DR', // Unique tag for the first button
+            backgroundColor: Colors.red,
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => NewTransactionPage(type: "DR", emiId: emiId)),
+              );
+            },
+            child: Icon(
+              Icons.remove,
+              color: Colors.indigo[900],
+            ),
+          ),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
@@ -112,10 +182,57 @@ class EmiDetailsPage extends ConsumerWidget {
                 startDate: startDate,
                 tenureInYears: tenureInYears,
               ),
+
+              _buildTransactionList(context, transactions),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildTransactionList(BuildContext context, List<Transaction> transactions) {
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: NeverScrollableScrollPhysics(), // Disable scrolling to integrate with the main scroll view
+      itemCount: transactions.length,
+      itemBuilder: (context, index) {
+        final transaction = transactions[index];
+        final isCredit = transaction.type == 'CR';
+        final amountColor = isCredit ? Colors.green : Colors.red;
+
+        return Container(
+          margin: EdgeInsets.symmetric(vertical: 5.0),
+          child: Material(
+            borderRadius: BorderRadius.circular(10),
+            elevation: 2,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4.0),
+              child: ListTile(
+                title: Text(
+                  transaction.title,
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18
+                  ),
+                ),
+                subtitle: Text(
+                  transaction.datetime.toLocal().toString().substring(0, 16),
+                  style: const TextStyle(color: Colors.grey),
+                ),
+                trailing: Text(
+                  "${isCredit ? '+' : '-'}₹${transaction.amount.toStringAsFixed(2)}",
+                  style: TextStyle(
+                    fontSize: 16.0,
+                      color: amountColor,
+                      fontWeight: FontWeight.bold
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 
