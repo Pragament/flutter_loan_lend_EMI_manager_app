@@ -257,6 +257,7 @@ class EmiDetailsPage extends ConsumerWidget {
         const SizedBox(height: 16),
         _buildInfoRow(ref,l10n.loanAmount,'$currencySymbol${principalAmount.toStringAsFixed(2)}'),
         _buildInfoRow(ref,l10n.tenure, tenure),
+        _buildInfoRow(ref,l10n.tenure, tenure),
       ],
     );
   }
