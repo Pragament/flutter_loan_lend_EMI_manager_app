@@ -14,6 +14,8 @@ import '../widgets/amortization_schedule_table.dart';
 import '../widgets/bar_graph.dart';
 import 'dart:math';
 
+import 'home/transaction_details_page.dart';
+
 class EmiDetailsPage extends ConsumerWidget {
   const EmiDetailsPage({super.key, required this.emiId});
   final String emiId;
@@ -228,6 +230,14 @@ class EmiDetailsPage extends ConsumerWidget {
                       fontWeight: FontWeight.bold
                   ),
                 ),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => TransactionDetailsPage(transaction: transaction),
+                    ),
+                  );
+                },
               ),
             ),
           ),

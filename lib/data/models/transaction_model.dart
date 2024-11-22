@@ -17,7 +17,7 @@ class Transaction {
   @HiveField(5)
   DateTime datetime;
   @HiveField(6)
-  String loanLendId; // Nullable field for loan length ID
+  String loanLendId;
 
   Transaction({
     required this.id,
