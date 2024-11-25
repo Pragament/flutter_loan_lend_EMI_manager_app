@@ -1,61 +1,40 @@
-import 'package:emi_manager/logic/transaction_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
-import 'package:uuid/uuid.dart';
 
-import '../../data/models/transaction_model.dart';
+import '../../../data/models/transaction_model.dart';
+import '../../../logic/transaction_provider.dart';
+import '../new_transaction_page.dart';
 
-class NewTransactionPage extends ConsumerStatefulWidget {
-  final String type;
-  final String emiId;
-  const NewTransactionPage({super.key, required this.type, required this.emiId});
+class TransactionDetailsPage extends ConsumerStatefulWidget {
+  final Transaction transaction;
+  const TransactionDetailsPage({super.key, required this.transaction});
 
   @override
-  ConsumerState<ConsumerStatefulWidget> createState() => _NewTransactionPageState();
+  ConsumerState<ConsumerStatefulWidget> createState() => _TransactionDetailsPageState();
 }
 
-class _NewTransactionPageState extends ConsumerState<NewTransactionPage> {
-  bool isIncome = true;
+class _TransactionDetailsPageState extends ConsumerState<TransactionDetailsPage> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   final TextEditingController _amountController = TextEditingController();
 
-  DateTime _selectedDate = DateTime.now();
-  TimeOfDay _selectedTime = TimeOfDay.now();
+  late DateTime _selectedDate;
+  late TimeOfDay _selectedTime;
+
+  @override
+  void initState() {
+    super.initState();
+    _titleController.text = widget.transaction.title;
+    _descriptionController.text = widget.transaction.description;
+    _amountController.text = widget.transaction.amount.toStringAsFixed(2);
+    _selectedDate = widget.transaction.datetime;
+    _selectedTime = TimeOfDay.fromDateTime(widget.transaction.datetime);
+  }
 
   String get _formattedDate => DateFormat('dd/MM/yyyy').format(_selectedDate);
   String get _formattedTime => _selectedTime.format(context);
-
-  // Save transaction to Hive
-  void _saveTransaction() {
-    if (_formKey.currentState?.validate() ?? false) {
-      final transactionId = const Uuid().v4();
-
-      final transaction = Transaction(
-        id: transactionId,
-        title: _titleController.text,
-        description: _descriptionController.text,
-        amount: double.parse(_amountController.text),
-        type: widget.type,
-        datetime: DateTime(
-          _selectedDate.year,
-          _selectedDate.month,
-          _selectedDate.day,
-          _selectedTime.hour,
-          _selectedTime.minute,
-        ),
-        loanLendId: widget.emiId,
-      );
-
-      ref.read(transactionsNotifierProvider.notifier).add(transaction);
-      print("Transaction saved in Hive: ${widget.emiId}");
-
-      Navigator.pop(context);
-    }
-  }
 
   void _pickDate() async {
     final pickedDate = await Picker.pickDate(context, _selectedDate);
@@ -75,11 +54,31 @@ class _NewTransactionPageState extends ConsumerState<NewTransactionPage> {
     }
   }
 
+  void _updateTransaction() {
+    if (_formKey.currentState?.validate() ?? false) {
+      final updatedTransaction = widget.transaction.copyWith(
+        title: _titleController.text,
+        description: _descriptionController.text,
+        amount: double.parse(_amountController.text),
+        datetime: DateTime(
+          _selectedDate.year,
+          _selectedDate.month,
+          _selectedDate.day,
+          _selectedTime.hour,
+          _selectedTime.minute,
+        ),
+      );
+
+      ref.read(transactionsNotifierProvider.notifier).update(updatedTransaction);
+      Navigator.pop(context);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('New Transaction'),
+        title: Text('Transaction Details'),
         leading: IconButton(
           icon: Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
@@ -92,44 +91,13 @@ class _NewTransactionPageState extends ConsumerState<NewTransactionPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-
-
-              widget.type == 'CR'
-              ? ChoiceChip(
-                label: const Text('Income'),
-                selected: isIncome,
-                onSelected: (selected) {
-                  setState(() {
-                    isIncome = true;
-                  });
-                },
+              ChoiceChip(
+                label: Text(widget.transaction.type == 'CR' ? 'Income' : 'Expense'),
+                selected: true,
                 selectedColor: Colors.deepPurple,
-                labelStyle: TextStyle(
-                  color: isIncome ? Colors.white : Colors.deepPurple,
-                ),
-                backgroundColor: Colors.white,
-                shape: StadiumBorder(
-                  side: BorderSide(color: Colors.deepPurple),
-                ),
-              )
-              : ChoiceChip(
-                label: const Text('Expense'),
-                selected: isIncome,
-                onSelected: (selected) {
-                  setState(() {
-                    isIncome = true;
-                  });
-                },
-                selectedColor: Colors.deepPurple,
-                labelStyle: TextStyle(
-                  color: isIncome ? Colors.white : Colors.deepPurple,
-                ),
-                backgroundColor: Colors.white,
-                shape: StadiumBorder(
-                  side: BorderSide(color: Colors.deepPurple),
-                ),
+                labelStyle: const TextStyle(color: Colors.white),
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               TextFormField(
                 controller: _titleController,
                 decoration: InputDecoration(
@@ -147,7 +115,7 @@ class _NewTransactionPageState extends ConsumerState<NewTransactionPage> {
                   return null;
                 },
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               TextFormField(
                 controller: _descriptionController,
                 decoration: InputDecoration(
@@ -159,7 +127,7 @@ class _NewTransactionPageState extends ConsumerState<NewTransactionPage> {
                   ),
                 ),
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               TextFormField(
                 controller: _amountController,
                 keyboardType: TextInputType.number,
@@ -191,10 +159,10 @@ class _NewTransactionPageState extends ConsumerState<NewTransactionPage> {
                     child: Row(
                       children: [
                         Icon(Icons.calendar_today, color: Colors.deepPurple),
-                        SizedBox(width: 5),
+                        const SizedBox(width: 5),
                         Text(
                           _formattedDate,
-                          style: TextStyle(fontSize: 16),
+                          style: const TextStyle(fontSize: 16),
                         ),
                       ],
                     ),
@@ -204,10 +172,10 @@ class _NewTransactionPageState extends ConsumerState<NewTransactionPage> {
                     child: Row(
                       children: [
                         Icon(Icons.access_time, color: Colors.deepPurple),
-                        SizedBox(width: 5),
+                        const SizedBox(width: 5),
                         Text(
                           _formattedTime,
-                          style: TextStyle(fontSize: 16),
+                          style: const TextStyle(fontSize: 16),
                         ),
                       ],
                     ),
@@ -218,16 +186,16 @@ class _NewTransactionPageState extends ConsumerState<NewTransactionPage> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: _saveTransaction,
+                  onPressed: _updateTransaction,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.deepPurple,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    padding: EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(16),
                   ),
-                  child: Text(
-                    'Save',
+                  child: const Text(
+                    'Update',
                     style: TextStyle(fontSize: 18, color: Colors.white),
                   ),
                 ),
@@ -240,63 +208,3 @@ class _NewTransactionPageState extends ConsumerState<NewTransactionPage> {
     );
   }
 }
-
-class Picker {
-  static Future<DateTime?> pickDate(BuildContext context, DateTime initialDate) async {
-    return await showDatePicker(
-      context: context,
-      initialDate: initialDate,
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2100),
-    );
-  }
-
-  static Future<TimeOfDay?> pickTime(BuildContext context, TimeOfDay initialTime) async {
-    return await showTimePicker(
-      context: context,
-      initialTime: initialTime,
-    );
-  }
-}
-
-
-// Row(
-//   mainAxisAlignment: MainAxisAlignment.start,
-//   children: [
-//     ChoiceChip(
-//       label: Text('Income'),
-//       selected: isIncome,
-//       onSelected: (selected) {
-//         setState(() {
-//           isIncome = true;
-//         });
-//       },
-//       selectedColor: Colors.deepPurple,
-//       labelStyle: TextStyle(
-//         color: isIncome ? Colors.white : Colors.deepPurple,
-//       ),
-//       backgroundColor: Colors.white,
-//       shape: StadiumBorder(
-//         side: BorderSide(color: Colors.deepPurple),
-//       ),
-//     ),
-//     SizedBox(width: 10),
-//     ChoiceChip(
-//       label: Text('Expense'),
-//       selected: !isIncome,
-//       onSelected: (selected) {
-//         setState(() {
-//           isIncome = false;
-//         });
-//       },
-//       selectedColor: Colors.deepPurple,
-//       labelStyle: TextStyle(
-//         color: !isIncome ? Colors.white : Colors.deepPurple,
-//       ),
-//       backgroundColor: Colors.white,
-//       shape: StadiumBorder(
-//         side: BorderSide(color: Colors.deepPurple),
-//       ),
-//     ),
-//   ],
-// ),
