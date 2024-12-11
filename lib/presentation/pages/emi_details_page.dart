@@ -196,7 +196,7 @@ class EmiDetailsPage extends ConsumerWidget {
   Widget _buildTransactionList(BuildContext context, List<Transaction> transactions) {
     return ListView.builder(
       shrinkWrap: true,
-      physics: NeverScrollableScrollPhysics(), // Disable scrolling to integrate with the main scroll view
+      physics: const NeverScrollableScrollPhysics(), // Disable scrolling to integrate with the main scroll view
       itemCount: transactions.length,
       itemBuilder: (context, index) {
         final transaction = transactions[index];
@@ -204,7 +204,7 @@ class EmiDetailsPage extends ConsumerWidget {
         final amountColor = isCredit ? Colors.green : Colors.red;
 
         return Container(
-          margin: EdgeInsets.symmetric(vertical: 5.0),
+          margin: const EdgeInsets.symmetric(vertical: 5.0),
           child: Material(
             borderRadius: BorderRadius.circular(10),
             elevation: 2,
@@ -414,10 +414,10 @@ class _LegendItem extends StatelessWidget {
   final String label;
 
   const _LegendItem({
-    Key? key,
+    super.key,
     required this.color,
     required this.label,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

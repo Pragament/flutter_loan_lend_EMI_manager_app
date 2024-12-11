@@ -1,7 +1,7 @@
 import 'dart:math';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:emi_manager/data/models/emi_model.dart'; // Adjust the import based on your file structure
+// Adjust the import based on your file structure
 
 
 class BarGraph extends StatelessWidget {
@@ -109,7 +109,7 @@ class BarGraph extends StatelessWidget {
                               angle: -1.0, // Rotate to avoid overlap
                               child: Text(
                                 title,
-                                style: TextStyle(
+                                style: const TextStyle(
                                   color: Colors.black,
                                   fontSize: 11,
                                 ),
@@ -120,13 +120,13 @@ class BarGraph extends StatelessWidget {
                       },
                     ),
                   ),
-                  topTitles: AxisTitles(
+                  topTitles: const AxisTitles(
                     sideTitles: SideTitles(showTitles: false),
                   ),
                 ),
                 borderData: FlBorderData(show: false),
                 barTouchData: BarTouchData(enabled: true),
-                gridData: FlGridData(show: true),
+                gridData: const FlGridData(show: true),
                 backgroundColor: Colors.white,
                 maxY: maxPayment * 1.25,
                 minY: 0,

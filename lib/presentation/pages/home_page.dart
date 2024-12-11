@@ -59,7 +59,7 @@ class HomePageState extends ConsumerState<HomePage> {
           children: <Widget>[
             ListTile(
               leading: const Icon(Icons.home),
-              title: Text('All Home Bottons'),
+              title: const Text('All Home Bottons'),
               onTap: () async {
                 Navigator.pop(
                     context); // Close the bumodal with current context
@@ -68,22 +68,22 @@ class HomePageState extends ConsumerState<HomePage> {
                   _scaffoldKey.currentState?.openDrawer();
                   ShowCaseWidget.of(parentContext).startShowCase(
                       [langHelpKey]); //language help model context
-                  await Future.delayed(Duration(seconds: 2));
+                  await Future.delayed(const Duration(seconds: 2));
                   ShowCaseWidget.of(parentContext).startShowCase([helpHelpKey]);
-                  await Future.delayed(Duration(seconds: 2));
+                  await Future.delayed(const Duration(seconds: 2));
                 }
                 if (_scaffoldKey.currentState?.isDrawerOpen ??
                     false) //if drawer open
                   Navigator.pop(parentContext); //close drawer
                 ShowCaseWidget.of(parentContext).startShowCase([loanHelpKey]);
-                await Future.delayed(Duration(seconds: 2));
+                await Future.delayed(const Duration(seconds: 2));
                 ShowCaseWidget.of(parentContext).startShowCase([lendHelpKey]);
               },
             ),
             if (noEmis == false)
               ListTile(
                 leading: const Icon(Icons.tag),
-                title: Text('Filter By Tag'),
+                title: const Text('Filter By Tag'),
                 onTap: () {
                   Navigator.pop(context); // Close the modal
                   //if no emis present
@@ -426,8 +426,8 @@ class HomePageState extends ConsumerState<HomePage> {
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: Text("Export Options"),
-            content: Text(
+            title: const Text("Export Options"),
+            content: const Text(
                 "Would you like to download the CSV or share it via WhatsApp?"),
             actions: [
               TextButton(
@@ -441,7 +441,7 @@ class HomePageState extends ConsumerState<HomePage> {
                     SnackBar(content: Text('CSV saved to: ${file.path}')),
                   );
                 },
-                child: Text("Download"),
+                child: const Text("Download"),
               ),
               TextButton(
                 onPressed: () async {
@@ -452,12 +452,12 @@ class HomePageState extends ConsumerState<HomePage> {
                       text: "Here is the CSV file of Payment");
                   if (result.status == ShareResultStatus.success)
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Shared Successfully')),
+                      const SnackBar(content: Text('Shared Successfully')),
                     );
                   await file.delete();
                   Navigator.of(context).pop(); // Close the dialog
                 },
-                child: Text("Share to WhatsApp"),
+                child: const Text("Share to WhatsApp"),
               ),
             ],
           );
@@ -546,7 +546,7 @@ class HomePageState extends ConsumerState<HomePage> {
         Navigator.of(context).pop(); //pop the drawer
         // Show a confirmation message
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Payments imported successfully!')),
+          const SnackBar(content: Text('Payments imported successfully!')),
         );
       }
     } catch (e) {
@@ -578,7 +578,7 @@ class HomePageState extends ConsumerState<HomePage> {
               ),
             ],
           ),
-          body: Center(),
+          body: const Center(),
           floatingActionButton: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             crossAxisAlignment: CrossAxisAlignment.end,
@@ -644,7 +644,7 @@ class HomePageState extends ConsumerState<HomePage> {
           child: ListView(
             padding: EdgeInsets.zero,
             children: <Widget>[
-              DrawerHeader(
+              const DrawerHeader(
                 decoration: BoxDecoration(color: Colors.blue),
                 child: Text('Menu',
                     style: TextStyle(color: Colors.white, fontSize: 24)),
@@ -652,7 +652,7 @@ class HomePageState extends ConsumerState<HomePage> {
               Showcase(
                 key: langHelpKey,
                 description: "You Can Choose Your Regional Language",
-                child: ListTile(
+                child: const ListTile(
                   title: Text('Select Language'),
                   trailing: LocaleSelectorPopupMenu(),
                 ),
@@ -661,7 +661,7 @@ class HomePageState extends ConsumerState<HomePage> {
                 key: helpHelpKey,
                 description: "Help Button",
                 child: ListTile(
-                  title: Text('Help'),
+                  title: const Text('Help'),
                   trailing: IconButton(
                     icon: const Icon(Icons.help_outline),
                     onPressed: () {
@@ -671,7 +671,7 @@ class HomePageState extends ConsumerState<HomePage> {
                 ),
               ),
               Padding(
-                padding: EdgeInsets.all(10),
+                padding: const EdgeInsets.all(10),
                 child: FloatingActionButton.extended(
                   onPressed: () {
                     showCurrencyPicker(
@@ -687,18 +687,18 @@ class HomePageState extends ConsumerState<HomePage> {
                     );
                   },
                   backgroundColor: loanColor(context, false),
-                  label: Text("Change Currency"),
+                  label: const Text("Change Currency"),
                   icon: const Icon(Icons.currency_exchange),
                 ),
               ),
               Padding(
-                padding: EdgeInsets.only(top: 0, left: 10, right: 10),
+                padding: const EdgeInsets.only(top: 0, left: 10, right: 10),
                 child: FloatingActionButton.extended(
                   onPressed: () {
                     importPaymentsFromCSV(context);
                   },
                   backgroundColor: loanColor(context, false),
-                  label: Text("Import CSV"),
+                  label: const Text("Import CSV"),
                   icon: const Icon(Icons.arrow_downward),
                 ),
               ),

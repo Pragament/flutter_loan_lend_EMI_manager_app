@@ -5,10 +5,10 @@ class Legend extends StatelessWidget {
   final List<String> labels; // Corresponding labels for the colors
 
   const Legend({
-    Key? key,
+    super.key,
     required this.colors,
     required this.labels,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -32,7 +32,7 @@ class Legend extends StatelessWidget {
                 const SizedBox(width: 8),
                 Text(
                   labels[index],
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 14,
                     color: Colors.black,
                   ),

@@ -6,11 +6,11 @@ class AmortizationScheduleTable extends StatefulWidget {
   final int tenureInYears;
 
   const AmortizationScheduleTable({
-    Key? key,
+    super.key,
     required this.schedule,
     required this.startDate,
     required this.tenureInYears,
-  }) : super(key: key);
+  });
 
   @override
   _AmortizationScheduleTableState createState() => _AmortizationScheduleTableState();
@@ -36,7 +36,7 @@ class _AmortizationScheduleTableState extends State<AmortizationScheduleTable> {
   @override
   Widget build(BuildContext context) {
     if (widget.schedule.isEmpty) {
-      return Center(child: Text('No data available.'));
+      return const Center(child: Text('No data available.'));
     }
 
     // Generate years dynamically based on tenure and startDate

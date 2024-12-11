@@ -167,7 +167,7 @@ class HomeBarGraph extends StatelessWidget {
                                 axisSide: meta.axisSide,
                                 child: Text(
                                   '${(value / 1000).toStringAsFixed(0)}K',
-                                  style: TextStyle(color: Colors.black, fontSize: 12),
+                                  style: const TextStyle(color: Colors.black, fontSize: 12),
                                 ),
                               );
                             },
@@ -177,7 +177,7 @@ class HomeBarGraph extends StatelessWidget {
                       ),
                       borderData: FlBorderData(show: false),
                       barTouchData: BarTouchData(enabled: true),
-                      gridData: FlGridData(show: true),
+                      gridData: const FlGridData(show: true),
                       backgroundColor: Colors.white,
                       maxY: maxY*1.1, // 10% margin
                       minY: 0,

@@ -16,7 +16,7 @@ void showHomeHelpDialog(BuildContext context, GlobalKey loankey, GlobalKey lendk
     context: context,
     builder: (BuildContext context) {
       return AlertDialog(
-        title: Text('Select Help Topic'),
+        title: const Text('Select Help Topic'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: helpTopics.map((topic) {

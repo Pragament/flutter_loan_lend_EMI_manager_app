@@ -167,7 +167,7 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
           children: <Widget>[
             ListTile(
               leading: const Icon(Icons.home),
-              title: Text('Tags Help'),
+              title: const Text('Tags Help'),
               onTap: () async {
                 Navigator.pop(context); // Close the modal with current context
                 ShowCaseWidget.of(parentContext)

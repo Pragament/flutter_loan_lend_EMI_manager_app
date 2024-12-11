@@ -1,7 +1,6 @@
 import 'package:emi_manager/logic/transaction_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 
@@ -79,9 +78,9 @@ class _NewTransactionPageState extends ConsumerState<NewTransactionPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('New Transaction'),
+        title: const Text('New Transaction'),
         leading: IconButton(
-          icon: Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -108,7 +107,7 @@ class _NewTransactionPageState extends ConsumerState<NewTransactionPage> {
                   color: isIncome ? Colors.white : Colors.deepPurple,
                 ),
                 backgroundColor: Colors.white,
-                shape: StadiumBorder(
+                shape: const StadiumBorder(
                   side: BorderSide(color: Colors.deepPurple),
                 ),
               )
@@ -125,11 +124,11 @@ class _NewTransactionPageState extends ConsumerState<NewTransactionPage> {
                   color: isIncome ? Colors.white : Colors.deepPurple,
                 ),
                 backgroundColor: Colors.white,
-                shape: StadiumBorder(
+                shape: const StadiumBorder(
                   side: BorderSide(color: Colors.deepPurple),
                 ),
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               TextFormField(
                 controller: _titleController,
                 decoration: InputDecoration(
@@ -147,7 +146,7 @@ class _NewTransactionPageState extends ConsumerState<NewTransactionPage> {
                   return null;
                 },
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               TextFormField(
                 controller: _descriptionController,
                 decoration: InputDecoration(
@@ -159,7 +158,7 @@ class _NewTransactionPageState extends ConsumerState<NewTransactionPage> {
                   ),
                 ),
               ),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               TextFormField(
                 controller: _amountController,
                 keyboardType: TextInputType.number,
@@ -190,11 +189,11 @@ class _NewTransactionPageState extends ConsumerState<NewTransactionPage> {
                     onTap: _pickDate,
                     child: Row(
                       children: [
-                        Icon(Icons.calendar_today, color: Colors.deepPurple),
-                        SizedBox(width: 5),
+                        const Icon(Icons.calendar_today, color: Colors.deepPurple),
+                        const SizedBox(width: 5),
                         Text(
                           _formattedDate,
-                          style: TextStyle(fontSize: 16),
+                          style: const TextStyle(fontSize: 16),
                         ),
                       ],
                     ),
@@ -203,11 +202,11 @@ class _NewTransactionPageState extends ConsumerState<NewTransactionPage> {
                     onTap: _pickTime,
                     child: Row(
                       children: [
-                        Icon(Icons.access_time, color: Colors.deepPurple),
-                        SizedBox(width: 5),
+                        const Icon(Icons.access_time, color: Colors.deepPurple),
+                        const SizedBox(width: 5),
                         Text(
                           _formattedTime,
-                          style: TextStyle(fontSize: 16),
+                          style: const TextStyle(fontSize: 16),
                         ),
                       ],
                     ),
@@ -224,9 +223,9 @@ class _NewTransactionPageState extends ConsumerState<NewTransactionPage> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    padding: EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(16),
                   ),
-                  child: Text(
+                  child: const Text(
                     'Save',
                     style: TextStyle(fontSize: 18, color: Colors.white),
                   ),

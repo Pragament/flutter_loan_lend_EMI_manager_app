@@ -145,7 +145,7 @@ class _TagsSelectionDialogState extends ConsumerState<TagsSelectionDialog> {
               onChanged: (value) {
                 setState(() {});
               },
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'Search...',
               ),
             ),

@@ -75,13 +75,13 @@ class BarGraph extends StatelessWidget {
                           axisSide: meta.axisSide,
                           child: Text(
                             '${(value / 1000).toStringAsFixed(0)}K',
-                            style: TextStyle(color: Colors.black, fontSize: 12),
+                            style: const TextStyle(color: Colors.black, fontSize: 12),
                           ),
                         );
                       },
                     ),
                   ),
-                  rightTitles: AxisTitles(
+                  rightTitles: const AxisTitles(
                     sideTitles: SideTitles(
                       showTitles: false
                     )
@@ -105,7 +105,7 @@ class BarGraph extends StatelessWidget {
                             angle: -1.1, // Rotate to avoid overlap
                             child: Text(
                               title,
-                              style: TextStyle(
+                              style: const TextStyle(
                                 color: Colors.black,
                                 fontSize: 11,
                               ),
@@ -115,7 +115,7 @@ class BarGraph extends StatelessWidget {
                       },
                     ),
                   ),
-                  topTitles: AxisTitles(
+                  topTitles: const AxisTitles(
                     sideTitles: SideTitles(showTitles: false),
                   ),
                 ),
@@ -123,7 +123,7 @@ class BarGraph extends StatelessWidget {
                   show: false,
                 ),
                 barTouchData: BarTouchData(enabled: true),
-                gridData: FlGridData(
+                gridData: const FlGridData(
                   show: true,
                 ),
                 backgroundColor: Colors.white,

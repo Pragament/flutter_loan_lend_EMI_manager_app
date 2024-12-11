@@ -170,11 +170,11 @@ class AmortizationSummaryTable extends ConsumerStatefulWidget {
   final int tenureInYears;
 
   const AmortizationSummaryTable({
-    Key? key,
+    super.key,
     required this.entries,
     required this.startDate,
     required this.tenureInYears,
-  }) : super(key: key);
+  });
 
   @override
   _AmortizationSummaryTableState createState() => _AmortizationSummaryTableState();
@@ -200,7 +200,7 @@ class _AmortizationSummaryTableState extends ConsumerState<AmortizationSummaryTa
     print("EMI: ${allEmi.length}");
     // print(widget.entries.length.toString());
     if (allEmi.isEmpty) {
-      return Center(child: Text('No data available.'));
+      return const Center(child: Text('No data available.'));
     }
 
     _groupedByYear.clear();
@@ -210,7 +210,7 @@ class _AmortizationSummaryTableState extends ConsumerState<AmortizationSummaryTa
       scrollDirection: Axis.horizontal,
       child: DataTable(
         columns:  [
-          DataColumn(label: Text(' Year/Month')),
+          const DataColumn(label: Text(' Year/Month')),
           DataColumn(label: Text('Principal ($currencySymbol)')),
           DataColumn(label: Text('Interest ($currencySymbol)')),
           DataColumn(label: Text('Total Payment ($currencySymbol)')),

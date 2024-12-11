@@ -78,9 +78,9 @@ class _TransactionDetailsPageState extends ConsumerState<TransactionDetailsPage>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Transaction Details'),
+        title: const Text('Transaction Details'),
         leading: IconButton(
-          icon: Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -158,7 +158,7 @@ class _TransactionDetailsPageState extends ConsumerState<TransactionDetailsPage>
                     onTap: _pickDate,
                     child: Row(
                       children: [
-                        Icon(Icons.calendar_today, color: Colors.deepPurple),
+                        const Icon(Icons.calendar_today, color: Colors.deepPurple),
                         const SizedBox(width: 5),
                         Text(
                           _formattedDate,
@@ -171,7 +171,7 @@ class _TransactionDetailsPageState extends ConsumerState<TransactionDetailsPage>
                     onTap: _pickTime,
                     child: Row(
                       children: [
-                        Icon(Icons.access_time, color: Colors.deepPurple),
+                        const Icon(Icons.access_time, color: Colors.deepPurple),
                         const SizedBox(width: 5),
                         Text(
                           _formattedTime,
