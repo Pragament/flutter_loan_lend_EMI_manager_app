@@ -12,6 +12,8 @@ void completeOnboarding(BuildContext context) {
 }
 
 class OnboardingScreen extends ConsumerStatefulWidget {
+  const OnboardingScreen({super.key});
+
   @override
   _OnboardingScreenState createState() => _OnboardingScreenState();
 }

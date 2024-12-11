@@ -39,7 +39,7 @@ class HomePage extends ConsumerStatefulWidget {
 }
 
 class HomePageState extends ConsumerState<HomePage> {
-  bool _showTable = false; // Toggle for the Amortization Table
+  final bool _showTable = false; // Toggle for the Amortization Table
   bool noEmis = false;
 
   final GlobalKey loanHelpKey = GlobalKey();
