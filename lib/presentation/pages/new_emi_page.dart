@@ -414,7 +414,7 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
                         Expanded(
                           child: Slider(
                             value: months,
-                            min: 1,
+                            min: 0,
                             max: 11,
                             divisions: 11,
                             label: months.toStringAsFixed(0),
