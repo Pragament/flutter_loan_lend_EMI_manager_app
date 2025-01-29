@@ -182,7 +182,7 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
 
   @override
   Widget build(BuildContext context) {
-    final currencySymbol= ref.watch(currencyProvider);
+    final currencySymbol = ref.watch(currencyProvider);
     final l10n = AppLocalizations.of(context)!;
 
     return ShowCaseWidget(
@@ -203,7 +203,7 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
   }
 
   Column body(BuildContext context, AppLocalizations l10n) {
-    final currencySymbol= ref.watch(currencyProvider);
+    final currencySymbol = ref.watch(currencyProvider);
     return Column(
       children: [
         Row(
@@ -277,7 +277,7 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
                           child: Slider(
                             value: principalAmount,
                             min: 0,
-                            max: 1000000,
+                            max: 10000000,
                             divisions: 100,
                             label: principalAmount.toStringAsFixed(0),
                             onChanged: (value) {
@@ -545,7 +545,8 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
                             },
                             icon: Showcase(
                               key: tagsKey,
-                              description: "Create New Tags or Select From Previous Tags",
+                              description:
+                                  "Create New Tags or Select From Previous Tags",
                               child: Icon(Icons.add,
                                   color: Theme.of(context).colorScheme.primary),
                             ),
