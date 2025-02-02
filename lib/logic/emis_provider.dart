@@ -32,6 +32,18 @@ class EmisNotifier extends _$EmisNotifier {
     ];
   }
 
+  Future<void> updateEmiTenure(String emiId, DateTime newEndDate) async {
+    final emi = _box.get(emiId);
+    if (emi != null) {
+      emi.updateTenure(newEndDate); // Update tenure and recalculate EMI
+      await _box.put(emiId, emi); // Save updated EMI
+      state = [
+        for (final existingEmi in state)
+          if (existingEmi.id == emiId) emi else existingEmi
+      ];
+    }
+  }
+
   Future<Emi?> getEmiById(String id) async {
     return _box.get(id);
   }
