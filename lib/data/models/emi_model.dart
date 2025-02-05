@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:emi_manager/data/models/tag_model.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
@@ -52,10 +53,6 @@ class Emi {
   @HiveField(23)
   List<Tag> tags;
 
-  // Remove the year field from here
-  // @HiveField(24)
-  // final int year;
-
   Emi({
     required this.id,
     required this.title,
@@ -80,11 +77,27 @@ class Emi {
     required this.totalEmi,
     required this.paid,
     required this.tags,
-    // Remove the year parameter from here
-    // required this.year,
-  });
+  }) {
+    _calculateEmi();
+  }
 
-  // Add a getter for year
+  void _calculateEmi() {
+    if (startDate != null && endDate != null) {
+      final tenureInMonths = (endDate!.year - startDate.year) * 12 + (endDate!.month - startDate.month);
+      final monthlyInterestRate = interestRate / 12 / 100;
+      final powTerm = pow(1 + monthlyInterestRate, tenureInMonths);
+      final numerator = principalAmount * monthlyInterestRate * powTerm;
+      final denominator = powTerm - 1;
+      monthlyEmi = numerator / denominator;
+      totalEmi = monthlyEmi! * tenureInMonths;
+    }
+  }
+
+  void updateTenure(DateTime newEndDate) {
+    endDate = newEndDate;
+    _calculateEmi();
+  }
+
   int get year => startDate.year;
 
   Emi copyWith({

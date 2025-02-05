@@ -20,7 +20,6 @@ class EmiDetailsPage extends ConsumerWidget {
   const EmiDetailsPage({super.key, required this.emiId});
   final String emiId;
 
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final emi = ref.watch(emisNotifierProvider
@@ -38,14 +37,12 @@ class EmiDetailsPage extends ConsumerWidget {
 
     final double principalAmount = emi.principalAmount;
     final double interestAmount = emi.totalEmi != null ? emi.totalEmi! - principalAmount : 0.0;
-    // final double interestAmount = (emi.interestRate/(100))*(emi.principalAmount);
     final double totalAmount = emi.totalEmi ?? 0.0;
 
     final DateTime startDate = emi.startDate;
     final DateTime? endDate = emi.endDate;
     final String tenure = _calculateTenure(l10n, startDate, endDate);
     final int tenureInYears = int.parse(tenure.split(' ')[0]);
-
 
     final List<AmortizationEntry> schedule = _generateAmortizationSchedule(
       tenureYears: tenureInYears,
@@ -54,7 +51,6 @@ class EmiDetailsPage extends ConsumerWidget {
       totalAmount: totalAmount,
       startDate: startDate,
     );
-
 
     final List<double> principalAmounts = _getPrincipalAmounts(schedule);
     final List<double> interestAmounts = _getInterestAmounts(schedule);
@@ -75,76 +71,42 @@ class EmiDetailsPage extends ConsumerWidget {
           },
         ),
       ),
-      // floatingActionButton: Row(
-      //   mainAxisAlignment: MainAxisAlignment.end, // Align buttons to the right
-      //   children: [
-      //     FloatingActionButton(
-      //       heroTag: 'CR', // Unique tag for the first button
-      //       backgroundColor: Colors.green,
-      //       onPressed: () {
-      //         Navigator.push(
-      //           context,
-      //           MaterialPageRoute(builder: (_) => NewTransactionPage(type: "CR", emiId: emiId)),
-      //         );
-      //       },
-      //       child: Icon(
-      //         Icons.add,
-      //         color: Colors.indigo[900],
-      //       ),
-      //     ),
-      //     const SizedBox(width: 10),
-      //     FloatingActionButton(
-      //       heroTag: 'DR', // Unique tag for the second button
-      //       backgroundColor: Colors.red,
-      //       onPressed: () {
-      //         Navigator.push(
-      //           context,
-      //           MaterialPageRoute(builder: (_) => NewTransactionPage(type: "DR", emiId: emiId,)),
-      //         );
-      //       },
-      //       child: Icon(
-      //         Icons.remove,
-      //         color: Colors.indigo[900],
-      //       ),
-      //     ),
-      //   ],
-      // ),
       floatingActionButton: emi.emiType == 'lend'
           ? FloatingActionButton(
-            heroTag: 'CR', // Unique tag for the first button
-            backgroundColor: Colors.green,
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => NewTransactionPage(type: "CR", emiId: emiId)),
-              );
-            },
-            child: Icon(
-              Icons.add,
-              color: Colors.indigo[900],
-            ),
-          )
+        heroTag: 'CR', // Unique tag for the first button
+        backgroundColor: Colors.green,
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => NewTransactionPage(type: "CR", emiId: emiId)),
+          );
+        },
+        child: Icon(
+          Icons.add,
+          color: Colors.indigo[900],
+        ),
+      )
           : FloatingActionButton(
-            heroTag: 'DR', // Unique tag for the first button
-            backgroundColor: Colors.red,
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => NewTransactionPage(type: "DR", emiId: emiId)),
-              );
-            },
-            child: Icon(
-              Icons.remove,
-              color: Colors.indigo[900],
-            ),
-          ),
+        heroTag: 'DR', // Unique tag for the first button
+        backgroundColor: Colors.red,
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => NewTransactionPage(type: "DR", emiId: emiId)),
+          );
+        },
+        child: Icon(
+          Icons.remove,
+          color: Colors.indigo[900],
+        ),
+      ),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildEmiInfoSection(context,ref, emi, l10n, interestAmount, principalAmount, totalAmount, tenure),
+              _buildEmiInfoSection(context, ref, emi, l10n, interestAmount, principalAmount, totalAmount, tenure),
               const SizedBox(height: 24),
               _buildPieChart(interestAmount, principalAmount, totalAmount),
               Center(
@@ -226,8 +188,8 @@ class EmiDetailsPage extends ConsumerWidget {
                   "${isCredit ? '+' : '-'}₹${transaction.amount.toStringAsFixed(2)}",
                   style: TextStyle(
                     fontSize: 16.0,
-                      color: amountColor,
-                      fontWeight: FontWeight.bold
+                    color: amountColor,
+                    fontWeight: FontWeight.bold
                   ),
                 ),
                 onTap: () {
@@ -259,20 +221,20 @@ class EmiDetailsPage extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildInfoRow(ref,l10n.emi, '$currencySymbol${emi.monthlyEmi?.toStringAsFixed(2) ?? 'N/A'}',
+        _buildInfoRow(ref, l10n.emi, '$currencySymbol${emi.monthlyEmi?.toStringAsFixed(2) ?? 'N/A'}',
             isBold: true, fontSize: 20),
         const Divider(thickness: 1, color: Colors.grey),
-        _buildInfoRow(ref,l10n.interestAmount, '$currencySymbol${interestAmount.toStringAsFixed(2)}'),
-        _buildInfoRow(ref,l10n.totalAmount,'$currencySymbol${totalAmount.toStringAsFixed(2)}'),
+        _buildInfoRow(ref, l10n.interestAmount, '$currencySymbol${interestAmount.toStringAsFixed(2)}'),
+        _buildInfoRow(ref, l10n.totalAmount, '$currencySymbol${totalAmount.toStringAsFixed(2)}'),
         const SizedBox(height: 16),
-        _buildInfoRow(ref,l10n.loanAmount,'$currencySymbol${principalAmount.toStringAsFixed(2)}'),
-        _buildInfoRow(ref,l10n.tenure, tenure),
-        _buildInfoRow(ref,l10n.tenure, tenure),
+        _buildInfoRow(ref, l10n.loanAmount, '$currencySymbol${principalAmount.toStringAsFixed(2)}'),
+        _buildInfoRow(ref, l10n.tenure, tenure),
+        _buildInfoRow(ref, l10n.tenure, tenure),
       ],
     );
   }
 
-  Widget _buildInfoRow(WidgetRef ref ,String label, String value, {bool isBold = false, double fontSize = 16}) {
+  Widget _buildInfoRow(WidgetRef ref, String label, String value, {bool isBold = false, double fontSize = 16}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
@@ -347,7 +309,6 @@ class EmiDetailsPage extends ConsumerWidget {
   }) {
     List<AmortizationEntry> schedule = [];
     DateTime paymentDate = startDate;
-
 
     double monthlyInterestRate = interestAmount / (12 * 100);
     int totalMonths = tenureYears * 12;
