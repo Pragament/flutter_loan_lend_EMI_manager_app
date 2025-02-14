@@ -43,9 +43,9 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
   double principalAmount = 110.0;
   double interestRate = 10.0;
   double years = 1.0;
-  double months = 1.0;
+  double months = 0.0;
 
-  // tags
+  // Tags
   List<Tag> tags = [];
 
   @override
@@ -66,8 +66,7 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
 
   void _loadEmiData() async {
     // Fetch EMI data using emiId and populate fields
-    final emi =
-        await ref.read(emisNotifierProvider.notifier).getEmiById(emiId!);
+    final emi = await ref.read(emisNotifierProvider.notifier).getEmiById(emiId!);
 
     if (emi != null) {
       setState(() {
@@ -90,13 +89,9 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
         if (endDate != null) {
           final duration = endDate.difference(startDate);
 
-          final totalDays = duration.inDays;
-          final yearsFromDays = (totalDays / 365).floor();
-          final remainingDays = totalDays % 365;
-          final monthsFromDays = (remainingDays / 30).floor();
-
-          years = yearsFromDays.toDouble();
-          months = monthsFromDays.toDouble();
+          final totalMonths = (duration.inDays / 30).round(); // Approximate months
+          years = (totalMonths / 12).floor().toDouble();
+          months = (totalMonths % 12).toDouble();
         } else {
           // If endDate is null, set default values for years and months
           years = 1.0;
@@ -121,8 +116,7 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
     final totalEmi = monthlyEmi * totalMonths;
 
     final emi = Emi(
-      id: emiId ??
-          const Uuid().v4(), // Use provided emiId or generate a new one
+      id: emiId ?? const Uuid().v4(), // Use provided emiId or generate a new one
       title: titleC.text,
       principalAmount: principalAmount,
       interestRate: interestRate,
@@ -182,7 +176,7 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
 
   @override
   Widget build(BuildContext context) {
-    final currencySymbol= ref.watch(currencyProvider);
+    final currencySymbol = ref.watch(currencyProvider);
     final l10n = AppLocalizations.of(context)!;
 
     return ShowCaseWidget(
@@ -203,7 +197,7 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
   }
 
   Column body(BuildContext context, AppLocalizations l10n) {
-    final currencySymbol= ref.watch(currencyProvider);
+    final currencySymbol = ref.watch(currencyProvider);
     return Column(
       children: [
         Row(
