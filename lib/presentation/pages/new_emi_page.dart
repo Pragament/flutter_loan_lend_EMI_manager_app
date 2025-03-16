@@ -11,12 +11,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:showcaseview/showcaseview.dart';
 import 'package:uuid/uuid.dart';
-import 'package:lottie/lottie.dart'; // Import Lottie package
+import 'package:lottie/lottie.dart';
 
 class NewEmiPage extends ConsumerStatefulWidget {
   const NewEmiPage({super.key, required this.emiType, this.emiId});
   final String emiType;
-  final String? emiId; // Optional parameter for editing
+  final String? emiId;
   @override
   ConsumerState<ConsumerStatefulWidget> createState() => _NewEmiPageState();
 }
@@ -194,7 +194,7 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
 
   @override
   Widget build(BuildContext context) {
-    final currencySymbol = ref.watch(currencyProvider);
+    ref.watch(currencyProvider);
     final l10n = AppLocalizations.of(context)!;
 
     return ShowCaseWidget(

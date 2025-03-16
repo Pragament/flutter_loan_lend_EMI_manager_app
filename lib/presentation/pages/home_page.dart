@@ -24,6 +24,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:showcaseview/showcaseview.dart';
+import 'package:lottie/lottie.dart'; // Import Lottie package
 import '../widgets/amorzation_table.dart';
 import '../widgets/locale_selector_popup_menu.dart';
 
@@ -72,8 +73,7 @@ class HomePageState extends ConsumerState<HomePage> {
                   ShowCaseWidget.of(parentContext).startShowCase([helpHelpKey]);
                   await Future.delayed(const Duration(seconds: 2));
                 }
-                if (_scaffoldKey.currentState?.isDrawerOpen ??
-                    false) {
+                if (_scaffoldKey.currentState?.isDrawerOpen ?? false) {
                   //if drawer open
                   Navigator.pop(parentContext); //close drawer
                 }
@@ -89,8 +89,7 @@ class HomePageState extends ConsumerState<HomePage> {
                 onTap: () {
                   Navigator.pop(context); // Close the modal
                   //if no emis present
-                  if (_scaffoldKey.currentState?.isDrawerOpen ??
-                      false) {
+                  if (_scaffoldKey.currentState?.isDrawerOpen ?? false) {
                     //if drawer open
                     Navigator.pop(parentContext); //close drawer
                   }
@@ -583,7 +582,15 @@ class HomePageState extends ConsumerState<HomePage> {
               ),
             ],
           ),
-          body: const Center(),
+          body: Center(
+            child: Lottie.asset(
+              'assets/animations/nodata_search.json',
+              width: 300,
+              height: 300,
+              fit: BoxFit.contain,
+              repeat: true,
+            ),
+          ),
           floatingActionButton: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             crossAxisAlignment: CrossAxisAlignment.end,
@@ -832,7 +839,7 @@ class HomePageState extends ConsumerState<HomePage> {
   //             month: DateTime.now().month,
   //           ))
   //       .toList();
-  // 
+  //
 
   // List<AmortizationEntry> _groupAmortizationEntries(List<Emi> allEmis) {
   //   List<AmortizationEntry> amortizationEntries = [];
