@@ -78,7 +78,7 @@ class HomeBarGraph extends StatelessWidget {
     for (int year in years) {
       List<BarChartRodData> rods = [];
       final currentDate = DateTime.now();
-      final monthsLeft = 12 - currentDate.month;;
+      final monthsLeft = 12 - currentDate.month;
 
       for (int i = 0; i < allEmis.length; i++) {
         var emi = allEmis[i];
@@ -129,7 +129,7 @@ class HomeBarGraph extends StatelessWidget {
         children: [
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
-            child: Container(
+            child: SizedBox(
               width: w * total * 0.01,
               height: 320,
               child: AspectRatio(

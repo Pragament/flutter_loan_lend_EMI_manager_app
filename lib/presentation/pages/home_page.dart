@@ -24,13 +24,14 @@ import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:showcaseview/showcaseview.dart';
+import 'package:lottie/lottie.dart'; // Import Lottie package
 import '../widgets/amorzation_table.dart';
 import '../widgets/locale_selector_popup_menu.dart';
 
 class HomePage extends ConsumerStatefulWidget {
   // GlobalKey loanHelpKey, GlobalKey lendHelpKey, GlobalKey langHelpKey, GlobalKey helpHelpKey
 
-  HomePage({super.key, this.actionCallback});
+  const HomePage({super.key, this.actionCallback});
 
   final Function? actionCallback;
 
@@ -72,9 +73,10 @@ class HomePageState extends ConsumerState<HomePage> {
                   ShowCaseWidget.of(parentContext).startShowCase([helpHelpKey]);
                   await Future.delayed(const Duration(seconds: 2));
                 }
-                if (_scaffoldKey.currentState?.isDrawerOpen ??
-                    false) //if drawer open
+                if (_scaffoldKey.currentState?.isDrawerOpen ?? false) {
+                  //if drawer open
                   Navigator.pop(parentContext); //close drawer
+                }
                 ShowCaseWidget.of(parentContext).startShowCase([loanHelpKey]);
                 await Future.delayed(const Duration(seconds: 2));
                 ShowCaseWidget.of(parentContext).startShowCase([lendHelpKey]);
@@ -87,9 +89,10 @@ class HomePageState extends ConsumerState<HomePage> {
                 onTap: () {
                   Navigator.pop(context); // Close the modal
                   //if no emis present
-                  if (_scaffoldKey.currentState?.isDrawerOpen ??
-                      false) //if drawer open
+                  if (_scaffoldKey.currentState?.isDrawerOpen ?? false) {
+                    //if drawer open
                     Navigator.pop(parentContext); //close drawer
+                  }
                   ShowCaseWidget.of(parentContext)
                       .startShowCase([filterHelpKey]);
                 },
@@ -450,10 +453,11 @@ class HomePageState extends ConsumerState<HomePage> {
                   // Share the file via WhatsApp
                   final result = await Share.shareXFiles([xfile],
                       text: "Here is the CSV file of Payment");
-                  if (result.status == ShareResultStatus.success)
+                  if (result.status == ShareResultStatus.success) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('Shared Successfully')),
                     );
+                  }
                   await file.delete();
                   Navigator.of(context).pop(); // Close the dialog
                 },
@@ -578,7 +582,15 @@ class HomePageState extends ConsumerState<HomePage> {
               ),
             ],
           ),
-          body: const Center(),
+          body: Center(
+            child: Lottie.asset(
+              'assets/animations/nodata_search.json',
+              width: 300,
+              height: 300,
+              fit: BoxFit.contain,
+              repeat: true,
+            ),
+          ),
           floatingActionButton: Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             crossAxisAlignment: CrossAxisAlignment.end,
@@ -827,7 +839,7 @@ class HomePageState extends ConsumerState<HomePage> {
   //             month: DateTime.now().month,
   //           ))
   //       .toList();
-  // }
+  //
 
   // List<AmortizationEntry> _groupAmortizationEntries(List<Emi> allEmis) {
   //   List<AmortizationEntry> amortizationEntries = [];

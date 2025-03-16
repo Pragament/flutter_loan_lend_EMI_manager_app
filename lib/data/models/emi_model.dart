@@ -82,7 +82,7 @@ class Emi {
   }
 
   void _calculateEmi() {
-    if (startDate != null && endDate != null) {
+    if (endDate != null) {
       final tenureInMonths = (endDate!.year - startDate.year) * 12 + (endDate!.month - startDate.month);
       final monthlyInterestRate = interestRate / 12 / 100;
       final powTerm = pow(1 + monthlyInterestRate, tenureInMonths);

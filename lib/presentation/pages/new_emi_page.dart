@@ -11,11 +11,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:showcaseview/showcaseview.dart';
 import 'package:uuid/uuid.dart';
+import 'package:lottie/lottie.dart';
 
 class NewEmiPage extends ConsumerStatefulWidget {
   const NewEmiPage({super.key, required this.emiType, this.emiId});
   final String emiType;
-  final String? emiId; // Optional parameter for editing
+  final String? emiId;
   @override
   ConsumerState<ConsumerStatefulWidget> createState() => _NewEmiPageState();
 }
@@ -48,6 +49,9 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
   // Tags
   List<Tag> tags = [];
 
+  // New state variable to control Lottie animation visibility
+  bool _showLottie = false;
+
   @override
   void initState() {
     super.initState();
@@ -66,7 +70,8 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
 
   void _loadEmiData() async {
     // Fetch EMI data using emiId and populate fields
-    final emi = await ref.read(emisNotifierProvider.notifier).getEmiById(emiId!);
+    final emi =
+        await ref.read(emisNotifierProvider.notifier).getEmiById(emiId!);
 
     if (emi != null) {
       setState(() {
@@ -89,7 +94,8 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
         if (endDate != null) {
           final duration = endDate.difference(startDate);
 
-          final totalMonths = (duration.inDays / 30).round(); // Approximate months
+          final totalMonths =
+              (duration.inDays / 30).round(); // Approximate months
           years = (totalMonths / 12).floor().toDouble();
           months = (totalMonths % 12).toDouble();
         } else {
@@ -116,7 +122,8 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
     final totalEmi = monthlyEmi * totalMonths;
 
     final emi = Emi(
-      id: emiId ?? const Uuid().v4(), // Use provided emiId or generate a new one
+      id: emiId ??
+          const Uuid().v4(), // Use provided emiId or generate a new one
       title: titleC.text,
       principalAmount: principalAmount,
       interestRate: interestRate,
@@ -149,7 +156,18 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
       ref.read(emisNotifierProvider.notifier).add(emi);
     }
 
-    GoRouter.of(context).pop();
+    // Show Lottie animation and background blur
+    setState(() {
+      _showLottie = true;
+    });
+
+    // Hide Lottie animation after 3 seconds and navigate back
+    Future.delayed(const Duration(seconds: 2), () {
+      setState(() {
+        _showLottie = false;
+      });
+      GoRouter.of(context).pop();
+    });
   }
 
   void _showHelpOptions(BuildContext parentContext) {
@@ -176,7 +194,7 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
 
   @override
   Widget build(BuildContext context) {
-    final currencySymbol = ref.watch(currencyProvider);
+    ref.watch(currencyProvider);
     final l10n = AppLocalizations.of(context)!;
 
     return ShowCaseWidget(
@@ -191,7 +209,32 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
                 }),
           ],
         ),
-        body: body(context, l10n),
+        body: Stack(
+          children: [
+            body(context, l10n), // Your existing form body
+            // Lottie Animation with background blur
+            if (_showLottie)
+              Positioned.fill(
+                child: GestureDetector(
+                  onTap: () {}, // Prevent interaction with the background
+                  child: Container(
+                    color: Colors.black.withOpacity(0.3), // Background blur
+                    child: Center(
+                      child: Lottie.asset(
+                        'assets/animations/check_mark.json', // Path to your Lottie file
+                        width: 500, // Width of the animation
+                        height: 500, // Height of the animation
+                        fit: BoxFit.contain,
+                        repeat: false, // Run the animation only once
+                        animate: true, // Ensure animation plays
+                        // Slow down the animation speed
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }

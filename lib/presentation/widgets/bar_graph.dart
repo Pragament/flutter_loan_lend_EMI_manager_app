@@ -56,7 +56,7 @@ class BarGraph extends StatelessWidget {
     var prod = len<5 ? 0.95: len<10? 1.25: len<15 ?1.75: 2.5;
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
-      child: Container(
+      child: SizedBox(
         width: w*prod, // Adjust width as needed
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 5),
