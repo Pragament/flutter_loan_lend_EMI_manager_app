@@ -30,7 +30,7 @@ import '../widgets/locale_selector_popup_menu.dart';
 class HomePage extends ConsumerStatefulWidget {
   // GlobalKey loanHelpKey, GlobalKey lendHelpKey, GlobalKey langHelpKey, GlobalKey helpHelpKey
 
-  HomePage({super.key, this.actionCallback});
+  const HomePage({super.key, this.actionCallback});
 
   final Function? actionCallback;
 
@@ -73,8 +73,10 @@ class HomePageState extends ConsumerState<HomePage> {
                   await Future.delayed(const Duration(seconds: 2));
                 }
                 if (_scaffoldKey.currentState?.isDrawerOpen ??
-                    false) //if drawer open
+                    false) {
+                  //if drawer open
                   Navigator.pop(parentContext); //close drawer
+                }
                 ShowCaseWidget.of(parentContext).startShowCase([loanHelpKey]);
                 await Future.delayed(const Duration(seconds: 2));
                 ShowCaseWidget.of(parentContext).startShowCase([lendHelpKey]);
@@ -88,8 +90,10 @@ class HomePageState extends ConsumerState<HomePage> {
                   Navigator.pop(context); // Close the modal
                   //if no emis present
                   if (_scaffoldKey.currentState?.isDrawerOpen ??
-                      false) //if drawer open
+                      false) {
+                    //if drawer open
                     Navigator.pop(parentContext); //close drawer
+                  }
                   ShowCaseWidget.of(parentContext)
                       .startShowCase([filterHelpKey]);
                 },
@@ -450,10 +454,11 @@ class HomePageState extends ConsumerState<HomePage> {
                   // Share the file via WhatsApp
                   final result = await Share.shareXFiles([xfile],
                       text: "Here is the CSV file of Payment");
-                  if (result.status == ShareResultStatus.success)
+                  if (result.status == ShareResultStatus.success) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('Shared Successfully')),
                     );
+                  }
                   await file.delete();
                   Navigator.of(context).pop(); // Close the dialog
                 },
@@ -827,7 +832,7 @@ class HomePageState extends ConsumerState<HomePage> {
   //             month: DateTime.now().month,
   //           ))
   //       .toList();
-  // }
+  // 
 
   // List<AmortizationEntry> _groupAmortizationEntries(List<Emi> allEmis) {
   //   List<AmortizationEntry> amortizationEntries = [];

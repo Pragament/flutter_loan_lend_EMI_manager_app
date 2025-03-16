@@ -11,6 +11,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:showcaseview/showcaseview.dart';
 import 'package:uuid/uuid.dart';
+import 'package:lottie/lottie.dart'; // Import Lottie package
 
 class NewEmiPage extends ConsumerStatefulWidget {
   const NewEmiPage({super.key, required this.emiType, this.emiId});
@@ -47,6 +48,9 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
 
   // Tags
   List<Tag> tags = [];
+
+  // New state variable to control Lottie animation visibility
+  bool _showLottie = false;
 
   @override
   void initState() {
@@ -152,7 +156,18 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
       ref.read(emisNotifierProvider.notifier).add(emi);
     }
 
-    GoRouter.of(context).pop();
+    // Show Lottie animation and background blur
+    setState(() {
+      _showLottie = true;
+    });
+
+    // Hide Lottie animation after 3 seconds and navigate back
+    Future.delayed(const Duration(seconds: 2), () {
+      setState(() {
+        _showLottie = false;
+      });
+      GoRouter.of(context).pop();
+    });
   }
 
   void _showHelpOptions(BuildContext parentContext) {
@@ -194,7 +209,32 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
                 }),
           ],
         ),
-        body: body(context, l10n),
+        body: Stack(
+          children: [
+            body(context, l10n), // Your existing form body
+            // Lottie Animation with background blur
+            if (_showLottie)
+              Positioned.fill(
+                child: GestureDetector(
+                  onTap: () {}, // Prevent interaction with the background
+                  child: Container(
+                    color: Colors.black.withOpacity(0.3), // Background blur
+                    child: Center(
+                      child: Lottie.asset(
+                        'assets/animations/check_mark.json', // Path to your Lottie file
+                        width: 500, // Width of the animation
+                        height: 500, // Height of the animation
+                        fit: BoxFit.contain,
+                        repeat: false, // Run the animation only once
+                        animate: true, // Ensure animation plays
+                        // Slow down the animation speed
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }

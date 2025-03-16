@@ -61,7 +61,7 @@ class EmiDetailsPage extends ConsumerWidget {
     );
 
     return Scaffold(
-      
+
       appBar: AppBar(
         title: Text(emi.title),
         backgroundColor: emiTypeColor,

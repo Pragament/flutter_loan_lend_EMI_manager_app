@@ -79,7 +79,7 @@ ColorScheme _colorScheme(Brightness brightness) =>
 class SplashScreen extends StatefulWidget {
   final bool isFirstRun;
 
-  const SplashScreen({Key? key, required this.isFirstRun}) : super(key: key);
+  const SplashScreen({super.key, required this.isFirstRun});
 
   @override
   _SplashScreenState createState() => _SplashScreenState();
@@ -118,9 +118,9 @@ class _SplashScreenState extends State<SplashScreen> {
 class MainAppContent extends ConsumerWidget {
   final bool isFirstRun;
   const MainAppContent({
-    Key? key,
+    super.key,
     required this.isFirstRun,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

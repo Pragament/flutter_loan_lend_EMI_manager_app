@@ -58,7 +58,7 @@ class BarGraph extends StatelessWidget {
     var prod = len<5 ? 0.95: len<10? 1.25: len<15 ?1.75: 2.5;
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
-      child: Container(
+      child: SizedBox(
         width: w*prod,
         child: AspectRatio(
           aspectRatio: 1.5,
@@ -138,12 +138,3 @@ class BarGraph extends StatelessWidget {
     );
   }
 }
-
-
-
-
-
-
-
-
-
