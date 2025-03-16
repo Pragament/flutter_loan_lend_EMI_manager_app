@@ -61,6 +61,7 @@ class EmiDetailsPage extends ConsumerWidget {
     );
 
     return Scaffold(
+      
       appBar: AppBar(
         title: Text(emi.title),
         backgroundColor: emiTypeColor,
@@ -375,7 +376,6 @@ class _LegendItem extends StatelessWidget {
   final String label;
 
   const _LegendItem({
-    super.key,
     required this.color,
     required this.label,
   });
