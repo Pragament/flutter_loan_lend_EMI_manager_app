@@ -3,16 +3,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
+import 'package:lottie/lottie.dart';
 
 import '../../data/models/transaction_model.dart';
 
 class NewTransactionPage extends ConsumerStatefulWidget {
   final String type;
   final String emiId;
-  const NewTransactionPage({super.key, required this.type, required this.emiId});
+  const NewTransactionPage(
+      {super.key, required this.type, required this.emiId});
 
   @override
-  ConsumerState<ConsumerStatefulWidget> createState() => _NewTransactionPageState();
+  ConsumerState<ConsumerStatefulWidget> createState() =>
+      _NewTransactionPageState();
 }
 
 class _NewTransactionPageState extends ConsumerState<NewTransactionPage> {
@@ -27,6 +30,9 @@ class _NewTransactionPageState extends ConsumerState<NewTransactionPage> {
 
   String get _formattedDate => DateFormat('dd/MM/yyyy').format(_selectedDate);
   String get _formattedTime => _selectedTime.format(context);
+
+  bool _showLottie =
+      false; // State variable to control Lottie animation visibility
 
   // Save transaction to Hive
   void _saveTransaction() {
@@ -52,7 +58,20 @@ class _NewTransactionPageState extends ConsumerState<NewTransactionPage> {
       ref.read(transactionsNotifierProvider.notifier).add(transaction);
       print("Transaction saved in Hive: ${widget.emiId}");
 
-      Navigator.pop(context);
+      // Show Lottie animation
+      setState(() {
+        _showLottie = true;
+      });
+
+      // Hide Lottie animation after 2 seconds and navigate back
+      Future.delayed(const Duration(seconds: 2), () {
+        if (mounted) {
+          setState(() {
+            _showLottie = false;
+          });
+          Navigator.pop(context);
+        }
+      });
     }
   }
 
@@ -84,164 +103,200 @@ class _NewTransactionPageState extends ConsumerState<NewTransactionPage> {
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-
-
-              widget.type == 'CR'
-              ? ChoiceChip(
-                label: const Text('Income'),
-                selected: isIncome,
-                onSelected: (selected) {
-                  setState(() {
-                    isIncome = true;
-                  });
-                },
-                selectedColor: Colors.deepPurple,
-                labelStyle: TextStyle(
-                  color: isIncome ? Colors.white : Colors.deepPurple,
-                ),
-                backgroundColor: Colors.white,
-                shape: const StadiumBorder(
-                  side: BorderSide(color: Colors.deepPurple),
-                ),
-              )
-              : ChoiceChip(
-                label: const Text('Expense'),
-                selected: isIncome,
-                onSelected: (selected) {
-                  setState(() {
-                    isIncome = true;
-                  });
-                },
-                selectedColor: Colors.deepPurple,
-                labelStyle: TextStyle(
-                  color: isIncome ? Colors.white : Colors.deepPurple,
-                ),
-                backgroundColor: Colors.white,
-                shape: const StadiumBorder(
-                  side: BorderSide(color: Colors.deepPurple),
-                ),
-              ),
-              const SizedBox(height: 20),
-              TextFormField(
-                controller: _titleController,
-                decoration: InputDecoration(
-                  labelText: 'Title',
-                  filled: true,
-                  fillColor: Colors.deepPurple[50],
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter a title';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _descriptionController,
-                decoration: InputDecoration(
-                  labelText: 'Description',
-                  filled: true,
-                  fillColor: Colors.deepPurple[50],
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _amountController,
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(
-                  prefixText: '₹ ',
-                  labelText: '0.0',
-                  filled: true,
-                  fillColor: Colors.deepPurple[50],
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter an amount';
-                  }
-                  if (double.tryParse(value) == null) {
-                    return 'Please enter a valid number';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      body: Stack(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  GestureDetector(
-                    onTap: _pickDate,
-                    child: Row(
-                      children: [
-                        const Icon(Icons.calendar_today, color: Colors.deepPurple),
-                        const SizedBox(width: 5),
-                        Text(
-                          _formattedDate,
-                          style: const TextStyle(fontSize: 16),
+                  widget.type == 'CR'
+                      ? ChoiceChip(
+                          label: const Text('Income'),
+                          selected: isIncome,
+                          onSelected: (selected) {
+                            setState(() {
+                              isIncome = true;
+                            });
+                          },
+                          selectedColor: Colors.deepPurple,
+                          labelStyle: TextStyle(
+                            color: isIncome ? Colors.white : Colors.deepPurple,
+                          ),
+                          backgroundColor: Colors.white,
+                          shape: const StadiumBorder(
+                            side: BorderSide(color: Colors.deepPurple),
+                          ),
+                        )
+                      : ChoiceChip(
+                          label: const Text('Expense'),
+                          selected: isIncome,
+                          onSelected: (selected) {
+                            setState(() {
+                              isIncome = true;
+                            });
+                          },
+                          selectedColor: Colors.deepPurple,
+                          labelStyle: TextStyle(
+                            color: isIncome ? Colors.white : Colors.deepPurple,
+                          ),
+                          backgroundColor: Colors.white,
+                          shape: const StadiumBorder(
+                            side: BorderSide(color: Colors.deepPurple),
+                          ),
                         ),
-                      ],
+                  const SizedBox(height: 20),
+                  TextFormField(
+                    controller: _titleController,
+                    decoration: InputDecoration(
+                      labelText: 'Title',
+                      filled: true,
+                      fillColor: Colors.deepPurple[50],
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter a title';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _descriptionController,
+                    decoration: InputDecoration(
+                      labelText: 'Description',
+                      filled: true,
+                      fillColor: Colors.deepPurple[50],
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(15),
+                      ),
                     ),
                   ),
-                  GestureDetector(
-                    onTap: _pickTime,
-                    child: Row(
-                      children: [
-                        const Icon(Icons.access_time, color: Colors.deepPurple),
-                        const SizedBox(width: 5),
-                        Text(
-                          _formattedTime,
-                          style: const TextStyle(fontSize: 16),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _amountController,
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      prefixText: '₹ ',
+                      labelText: '0.0',
+                      filled: true,
+                      fillColor: Colors.deepPurple[50],
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter an amount';
+                      }
+                      if (double.tryParse(value) == null) {
+                        return 'Please enter a valid number';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      GestureDetector(
+                        onTap: _pickDate,
+                        child: Row(
+                          children: [
+                            const Icon(Icons.calendar_today,
+                                color: Colors.deepPurple),
+                            const SizedBox(width: 5),
+                            Text(
+                              _formattedDate,
+                              style: const TextStyle(fontSize: 16),
+                            ),
+                          ],
                         ),
-                      ],
+                      ),
+                      GestureDetector(
+                        onTap: _pickTime,
+                        child: Row(
+                          children: [
+                            const Icon(Icons.access_time,
+                                color: Colors.deepPurple),
+                            const SizedBox(width: 5),
+                            Text(
+                              _formattedTime,
+                              style: const TextStyle(fontSize: 16),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const Spacer(),
+                  Center(
+                    child: Positioned(
+                      bottom: 80, // Adjust this value as needed
+                      left: MediaQuery.of(context).size.width / 2 -
+                          50, // Center align
+                      child: Lottie.asset(
+                        'assets/animations/arrow_bouncing.json', // Your Lottie arrow animation
+                        width: 100,
+                        height: 100,
+                        repeat: true, // Keep looping
+                      ),
                     ),
                   ),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: _saveTransaction,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.deepPurple,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        padding: const EdgeInsets.all(16),
+                      ),
+                      child: const Text(
+                        'Save',
+                        style: TextStyle(fontSize: 18, color: Colors.white),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
                 ],
               ),
-              const Spacer(),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _saveTransaction,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.deepPurple,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
+            ),
+          ),
+          if (_showLottie)
+            Positioned.fill(
+              child: GestureDetector(
+                onTap: () {}, // Prevent interaction with the background
+                child: Container(
+                  color: Colors.black.withOpacity(0.3), // Background blur
+                  child: Center(
+                    child: Lottie.asset(
+                      'assets/animations/check_mark.json', // Path to your Lottie file
+                      width: 500, // Width of the animation
+                      height: 500, // Height of the animation
+                      fit: BoxFit.contain,
+                      repeat: false, // Run the animation only once
                     ),
-                    padding: const EdgeInsets.all(16),
-                  ),
-                  child: const Text(
-                    'Save',
-                    style: TextStyle(fontSize: 18, color: Colors.white),
                   ),
                 ),
               ),
-              const SizedBox(height: 10),
-            ],
-          ),
-        ),
+            ),
+        ],
       ),
     );
   }
 }
 
 class Picker {
-  static Future<DateTime?> pickDate(BuildContext context, DateTime initialDate) async {
+  static Future<DateTime?> pickDate(
+      BuildContext context, DateTime initialDate) async {
     return await showDatePicker(
       context: context,
       initialDate: initialDate,
@@ -250,14 +305,14 @@ class Picker {
     );
   }
 
-  static Future<TimeOfDay?> pickTime(BuildContext context, TimeOfDay initialTime) async {
+  static Future<TimeOfDay?> pickTime(
+      BuildContext context, TimeOfDay initialTime) async {
     return await showTimePicker(
       context: context,
       initialTime: initialTime,
     );
   }
 }
-
 
 // Row(
 //   mainAxisAlignment: MainAxisAlignment.start,

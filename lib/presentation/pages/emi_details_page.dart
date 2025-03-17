@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
+import 'package:lottie/lottie.dart';
 import '../../data/models/transaction_model.dart';
 import '../widgets/amortization_schedule_table.dart';
 import '../widgets/bar_graph.dart';
@@ -16,18 +17,25 @@ import 'dart:math';
 
 import 'home/transaction_details_page.dart';
 
-class EmiDetailsPage extends ConsumerWidget {
+class EmiDetailsPage extends ConsumerStatefulWidget {
   const EmiDetailsPage({super.key, required this.emiId});
   final String emiId;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  _EmiDetailsPageState createState() => _EmiDetailsPageState();
+}
+
+class _EmiDetailsPageState extends ConsumerState<EmiDetailsPage> {
+  bool _showLottie = false; // State variable to control Lottie visibility
+
+  @override
+  Widget build(BuildContext context) {
     final emi = ref.watch(emisNotifierProvider
-        .select((emis) => emis.firstWhere((emi) => emi.id == emiId)));
+        .select((emis) => emis.firstWhere((emi) => emi.id == widget.emiId)));
 
     final List<Transaction> transactions = ref
         .watch(transactionsNotifierProvider)
-        .where((transaction) => transaction.loanLendId == emiId)
+        .where((transaction) => transaction.loanLendId == widget.emiId)
         .toList();
 
     final l10n = AppLocalizations.of(context)!;
@@ -36,7 +44,8 @@ class EmiDetailsPage extends ConsumerWidget {
         : loanColor(context, true);
 
     final double principalAmount = emi.principalAmount;
-    final double interestAmount = emi.totalEmi != null ? emi.totalEmi! - principalAmount : 0.0;
+    final double interestAmount =
+        emi.totalEmi != null ? emi.totalEmi! - principalAmount : 0.0;
     final double totalAmount = emi.totalEmi ?? 0.0;
 
     final DateTime startDate = emi.startDate;
@@ -57,11 +66,10 @@ class EmiDetailsPage extends ConsumerWidget {
     final List<double> balances = _getBalances(schedule);
     final List<int> years = List.generate(
       tenureInYears,
-          (index) => startDate.year + index,
+      (index) => startDate.year + index,
     );
 
     return Scaffold(
-
       appBar: AppBar(
         title: Text(emi.title),
         backgroundColor: emiTypeColor,
@@ -73,41 +81,73 @@ class EmiDetailsPage extends ConsumerWidget {
         ),
       ),
       floatingActionButton: emi.emiType == 'lend'
-          ? FloatingActionButton(
-        heroTag: 'CR', // Unique tag for the first button
-        backgroundColor: Colors.green,
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => NewTransactionPage(type: "CR", emiId: emiId)),
-          );
-        },
-        child: Icon(
-          Icons.add,
-          color: Colors.indigo[900],
-        ),
-      )
+          ? Stack(
+              children: [
+                if (_showLottie)
+                  Positioned(
+                    bottom: 80, // Adjust this value as needed
+                    left: MediaQuery.of(context).size.width / 2 - 50,
+                    child: Lottie.asset(
+                      'assets/animations/arrow_down.json', // Your Lottie arrow animation
+                      width: 100,
+                      height: 100,
+                      repeat: false, // Play only once
+                      onLoaded: (composition) {
+                        Future.delayed(composition.duration, () {
+                          if (mounted) {
+                            setState(() {
+                              _showLottie = false;
+                            });
+                          }
+                        });
+                      },
+                    ),
+                  ),
+                FloatingActionButton(
+                  heroTag: 'CR',
+                  backgroundColor: Colors.green,
+                  onPressed: () {
+                    setState(() {
+                      _showLottie = true; // Show animation on button press
+                    });
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (_) => NewTransactionPage(
+                              type: "CR", emiId: widget.emiId)),
+                    );
+                  },
+                  child: Icon(
+                    Icons.add,
+                    color: Colors.indigo[900],
+                  ),
+                ),
+              ],
+            )
           : FloatingActionButton(
-        heroTag: 'DR', // Unique tag for the first button
-        backgroundColor: Colors.red,
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => NewTransactionPage(type: "DR", emiId: emiId)),
-          );
-        },
-        child: Icon(
-          Icons.remove,
-          color: Colors.indigo[900],
-        ),
-      ),
+              heroTag: 'DR',
+              backgroundColor: Colors.red,
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) =>
+                          NewTransactionPage(type: "DR", emiId: widget.emiId)),
+                );
+              },
+              child: Icon(
+                Icons.remove,
+                color: Colors.indigo[900],
+              ),
+            ),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildEmiInfoSection(context, ref, emi, l10n, interestAmount, principalAmount, totalAmount, tenure),
+              _buildEmiInfoSection(context, ref, emi, l10n, interestAmount,
+                  principalAmount, totalAmount, tenure),
               const SizedBox(height: 24),
               _buildPieChart(interestAmount, principalAmount, totalAmount),
               Center(
@@ -129,6 +169,12 @@ class EmiDetailsPage extends ConsumerWidget {
                           color: Colors.red,
                           label: l10n.legendBalanceAmount,
                         ),
+                        Lottie.asset(
+                          'assets/animations/chart_growing.json', // Ensure the correct file path
+                          width: 250,
+                          height: 150,
+                          repeat: true,
+                        ),
                       ],
                     ),
                   ),
@@ -147,7 +193,6 @@ class EmiDetailsPage extends ConsumerWidget {
                 startDate: startDate,
                 tenureInYears: tenureInYears,
               ),
-
               _buildTransactionList(context, transactions),
             ],
           ),
@@ -156,10 +201,12 @@ class EmiDetailsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildTransactionList(BuildContext context, List<Transaction> transactions) {
+  Widget _buildTransactionList(
+      BuildContext context, List<Transaction> transactions) {
     return ListView.builder(
       shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(), // Disable scrolling to integrate with the main scroll view
+      physics:
+          const NeverScrollableScrollPhysics(), // Disable scrolling to integrate with the main scroll view
       itemCount: transactions.length,
       itemBuilder: (context, index) {
         final transaction = transactions[index];
@@ -177,9 +224,7 @@ class EmiDetailsPage extends ConsumerWidget {
                 title: Text(
                   transaction.title,
                   style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18
-                  ),
+                      fontWeight: FontWeight.bold, fontSize: 18),
                 ),
                 subtitle: Text(
                   transaction.datetime.toLocal().toString().substring(0, 16),
@@ -188,16 +233,16 @@ class EmiDetailsPage extends ConsumerWidget {
                 trailing: Text(
                   "${isCredit ? '+' : '-'}₹${transaction.amount.toStringAsFixed(2)}",
                   style: TextStyle(
-                    fontSize: 16.0,
-                    color: amountColor,
-                    fontWeight: FontWeight.bold
-                  ),
+                      fontSize: 16.0,
+                      color: amountColor,
+                      fontWeight: FontWeight.bold),
                 ),
                 onTap: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => TransactionDetailsPage(transaction: transaction),
+                      builder: (context) =>
+                          TransactionDetailsPage(transaction: transaction),
                     ),
                   );
                 },
@@ -222,20 +267,25 @@ class EmiDetailsPage extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildInfoRow(ref, l10n.emi, '$currencySymbol${emi.monthlyEmi?.toStringAsFixed(2) ?? 'N/A'}',
+        _buildInfoRow(ref, l10n.emi,
+            '$currencySymbol${emi.monthlyEmi?.toStringAsFixed(2) ?? 'N/A'}',
             isBold: true, fontSize: 20),
         const Divider(thickness: 1, color: Colors.grey),
-        _buildInfoRow(ref, l10n.interestAmount, '$currencySymbol${interestAmount.toStringAsFixed(2)}'),
-        _buildInfoRow(ref, l10n.totalAmount, '$currencySymbol${totalAmount.toStringAsFixed(2)}'),
+        _buildInfoRow(ref, l10n.interestAmount,
+            '$currencySymbol${interestAmount.toStringAsFixed(2)}'),
+        _buildInfoRow(ref, l10n.totalAmount,
+            '$currencySymbol${totalAmount.toStringAsFixed(2)}'),
         const SizedBox(height: 16),
-        _buildInfoRow(ref, l10n.loanAmount, '$currencySymbol${principalAmount.toStringAsFixed(2)}'),
+        _buildInfoRow(ref, l10n.loanAmount,
+            '$currencySymbol${principalAmount.toStringAsFixed(2)}'),
         _buildInfoRow(ref, l10n.tenure, tenure),
         _buildInfoRow(ref, l10n.tenure, tenure),
       ],
     );
   }
 
-  Widget _buildInfoRow(WidgetRef ref, String label, String value, {bool isBold = false, double fontSize = 16}) {
+  Widget _buildInfoRow(WidgetRef ref, String label, String value,
+      {bool isBold = false, double fontSize = 16}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
@@ -272,7 +322,7 @@ class EmiDetailsPage extends ConsumerWidget {
               color: Colors.blue,
               value: interestAmount,
               title:
-              '${(interestAmount / totalAmount * 100).toStringAsFixed(1)}%',
+                  '${(interestAmount / totalAmount * 100).toStringAsFixed(1)}%',
               radius: 100,
               titleStyle: const TextStyle(
                 fontSize: 18,
@@ -284,7 +334,7 @@ class EmiDetailsPage extends ConsumerWidget {
               color: Colors.green,
               value: principalAmount,
               title:
-              '${(principalAmount / totalAmount * 100).toStringAsFixed(1)}%',
+                  '${(principalAmount / totalAmount * 100).toStringAsFixed(1)}%',
               radius: 100,
               titleStyle: const TextStyle(
                 fontSize: 18,
@@ -315,8 +365,9 @@ class EmiDetailsPage extends ConsumerWidget {
     int totalMonths = tenureYears * 12;
 
     // Calculate monthly EMI
-    double monthlyEmi = (principalAmount * monthlyInterestRate *
-        pow(1 + monthlyInterestRate, totalMonths)) /
+    double monthlyEmi = (principalAmount *
+            monthlyInterestRate *
+            pow(1 + monthlyInterestRate, totalMonths)) /
         (pow(1 + monthlyInterestRate, totalMonths) - 1);
 
     double remainingPrincipal = principalAmount;
@@ -327,7 +378,8 @@ class EmiDetailsPage extends ConsumerWidget {
       remainingPrincipal -= monthlyPrincipal;
 
       // Ensure payment starts from the exact month and year of the start date
-      DateTime currentMonth = DateTime(paymentDate.year, paymentDate.month + month);
+      DateTime currentMonth =
+          DateTime(paymentDate.year, paymentDate.month + month);
 
       // Add amortization entry for each month from startDate onwards
       schedule.add(AmortizationEntry(
@@ -345,24 +397,34 @@ class EmiDetailsPage extends ConsumerWidget {
   }
 
   List<double> _getPrincipalAmounts(List<AmortizationEntry> schedule) {
-    final groupByYear = groupBy(schedule, (AmortizationEntry entry) => entry.year);
-    return groupByYear.values.map((entries) =>
-        entries.fold(0.0, (prev, entry) => prev + entry.principal)).toList();
+    final groupByYear =
+        groupBy(schedule, (AmortizationEntry entry) => entry.year);
+    return groupByYear.values
+        .map((entries) =>
+            entries.fold(0.0, (prev, entry) => prev + entry.principal))
+        .toList();
   }
 
   List<double> _getInterestAmounts(List<AmortizationEntry> schedule) {
-    final groupByYear = groupBy(schedule, (AmortizationEntry entry) => entry.year);
-    return groupByYear.values.map((entries) =>
-        entries.fold(0.0, (prev, entry) => prev + entry.interest)).toList();
+    final groupByYear =
+        groupBy(schedule, (AmortizationEntry entry) => entry.year);
+    return groupByYear.values
+        .map((entries) =>
+            entries.fold(0.0, (prev, entry) => prev + entry.interest))
+        .toList();
   }
 
   List<double> _getBalances(List<AmortizationEntry> schedule) {
-    final groupByYear = groupBy(schedule, (AmortizationEntry entry) => entry.year);
-    return groupByYear.values.map((entries) =>
-        entries.fold(0.0, (prev, entry) => prev + entry.balance)).toList();
+    final groupByYear =
+        groupBy(schedule, (AmortizationEntry entry) => entry.year);
+    return groupByYear.values
+        .map((entries) =>
+            entries.fold(0.0, (prev, entry) => prev + entry.balance))
+        .toList();
   }
 
-  String _calculateTenure(AppLocalizations l10n, DateTime startDate, DateTime? endDate) {
+  String _calculateTenure(
+      AppLocalizations l10n, DateTime startDate, DateTime? endDate) {
     if (endDate == null) return 'Unknown';
 
     final int years = endDate.year - startDate.year;

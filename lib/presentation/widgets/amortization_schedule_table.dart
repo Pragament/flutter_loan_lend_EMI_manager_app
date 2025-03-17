@@ -13,12 +13,14 @@ class AmortizationScheduleTable extends StatefulWidget {
   });
 
   @override
-  _AmortizationScheduleTableState createState() => _AmortizationScheduleTableState();
+  // ignore: library_private_types_in_public_api
+  _AmortizationScheduleTableState createState() =>
+      _AmortizationScheduleTableState();
 }
 
 class _AmortizationScheduleTableState extends State<AmortizationScheduleTable> {
   final Map<int, List<AmortizationEntry>> _groupedByYear = {};
-  int? _expandedYear; // To track which year is expanded
+  int? _expandedYear;
 
   @override
   void initState() {
@@ -65,10 +67,14 @@ class _AmortizationScheduleTableState extends State<AmortizationScheduleTable> {
 
     for (var year in years) {
       final yearlyData = _groupedByYear[year] ?? [];
-      final totalPrincipal = yearlyData.fold(0.0, (sum, entry) => sum + entry.principal);
-      final totalInterest = yearlyData.fold(0.0, (sum, entry) => sum + entry.interest);
-      final totalPayment = yearlyData.fold(0.0, (sum, entry) => sum + entry.totalPayment);
-      final totalBalance = yearlyData.isNotEmpty ? yearlyData.last.balance : 0.0;
+      final totalPrincipal =
+          yearlyData.fold(0.0, (sum, entry) => sum + entry.principal);
+      final totalInterest =
+          yearlyData.fold(0.0, (sum, entry) => sum + entry.interest);
+      final totalPayment =
+          yearlyData.fold(0.0, (sum, entry) => sum + entry.totalPayment);
+      final totalBalance =
+          yearlyData.isNotEmpty ? yearlyData.last.balance : 0.0;
 
       // Add year row
       rows.add(DataRow(
@@ -79,12 +85,16 @@ class _AmortizationScheduleTableState extends State<AmortizationScheduleTable> {
                 Expanded(child: Text('$year')),
                 IconButton(
                   icon: Icon(
-                    _expandedYear == year ? Icons.expand_less : Icons.expand_more,
+                    _expandedYear == year
+                        ? Icons.expand_less
+                        : Icons.expand_more,
                     color: Colors.blue,
                   ),
                   onPressed: () {
                     setState(() {
-                      _expandedYear = _expandedYear == year ? null : year; // Toggle expanded state
+                      _expandedYear = _expandedYear == year
+                          ? null
+                          : year; // Toggle expanded state
                     });
                   },
                 ),
@@ -108,7 +118,8 @@ class _AmortizationScheduleTableState extends State<AmortizationScheduleTable> {
   }
 
   // Build monthly rows for expanded year
-  List<DataRow> _buildMonthlyDataRows(List<AmortizationEntry> yearlyData, int year) {
+  List<DataRow> _buildMonthlyDataRows(
+      List<AmortizationEntry> yearlyData, int year) {
     List<DataRow> rows = [];
 
     final startMonth = widget.startDate.month;
@@ -116,7 +127,8 @@ class _AmortizationScheduleTableState extends State<AmortizationScheduleTable> {
 
     for (var entry in yearlyData) {
       // Ensure entries are only shown starting from the start date's month/year
-      if (entry.year > startYear || (entry.year == startYear && entry.month >= startMonth)) {
+      if (entry.year > startYear ||
+          (entry.year == startYear && entry.month >= startMonth)) {
         rows.add(DataRow(
           cells: [
             DataCell(
@@ -140,8 +152,18 @@ class _AmortizationScheduleTableState extends State<AmortizationScheduleTable> {
   // Utility function to get month name from month number
   String _getMonthName(int month) {
     const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec'
     ];
     return months[month - 1];
   }
