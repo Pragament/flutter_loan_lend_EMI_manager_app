@@ -120,7 +120,8 @@ class _TagsSelectionDialogState extends ConsumerState<TagsSelectionDialog> {
                                       .add(Tag(
                                           id: const Uuid().v1(),
                                           name: tagNameC.text));
-                                  context.pop();
+                                  Navigator.pop(
+                                      context); 
                                 }
                               },
                               child: const Text('Create'),
