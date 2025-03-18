@@ -15,7 +15,7 @@ class OnboardingRoute extends GoRouteData {
 
   @override
   Widget build(BuildContext context, GoRouterState state) {
-    return const OnboardingScreen(); // Display the onboarding carousel
+    return OnboardingScreen(); // Display the onboarding carousel
   }
 }
 
@@ -30,7 +30,7 @@ class HomeRoute extends GoRouteData {
 
   @override
   Widget build(BuildContext context, GoRouterState state) {
-    return  const HomePage();
+    return HomePage();
   }
 }
 

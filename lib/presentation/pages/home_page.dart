@@ -13,6 +13,7 @@ import 'package:emi_manager/logic/tags_provider.dart';
 import 'package:emi_manager/presentation/constants.dart';
 import 'package:emi_manager/presentation/pages/home/logic/home_state_provider.dart';
 import 'package:emi_manager/presentation/pages/home/widgets/tags_strip.dart';
+import 'package:emi_manager/presentation/pages/new_emi_page.dart';
 import 'package:emi_manager/presentation/router/routes.dart';
 import 'package:emi_manager/presentation/widgets/home_bar_graph.dart';
 import 'package:file_picker/file_picker.dart';
@@ -648,8 +649,13 @@ class HomePageState extends ConsumerState<HomePage> {
                 description: "Add New Lend from Here",
                 targetBorderRadius: BorderRadius.circular(35),
                 child: FloatingActionButton.extended(
-                  onPressed: () =>
-                      const NewEmiRoute(emiType: 'lend').push(context),
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const NewEmiPage(emiType: 'lend'),
+                      ),
+                    ); // Use Navigator instead of GoRouter
+                  },
                   heroTag: 'newLendBtn',
                   backgroundColor: lendColor(context, false),
                   label: Text(l10n.lend),
@@ -660,8 +666,13 @@ class HomePageState extends ConsumerState<HomePage> {
                 key: loanHelpKey,
                 description: "Add new Loan from Here",
                 child: FloatingActionButton.extended(
-                  onPressed: () =>
-                      const NewEmiRoute(emiType: 'loan').push(context),
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const NewEmiPage(emiType: 'loan'),
+                      ),
+                    ); // Use Navigator instead of GoRouter
+                  },
                   heroTag: 'newLoanBtn',
                   backgroundColor: loanColor(context, false),
                   label: Text(l10n.loan),
@@ -885,7 +896,11 @@ class HomePageState extends ConsumerState<HomePage> {
               child: FloatingActionButton.extended(
                 onPressed: () {
                   _triggerLottieAnimation(); // Trigger animation
-                  const NewEmiRoute(emiType: 'lend').push(context);
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => const NewEmiPage(emiType: 'lend'),
+                    ),
+                  ); // Use Navigator instead of GoRouter
                 },
                 heroTag: 'newLendBtn',
                 backgroundColor: lendColor(context, false),
@@ -899,7 +914,11 @@ class HomePageState extends ConsumerState<HomePage> {
               child: FloatingActionButton.extended(
                 onPressed: () {
                   _triggerLottieAnimation(); // Trigger animation
-                  const NewEmiRoute(emiType: 'loan').push(context);
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => const NewEmiPage(emiType: 'loan'),
+                    ),
+                  ); // Use Navigator instead of GoRouter
                 },
                 heroTag: 'newLoanBtn',
                 backgroundColor: loanColor(context, false),

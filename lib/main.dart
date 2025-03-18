@@ -82,6 +82,7 @@ class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key, required this.isFirstRun});
 
   @override
+  // ignore: library_private_types_in_public_api
   _SplashScreenState createState() => _SplashScreenState();
 }
 
