@@ -1,3 +1,5 @@
+// ignore_for_file: unused_local_variable, use_build_context_synchronously, avoid_print, non_constant_identifier_names
+
 import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
@@ -40,6 +42,7 @@ class HomePage extends ConsumerStatefulWidget {
 }
 
 class HomePageState extends ConsumerState<HomePage> {
+  // ignore: unused_field
   final bool _showTable = false; // Toggle for the Amortization Table
   bool noEmis = false;
 
@@ -50,6 +53,50 @@ class HomePageState extends ConsumerState<HomePage> {
   final GlobalKey filterHelpKey = GlobalKey();
   final GlobalKey<ScaffoldState> _scaffoldKey =
       GlobalKey<ScaffoldState>(); //for drawer
+
+  // State variable to control Lottie animation visibility
+  bool _showLottie = false;
+
+  // State variable to control Lottie animation visibility for comparison
+
+  // State variable to control Lottie animation visibility for errors
+  bool _showErrorLottie = false;
+
+  void _triggerLottieAnimation() {
+    setState(() {
+      _showLottie = true;
+    });
+
+    // Hide the animation after a short duration (e.g., 1.5 seconds)
+    Future.delayed(const Duration(milliseconds: 1500), () {
+      setState(() {
+        _showLottie = false;
+      });
+    });
+  }
+
+  void _triggerComparisonLottie() {
+    setState(() {});
+
+    // Hide the animation after a short duration (e.g., 1.5 seconds)
+    Future.delayed(const Duration(milliseconds: 1500), () {
+      setState(() {});
+    });
+  }
+
+  // ignore: unused_element
+  void _triggerErrorLottie() {
+    setState(() {
+      _showErrorLottie = true;
+    });
+
+    // Hide the animation after a short duration (e.g., 2 seconds)
+    Future.delayed(const Duration(seconds: 2), () {
+      setState(() {
+        _showErrorLottie = false;
+      });
+    });
+  }
 
   void _showHelpOptions(BuildContext parentContext) {
     showModalBottomSheet(
@@ -347,6 +394,7 @@ class HomePageState extends ConsumerState<HomePage> {
   Future<void> exportToCSV(BuildContext context, List<Emi> allemis) async {
     try {
       // Reverse the payments list to ensure correct order
+
       final Emis = List<Emi>.from(allemis);
       // List to hold the CSV data
       List<List<String>> csvData = [];
@@ -717,64 +765,115 @@ class HomePageState extends ConsumerState<HomePage> {
             ],
           ),
         ),
-        body: SingleChildScrollView(
-          child: Column(
-            children: [
-              Showcase(
-                key: filterHelpKey,
-                description: "Filter By Multiple Tags",
-                child: const TagsStrip(),
-              ),
+        body: Stack(
+          children: [
+            // Main content
+            SingleChildScrollView(
+              child: Column(
+                children: [
+                  Showcase(
+                    key: filterHelpKey,
+                    description: "Filter By Multiple Tags",
+                    child: const TagsStrip(),
+                  ),
 
-              // Updated BarGraph widget with actual database data
-              Container(
-                padding: const EdgeInsets.all(5.0),
-                margin: const EdgeInsets.symmetric(vertical: 20),
-                child: HomeBarGraph(allEmis: allEmis),
-              ),
-              _buildLegend(context),
+                  // Updated BarGraph widget with actual database data
+                  Container(
+                    padding: const EdgeInsets.all(5.0),
+                    margin: const EdgeInsets.symmetric(vertical: 20),
+                    child: HomeBarGraph(allEmis: allEmis),
+                  ),
+                  _buildLegend(context),
 
-              // Amortization Summary Table with actual EMI data
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: AmortizationSummaryTable(
-                    entries: _groupAmortizationEntries(allEmis),
-                    startDate: DateTime.now(),
-                    tenureInYears: _calculateTenure(allEmis),
+                  // Amortization Summary Table with actual EMI data
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: AmortizationSummaryTable(
+                        entries: _groupAmortizationEntries(allEmis),
+                        startDate: DateTime.now(),
+                        tenureInYears: _calculateTenure(allEmis),
+                      ),
+                    ),
+                  ),
+
+                  // Lottie animation
+                  if (_showLottie)
+                    SizedBox(
+                      height: 100, // Small height
+                      child: Lottie.asset(
+                        'assets/animations/check_mark.json', // Replace with your Lottie file path
+                        repeat: false,
+                      ),
+                    ),
+
+                  // Comparison results section
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      children: [
+                        // Replace "Comparison Results" text with Lottie animation
+                        SizedBox(
+                          height: 100, // Adjust height as needed
+                          child: Lottie.asset(
+                            'assets/animations/scales_balancing.json', // Replace with your Lottie file path
+                            repeat: true,
+                          ),
+                        ),
+                        // Comparison data (example placeholder)
+                        Text(
+                          '',
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // List of EMI cards using database data
+                  ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: allEmis.length,
+                    itemBuilder: (context, index) {
+                      final emi = allEmis.elementAt(index);
+                      final emiTypeColor = emi.emiType == 'lend'
+                          ? lendColor(context, true)
+                          : loanColor(context, true);
+
+                      final double principalAmount = emi.principalAmount;
+                      final double interestAmount =
+                          emi.totalEmi! - emi.principalAmount;
+                      final double totalAmount = emi.totalEmi!;
+
+                      return EmiCard(
+                        emiTypeColor: emiTypeColor,
+                        l10n: l10n,
+                        emi: emi,
+                        interestAmount: interestAmount,
+                        totalAmount: totalAmount,
+                        principalAmount: principalAmount,
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+            // Lottie animation for validation errors
+            if (_showErrorLottie)
+              Center(
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 100),
+                  child: SizedBox(
+                    height: 250,
+                    child: Lottie.asset(
+                      'assets/animations/warning_icon.json',
+                      repeat: true,
+                    ),
                   ),
                 ),
               ),
-
-              // List of EMI cards using database data
-              ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: allEmis.length,
-                itemBuilder: (context, index) {
-                  final emi = allEmis.elementAt(index);
-                  final emiTypeColor = emi.emiType == 'lend'
-                      ? lendColor(context, true)
-                      : loanColor(context, true);
-
-                  final double principalAmount = emi.principalAmount;
-                  final double interestAmount =
-                      emi.totalEmi! - emi.principalAmount;
-                  final double totalAmount = emi.totalEmi!;
-
-                  return EmiCard(
-                    emiTypeColor: emiTypeColor,
-                    l10n: l10n,
-                    emi: emi,
-                    interestAmount: interestAmount,
-                    totalAmount: totalAmount,
-                    principalAmount: principalAmount,
-                  );
-                },
-              ),
-            ],
-          ),
+          ],
         ),
         floatingActionButton: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -784,8 +883,10 @@ class HomePageState extends ConsumerState<HomePage> {
               key: lendHelpKey,
               description: "Add New Lend from Here",
               child: FloatingActionButton.extended(
-                onPressed: () =>
-                    const NewEmiRoute(emiType: 'lend').push(context),
+                onPressed: () {
+                  _triggerLottieAnimation(); // Trigger animation
+                  const NewEmiRoute(emiType: 'lend').push(context);
+                },
                 heroTag: 'newLendBtn',
                 backgroundColor: lendColor(context, false),
                 label: Text(l10n.lend),
@@ -796,8 +897,10 @@ class HomePageState extends ConsumerState<HomePage> {
               key: loanHelpKey,
               description: "Add new Loan from Here",
               child: FloatingActionButton.extended(
-                onPressed: () =>
-                    const NewEmiRoute(emiType: 'loan').push(context),
+                onPressed: () {
+                  _triggerLottieAnimation(); // Trigger animation
+                  const NewEmiRoute(emiType: 'loan').push(context);
+                },
                 heroTag: 'newLoanBtn',
                 backgroundColor: loanColor(context, false),
                 label: Text(l10n.loan),
@@ -806,6 +909,7 @@ class HomePageState extends ConsumerState<HomePage> {
             ),
             FloatingActionButton.extended(
               onPressed: () {
+                _triggerComparisonLottie(); // Trigger comparison animation
                 exportToCSV(context, allEmis);
               },
               backgroundColor: Colors.green,

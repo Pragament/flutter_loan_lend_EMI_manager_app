@@ -1,3 +1,5 @@
+// ignore_for_file: unused_element, use_build_context_synchronously
+
 import 'dart:math';
 import 'package:emi_manager/data/models/emi_model.dart';
 import 'package:emi_manager/data/models/tag_model.dart';
@@ -192,6 +194,14 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
     );
   }
 
+  void _addTag(Tag newTag) {
+    setState(() {
+      if (!tags.contains(newTag)) {
+        tags.add(newTag); // Add the new tag to the list
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     ref.watch(currencyProvider);
@@ -203,21 +213,29 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
           title: Text(l10n.emi),
           actions: [
             IconButton(
-                icon: const Icon(Icons.help_outline),
-                onPressed: () {
-                  _showHelpOptions(context);
-                }),
+              icon: const Icon(Icons.help_outline),
+              onPressed: () {
+                _showHelpOptions(context);
+              },
+            ),
           ],
         ),
         body: Stack(
           children: [
-            body(context, l10n), // Your existing form body
-            // Lottie Animation with background blur
+            Column(
+              children: [
+                // Removed Lottie animation for loan repayment visualization
+                Expanded(
+                  child: body(context, l10n), // Your existing form body
+                ),
+              ],
+            ),
             if (_showLottie)
               Positioned.fill(
                 child: GestureDetector(
                   onTap: () {}, // Prevent interaction with the background
                   child: Container(
+                    // ignore: deprecated_member_use
                     color: Colors.black.withOpacity(0.3), // Background blur
                     child: Center(
                       child: Lottie.asset(
@@ -226,8 +244,6 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
                         height: 500, // Height of the animation
                         fit: BoxFit.contain,
                         repeat: false, // Run the animation only once
-                        animate: true, // Ensure animation plays
-                        // Slow down the animation speed
                       ),
                     ),
                   ),
@@ -523,7 +539,8 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
                                       textAlign: TextAlign.center,
                                     ),
                                     onTap: () async {
-                                      tags = await showDialog(
+                                      final selectedTags =
+                                          await showDialog<List<Tag>>(
                                         barrierDismissible: false,
                                         context: context,
                                         builder: (context) =>
@@ -531,7 +548,12 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
                                                 selectedTags: tags),
                                       );
 
-                                      setState(() {});
+                                      if (selectedTags != null) {
+                                        setState(() {
+                                          tags =
+                                              selectedTags; // Update the tags list
+                                        });
+                                      }
                                     },
                                   ),
                                 )
@@ -571,14 +593,18 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
                                 ),
                           IconButton(
                             onPressed: () async {
-                              tags = await showDialog(
+                              final selectedTags = await showDialog<List<Tag>>(
                                 barrierDismissible: false,
                                 context: context,
                                 builder: (context) =>
                                     TagsSelectionDialog(selectedTags: tags),
                               );
 
-                              setState(() {});
+                              if (selectedTags != null) {
+                                setState(() {
+                                  tags = selectedTags; // Update the tags list
+                                });
+                              }
                             },
                             icon: Showcase(
                               key: tagsKey,
@@ -590,6 +616,16 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
                           ),
                         ],
                       ),
+                    ),
+                  ),
+                  Positioned(
+                    bottom: 80,
+                    left: MediaQuery.of(context).size.width / 2 - 50,
+                    child: Lottie.asset(
+                      'assets/animations/arrow_bouncing.json',
+                      width: 50,
+                      height: 50,
+                      repeat: true, // Keep looping
                     ),
                   ),
                   // Submit Button
