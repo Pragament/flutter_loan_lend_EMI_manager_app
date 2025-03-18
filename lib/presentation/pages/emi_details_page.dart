@@ -76,7 +76,7 @@ class _EmiDetailsPageState extends ConsumerState<EmiDetailsPage> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            GoRouter.of(context).go('/');
+            Navigator.of(context).pop(); // Use Navigator instead of GoRouter
           },
         ),
       ),

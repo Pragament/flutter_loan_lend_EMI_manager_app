@@ -15,20 +15,20 @@ class TagsNotifier extends _$TagsNotifier {
   }
 
   Future<void> add(Tag tag) async {
-    await _box.put(tag.id, tag);
-    state = [...state, tag];
+    await _box.put(tag.id, tag); // Save tag to Hive
+    state = [...state, tag]; // Update state
   }
 
   Future<void> remove(Tag tag) async {
-    await _box.delete(tag.id);
-    state = state.where((item) => item.id != tag.id).toList();
+    await _box.delete(tag.id); // Remove tag from Hive
+    state = state.where((item) => item.id != tag.id).toList(); // Update state
   }
 
   Future<void> update(Tag tag) async {
-    await _box.put(tag.id, tag);
+    await _box.put(tag.id, tag); // Update tag in Hive
     state = [
       for (final existingTag in state)
         if (existingTag.id == tag.id) tag else existingTag
-    ];
+    ]; // Update state
   }
 }

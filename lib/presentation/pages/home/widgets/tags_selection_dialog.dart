@@ -18,9 +18,9 @@ class TagsSelectionDialog extends ConsumerStatefulWidget {
 
 class _TagsSelectionDialogState extends ConsumerState<TagsSelectionDialog> {
   List<Tag> selectedTags = [];
-  List<Tag> filteredTags = []; // Added a list of tags to show the searched tags.
+  List<Tag> filteredTags =
+      []; // Added a list of tags to show the searched tags.
   final TextEditingController searchController = TextEditingController();
-
 
   @override
   void initState() {
@@ -34,7 +34,9 @@ class _TagsSelectionDialogState extends ConsumerState<TagsSelectionDialog> {
 
     // Filter tags based on search input
     filteredTags = allTags.where((tag) {
-      return tag.name.toLowerCase().contains(searchController.text.toLowerCase());
+      return tag.name
+          .toLowerCase()
+          .contains(searchController.text.toLowerCase());
     }).toList();
     return SizedBox(
       height: 500,
@@ -42,7 +44,8 @@ class _TagsSelectionDialogState extends ConsumerState<TagsSelectionDialog> {
       child: AlertDialog(
         scrollable: true,
         title: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween, // changed spaceAround to spaceBetween
+          mainAxisAlignment: MainAxisAlignment
+              .spaceBetween, // changed spaceAround to spaceBetween
           children: [
             const Text(
               'Select a Tag:',
@@ -83,10 +86,10 @@ class _TagsSelectionDialogState extends ConsumerState<TagsSelectionDialog> {
                                   controller: tagNameC,
                                   autofocus: true,
                                   autovalidateMode:
-                                  AutovalidateMode.onUserInteraction,
+                                      AutovalidateMode.onUserInteraction,
                                   cursorColor: Theme.of(context).focusColor,
                                   style:
-                                  Theme.of(context).textTheme.titleMedium,
+                                      Theme.of(context).textTheme.titleMedium,
                                   validator: (value) {
                                     if (value == null || value.isEmpty) {
                                       return 'Cannot be empty';
@@ -115,9 +118,10 @@ class _TagsSelectionDialogState extends ConsumerState<TagsSelectionDialog> {
                                   await ref
                                       .read(tagsNotifierProvider.notifier)
                                       .add(Tag(
-                                      id: const Uuid().v1(),
-                                      name: tagNameC.text));
-                                  context.pop();
+                                          id: const Uuid().v1(),
+                                          name: tagNameC.text));
+                                  Navigator.pop(
+                                      context); 
                                 }
                               },
                               child: const Text('Create'),
@@ -131,7 +135,7 @@ class _TagsSelectionDialogState extends ConsumerState<TagsSelectionDialog> {
               },
               // Changed the widget to text
               child: const Text(
-                  "Create Tag +",
+                "Create Tag +",
                 style: TextStyle(fontSize: 15),
               ),
             ),
@@ -149,62 +153,73 @@ class _TagsSelectionDialogState extends ConsumerState<TagsSelectionDialog> {
                 labelText: 'Search...',
               ),
             ),
-            const SizedBox(height: 10,),
+            const SizedBox(
+              height: 10,
+            ),
             filteredTags.isEmpty
                 ? const Text('No tags exist.\nTap + icon to create a new tag.')
                 : SizedBox(
-                  height: 250,
-                  child: SingleChildScrollView(
-                                child: Column(
-                    children: List.generate(
-                      filteredTags.length,
+                    height: 250,
+                    child: SingleChildScrollView(
+                      child: Column(
+                        children: List.generate(
+                          filteredTags.length,
                           (index) {
-                        final tag = filteredTags[index];
+                            final tag = filteredTags[index];
 
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 4.0),
-                          child: Material(
-                            elevation: 2,
-                            borderRadius: BorderRadius.circular(10),
-                            color: Colors.grey[100],
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: CheckboxListTile(
-                                    title: Text(
-                                        "# ${tag.name}",
-                                      style: const TextStyle(fontSize: 13),
-                                    ),
-                                    value: selectedTags.map((e) => e.id).contains(tag.id),
-                                    onChanged: (enabled) => setState(
+                            return Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 4.0),
+                              child: Material(
+                                elevation: 2,
+                                borderRadius: BorderRadius.circular(10),
+                                color: Colors.grey[100],
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: CheckboxListTile(
+                                        title: Text(
+                                          "# ${tag.name}",
+                                          style: const TextStyle(fontSize: 13),
+                                        ),
+                                        value: selectedTags
+                                            .map((e) => e.id)
+                                            .contains(tag.id),
+                                        onChanged: (enabled) => setState(
                                           () => enabled ?? false
-                                          ? selectedTags.add(tag)
-                                          : selectedTags.remove(tag),
+                                              ? selectedTags.add(tag)
+                                              : selectedTags.remove(tag),
+                                        ),
+                                      ),
                                     ),
-                                  ),
+                                    IconButton(
+                                        icon: const Icon(
+                                          Icons.delete,
+                                          color: Colors.red,
+                                        ),
+                                        onPressed: () async {
+                                          await ref
+                                              .read(
+                                                  tagsNotifierProvider.notifier)
+                                              .remove(tag);
+                                          setState(() {});
+                                        })
+                                  ],
                                 ),
-                                IconButton(
-                                  icon: const Icon(Icons.delete, color: Colors.red,),
-                                    onPressed: () async {
-                                      await ref.read(tagsNotifierProvider.notifier)
-                                          .remove(tag);
-                                      setState(() {});
-                                    }
-                                )
-                              ],
-                            ),
-                          ),
-                        );
-                      },
+                              ),
+                            );
+                          },
+                        ),
+                      ),
                     ),
-                                  ),
-                                ),
-                ),
+                  ),
           ],
         ),
         actions: [
           FilledButton(
-            onPressed: () => context.pop(selectedTags),
+            onPressed: () {
+              Navigator.pop(context, selectedTags); // Return selected tags
+            },
             child: const Text('Done'),
           ),
         ],

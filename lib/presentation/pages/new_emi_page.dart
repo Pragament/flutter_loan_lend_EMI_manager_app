@@ -1,6 +1,7 @@
 // ignore_for_file: unused_element, use_build_context_synchronously
 
 import 'dart:math';
+
 import 'package:emi_manager/data/models/emi_model.dart';
 import 'package:emi_manager/data/models/tag_model.dart';
 import 'package:emi_manager/logic/currency_provider.dart';
@@ -168,7 +169,9 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
       setState(() {
         _showLottie = false;
       });
-      GoRouter.of(context).pop();
+      if (Navigator.canPop(context)) {
+        Navigator.of(context).pop(); // Use Navigator to safely navigate back
+      }
     });
   }
 
@@ -197,7 +200,7 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
   void _addTag(Tag newTag) {
     setState(() {
       if (!tags.contains(newTag)) {
-        tags.add(newTag); // Add the new tag to the list
+        tags.add(newTag);
       }
     });
   }
@@ -530,71 +533,40 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
                             style: TextStyle(
                                 color: Theme.of(context).colorScheme.primary),
                           ),
-                          tags.isEmpty
-                              ? Expanded(
-                                  child: GestureDetector(
-                                    child: const Text(
-                                      'Tap to add a tag',
-                                      style: TextStyle(color: Colors.grey),
-                                      textAlign: TextAlign.center,
-                                    ),
-                                    onTap: () async {
-                                      final selectedTags =
-                                          await showDialog<List<Tag>>(
-                                        barrierDismissible: false,
-                                        context: context,
-                                        builder: (context) =>
-                                            TagsSelectionDialog(
-                                                selectedTags: tags),
-                                      );
-
-                                      if (selectedTags != null) {
-                                        setState(() {
-                                          tags =
-                                              selectedTags; // Update the tags list
-                                        });
-                                      }
-                                    },
-                                  ),
-                                )
-                              : Expanded(
-                                  child: SingleChildScrollView(
-                                    scrollDirection: Axis.horizontal,
-                                    child: Row(
-                                      children: List.generate(
-                                        tags.length,
-                                        (index) {
-                                          final tag = tags.elementAt(index);
-
-                                          return Padding(
-                                            padding: const EdgeInsets.all(2.0),
-                                            child: FittedBox(
-                                              fit: BoxFit.contain,
-                                              child: FilterChip(
-                                                padding:
-                                                    const EdgeInsets.all(4.0),
-                                                label: Text('# ${tag.name}'),
-                                                shape: RoundedRectangleBorder(
-                                                    side: const BorderSide(
-                                                        color: Colors.grey),
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            borderRadius)),
-                                                onSelected: (selected) =>
-                                                    setState(
-                                                        () => tags.remove(tag)),
-                                              ),
-                                            ),
-                                          );
+                          Expanded(
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Row(
+                                children: tags.map((tag) {
+                                  return Padding(
+                                    padding: const EdgeInsets.all(2.0),
+                                    child: FittedBox(
+                                      fit: BoxFit.contain,
+                                      child: FilterChip(
+                                        padding: const EdgeInsets.all(4.0),
+                                        label: Text('# ${tag.name}'),
+                                        shape: RoundedRectangleBorder(
+                                          side: const BorderSide(
+                                              color: Colors.grey),
+                                          borderRadius: BorderRadius.circular(
+                                              borderRadius),
+                                        ),
+                                        onSelected: (selected) {
+                                          setState(() {
+                                            tags.remove(
+                                                tag); // Remove tag on deselect
+                                          });
                                         },
                                       ),
                                     ),
-                                  ),
-                                ),
+                                  );
+                                }).toList(),
+                              ),
+                            ),
+                          ),
                           IconButton(
                             onPressed: () async {
                               final selectedTags = await showDialog<List<Tag>>(
-                                barrierDismissible: false,
                                 context: context,
                                 builder: (context) =>
                                     TagsSelectionDialog(selectedTags: tags),
@@ -602,7 +574,8 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
 
                               if (selectedTags != null) {
                                 setState(() {
-                                  tags = selectedTags; // Update the tags list
+                                  tags = List.from(
+                                      selectedTags); // Ensure tags are updated correctly
                                 });
                               }
                             },
@@ -610,8 +583,10 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
                               key: tagsKey,
                               description:
                                   "Create New Tags or Select From Previous Tags",
-                              child: Icon(Icons.add,
-                                  color: Theme.of(context).colorScheme.primary),
+                              child: Icon(
+                                Icons.add,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
                             ),
                           ),
                         ],
@@ -634,7 +609,7 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
                     child: ElevatedButton(
                       onPressed: () {
                         if (_formKey.currentState?.validate() ?? false) {
-                          _saveEmi();
+                          _saveEmi(); // Ensure the save function is called
                         }
                       },
                       child: Text(l10n.save),
