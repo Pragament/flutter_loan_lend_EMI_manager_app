@@ -59,17 +59,43 @@ class HomePageState extends ConsumerState<HomePage> {
   bool _showLottie = false;
 
   // State variable to control Lottie animation visibility for comparison
+  bool _showComparisonLottie = false;
 
   // State variable to control Lottie animation visibility for errors
   bool _showErrorLottie = false;
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Trigger the comparison Lottie animation when returning to the home screen
+    _triggerComparisonLottie();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    // Attach a NavigatorObserver to detect navigation events
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Navigator.of(context)
+          .widget
+          .observers
+          .add(_HomePageNavigatorObserver(this));
+    });
+  }
+
+  // Trigger the animation after adding or deleting a loan/lend
+  void _onLoanOrLendModified() {
+    _triggerComparisonLottie();
+  }
+
+  // ignore: unused_element
   void _triggerLottieAnimation() {
     setState(() {
       _showLottie = true;
     });
 
     // Hide the animation after a short duration (e.g., 1.5 seconds)
-    Future.delayed(const Duration(milliseconds: 1500), () {
+    Future.delayed(const Duration(milliseconds: 1000), () {
       setState(() {
         _showLottie = false;
       });
@@ -77,11 +103,15 @@ class HomePageState extends ConsumerState<HomePage> {
   }
 
   void _triggerComparisonLottie() {
-    setState(() {});
+    setState(() {
+      _showComparisonLottie = true;
+    });
 
-    // Hide the animation after a short duration (e.g., 1.5 seconds)
-    Future.delayed(const Duration(milliseconds: 1500), () {
-      setState(() {});
+    // Show the scales balancing animation for 2 seconds
+    Future.delayed(const Duration(seconds: 2), () {
+      setState(() {
+        _showComparisonLottie = false;
+      });
     });
   }
 
@@ -97,6 +127,22 @@ class HomePageState extends ConsumerState<HomePage> {
         _showErrorLottie = false;
       });
     });
+  }
+
+  void _triggerSequentialAnimations() async {
+    // Trigger the checkmark animation
+    setState(() {
+      _showLottie = true;
+    });
+
+    // Wait for the checkmark animation to complete (1 second)
+    await Future.delayed(const Duration(seconds: 1));
+    setState(() {
+      _showLottie = false;
+    });
+
+    // Trigger the scales balancing animation
+    _triggerComparisonLottie();
   }
 
   void _showHelpOptions(BuildContext parentContext) {
@@ -150,247 +196,6 @@ class HomePageState extends ConsumerState<HomePage> {
       },
     );
   }
-
-  // @override
-  // Widget build(BuildContext context) {
-  //   final l10n = AppLocalizations.of(context)!;
-  //   final allEmis = ref.watch(homeStateNotifierProvider).emis;
-  //   List<AmortizationEntry> schedule = _generateSampleSchedule();
-  //
-  //   if (allEmis.isEmpty) {
-  //     return ShowCaseWidget(
-  //       builder: (context) => Scaffold(
-  //         appBar: AppBar(
-  //           title: Text(l10n.appTitle),
-  //           actions: [
-  //             IconButton(
-  //                 icon: const Icon(Icons.help_outline),
-  //                 onPressed: () {
-  //                   noEmis = true;
-  //                   _showHelpOptions(context);
-  //                 }),
-  //           ],
-  //         ),
-  //         body: Center(),
-  //         floatingActionButton: Row(
-  //           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-  //           crossAxisAlignment: CrossAxisAlignment.end,
-  //           children: [
-  //             Showcase(
-  //               key: lendHelpKey,
-  //               description: "Add New Lend from Here",
-  //               child: FloatingActionButton.extended(
-  //                 onPressed: () =>
-  //                     const NewEmiRoute(emiType: 'lend').push(context),
-  //                 heroTag: 'newLendBtn',
-  //                 backgroundColor: lendColor(context, false),
-  //                 label: Text(l10n.lend),
-  //                 icon: const Icon(Icons.add),
-  //               ),
-  //             ),
-  //             Showcase(
-  //               key: loanHelpKey,
-  //               description: "Add new Loan from Here",
-  //               child: FloatingActionButton.extended(
-  //                 onPressed: () =>
-  //                     const NewEmiRoute(emiType: 'loan').push(context),
-  //                 heroTag: 'newLoanBtn',
-  //                 backgroundColor: loanColor(context, false),
-  //                 label: Text(l10n.loan),
-  //                 icon: const Icon(Icons.add),
-  //               ),
-  //             ),
-  //           ],
-  //         ),
-  //       ),
-  //     );
-  //   }
-  //
-  //   // Collect data for the BarGraph
-  //   List<double> principalAmounts = [];
-  //   List<double> interestAmounts = [];
-  //   List<double> balances = [];
-  //   List<int> years = [];
-  //
-  //   for (var emi in allEmis) {
-  //     principalAmounts.add(emi.principalAmount);
-  //     interestAmounts.add(emi.totalEmi! - emi.principalAmount);
-  //     balances.add(emi.totalEmi!); // Assuming balances as total EMI
-  //     years.add(emi.year); // Assuming EMI model has a 'year' field
-  //   }
-  //   return ShowCaseWidget(
-  //     builder: (context) => Scaffold(
-  //       appBar: AppBar(
-  //         title: Text(l10n.appTitle),
-  //         // Automatically shows the drawer icon on the left
-  //         actions: [
-  //           IconButton(
-  //               icon: const Icon(Icons.help_outline),
-  //               onPressed: () {
-  //                 noEmis = false;
-  //                 _showHelpOptions(context);
-  //               }),
-  //         ],
-  //       ),
-  //       key: _scaffoldKey, //for opening drawer
-  //       drawer: Drawer(
-  //         child: ListView(
-  //           padding: EdgeInsets.zero,
-  //           children: <Widget>[
-  //             DrawerHeader(
-  //               decoration: BoxDecoration(
-  //                 color: Colors.blue,
-  //               ),
-  //               child: Text(
-  //                 'Menu',
-  //                 style: TextStyle(
-  //                   color: Colors.white,
-  //                   fontSize: 24,
-  //                 ),
-  //               ),
-  //             ),
-  //             // Move the LocaleSelectorPopupMenu inside the Drawer
-  //             Showcase(
-  //               key: langHelpKey,
-  //               description: "You Can Choose Your Regional Language",
-  //               child: ListTile(
-  //                 title: Text('Select Language'),
-  //                 trailing: LocaleSelectorPopupMenu(),
-  //               ),
-  //             ),
-  //             Showcase(
-  //               key: helpHelpKey,
-  //               description: "Help Button",
-  //               child: ListTile(
-  //                 title: Text('Help'),
-  //                 trailing: IconButton(
-  //                   icon: const Icon(Icons.help_outline),
-  //                   onPressed: () {
-  //                     _showHelpOptions(context);
-  //                   },
-  //                 ),
-  //               ),
-  //             ),
-  //             // Add other items if needed
-  //           ],
-  //         ),
-  //       ),
-  //       body: SingleChildScrollView(
-  //         child: Column(
-  //           children: [
-  //             Showcase(
-  //                 key: filterHelpKey,
-  //                 description: "Filter By Multiple Tags",
-  //                 child: const TagsStrip()
-  //             ), // Top tags
-  //
-  //             // BarGraph Widget showing aggregate values
-  //             Container(
-  //               padding: const EdgeInsets.all(5.0),
-  //               margin: const EdgeInsets.symmetric(vertical: 20),
-  //               // height: 500, // Adjust height if needed
-  //               child: SizedBox(
-  //                 // child: BarGraph(
-  //                 //   principalAmounts: principalAmounts,
-  //                 //   interestAmounts: interestAmounts,
-  //                 //   balances: balances,
-  //                 //   years: years,
-  //                 // ),
-  //                 child: HomeBarGraph(allEmis: allEmis),
-  //
-  //               ),
-  //             ),
-  //             _buildLegend(context),
-  //
-  //             // Toggle button to show/hide the Amortization Table
-  //
-  //             // Always visible Amortization Table
-  //             Padding(
-  //               padding: const EdgeInsets.all(16.0),
-  //               child: SingleChildScrollView(
-  //                 scrollDirection: Axis.horizontal,
-  //                 // child: AmortizationSummaryTable(
-  //                 //   entries:
-  //                 //       _groupAmortizationEntries(allEmis), // Grouped EMI data
-  //                 //   startDate: DateTime.now(), // Assuming current start date
-  //                 //   tenureInYears:
-  //                 //       _calculateTenure(allEmis), // Provide tenure in years
-  //                 // ),
-  //                 child: AmortizationSummaryTable(
-  //                   schedule: schedule,
-  //                   startDate: DateTime.now(),
-  //                 ),
-  //               ),
-  //             ),
-  //
-  //
-  //
-  //
-  //             // List of EMI cards
-  //             ListView.builder(
-  //               shrinkWrap:
-  //                   true, // Ensures the list scrolls with the rest of the page
-  //               physics:
-  //                   const NeverScrollableScrollPhysics(), // Disable scrolling for the list, let the parent scroll
-  //               itemCount: allEmis.length,
-  //               itemBuilder: (context, index) {
-  //                 final emi = allEmis.elementAt(index);
-  //                 final emiTypeColor = emi.emiType == 'lend'
-  //                     ? lendColor(context, true)
-  //                     : loanColor(context, true);
-  //
-  //                 final double principalAmount = emi.principalAmount;
-  //                 final double interestAmount =
-  //                     emi.totalEmi! - emi.principalAmount;
-  //                 final double totalAmount = emi.totalEmi!;
-  //
-  //                 return EmiCard(
-  //                   emiTypeColor: emiTypeColor,
-  //                   l10n: l10n,
-  //                   emi: emi,
-  //                   interestAmount: interestAmount,
-  //                   totalAmount: totalAmount,
-  //                   principalAmount: principalAmount,
-  //                 );
-  //               },
-  //             ),
-  //           ],
-  //         ),
-  //       ),
-  //       floatingActionButton: Row(
-  //         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-  //         crossAxisAlignment: CrossAxisAlignment.end,
-  //         children: [
-  //           Showcase(
-  //             key: lendHelpKey,
-  //             description: "Add New Lend from Here",
-  //             targetBorderRadius: BorderRadius.circular(35),
-  //             child: FloatingActionButton.extended(
-  //               onPressed: () =>
-  //                   const NewEmiRoute(emiType: 'lend').push(context),
-  //               heroTag: 'newLendBtn',
-  //               backgroundColor: lendColor(context, false),
-  //               label: Text(l10n.lend),
-  //               icon: const Icon(Icons.add),
-  //             ),
-  //           ),
-  //           Showcase(
-  //             key: loanHelpKey,
-  //             description: "Add new Loan from Here",
-  //             child: FloatingActionButton.extended(
-  //               onPressed: () =>
-  //                   const NewEmiRoute(emiType: 'loan').push(context),
-  //               heroTag: 'newLoanBtn',
-  //               backgroundColor: loanColor(context, false),
-  //               label: Text(l10n.loan),
-  //               icon: const Icon(Icons.add),
-  //             ),
-  //           ),
-  //         ],
-  //       ),
-  //     ),
-  //   );
-  // }
 
   Future<void> exportToCSV(BuildContext context, List<Emi> allemis) async {
     try {
@@ -696,6 +501,11 @@ class HomePageState extends ConsumerState<HomePage> {
         .toSet()
         .toList(); // Unique years for grouping
 
+    // Trigger animation whenever the home page state changes
+    ref.listen(homeStateNotifierProvider, (_, __) {
+      _triggerComparisonLottie();
+    });
+
     return ShowCaseWidget(
       builder: (context) => Scaffold(
         appBar: AppBar(
@@ -824,19 +634,15 @@ class HomePageState extends ConsumerState<HomePage> {
                     padding: const EdgeInsets.all(16.0),
                     child: Column(
                       children: [
-                        // Replace "Comparison Results" text with Lottie animation
-                        SizedBox(
-                          height: 100, // Adjust height as needed
-                          child: Lottie.asset(
-                            'assets/animations/scales_balancing.json', // Replace with your Lottie file path
-                            repeat: true,
+                        if (_showComparisonLottie)
+                          SizedBox(
+                            height: 100, // Adjust height as needed
+                            child: Lottie.asset(
+                              'assets/animations/scales_balancing.json', // Replace with your Lottie file path
+                              repeat: false, // Play only once
+                            ),
                           ),
-                        ),
                         // Comparison data (example placeholder)
-                        Text(
-                          '',
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
                       ],
                     ),
                   ),
@@ -864,6 +670,8 @@ class HomePageState extends ConsumerState<HomePage> {
                         interestAmount: interestAmount,
                         totalAmount: totalAmount,
                         principalAmount: principalAmount,
+                        onLoanOrLendModified:
+                            _onLoanOrLendModified, // Pass callback
                       );
                     },
                   ),
@@ -894,13 +702,13 @@ class HomePageState extends ConsumerState<HomePage> {
               key: lendHelpKey,
               description: "Add New Lend from Here",
               child: FloatingActionButton.extended(
-                onPressed: () {
-                  _triggerLottieAnimation(); // Trigger animation
-                  Navigator.of(context).push(
+                onPressed: () async {
+                  await Navigator.of(context).push(
                     MaterialPageRoute(
                       builder: (context) => const NewEmiPage(emiType: 'lend'),
                     ),
-                  ); // Use Navigator instead of GoRouter
+                  );
+                  _triggerComparisonLottie(); // Trigger scales balancing animation
                 },
                 heroTag: 'newLendBtn',
                 backgroundColor: lendColor(context, false),
@@ -912,13 +720,13 @@ class HomePageState extends ConsumerState<HomePage> {
               key: loanHelpKey,
               description: "Add new Loan from Here",
               child: FloatingActionButton.extended(
-                onPressed: () {
-                  _triggerLottieAnimation(); // Trigger animation
-                  Navigator.of(context).push(
+                onPressed: () async {
+                  await Navigator.of(context).push(
                     MaterialPageRoute(
                       builder: (context) => const NewEmiPage(emiType: 'loan'),
                     ),
-                  ); // Use Navigator instead of GoRouter
+                  );
+                  _triggerComparisonLottie(); // Trigger scales balancing animation
                 },
                 heroTag: 'newLoanBtn',
                 backgroundColor: loanColor(context, false),
@@ -948,66 +756,6 @@ class HomePageState extends ConsumerState<HomePage> {
         allEmis.map((emi) => emi.year).reduce((a, b) => a > b ? a : b);
     return latestYear - earliestYear + 1;
   }
-
-  // Group amortization entries by year for the Amortization Table
-  // List<AmortizationEntry> _groupAmortizationEntries(List<Emi> emis) {
-  //   return emis
-  //       .map((emi) => AmortizationEntry(
-  //             loanLendName: emi.title,
-  //             loanLendType:
-  //                 emi.emiType == 'lend' ? LoanLendType.lend : LoanLendType.loan,
-  //             principal: emi.principalAmount,
-  //             interest: emi.totalEmi! - emi.principalAmount,
-  //             year: emi.year,
-  //             month: DateTime.now().month,
-  //           ))
-  //       .toList();
-  //
-
-  // List<AmortizationEntry> _groupAmortizationEntries(List<Emi> allEmis) {
-  //   List<AmortizationEntry> amortizationEntries = [];
-  //
-  //   for (var emi in allEmis) {
-  //     int currentYear = DateTime.now().year;
-  //     int currentMonth = DateTime.now().month;
-  //
-  //     // Calculate the number of months remaining for this EMI
-  //     // Start adding entries from the year
-  //     for (int month = currentMonth; month <= 12; month++) {
-  //       amortizationEntries.add(
-  //         AmortizationEntry(
-  //           title: emi.title,
-  //           principal: emi.principalAmount,
-  //           interest: (emi.totalEmi! - emi.principalAmount),
-  //           totalPayment: emi.totalEmi!,
-  //           year: currentYear,
-  //           month: month,
-  //         ),
-  //       );
-  //     }
-  //
-  //     // final int tenureYears = (emi.endDate?.year ?? 0) - (emi.startDate.year ?? 0);
-  //     // print("Years: ${emi.endDate?.year} ${emi.startDate.year} $tenureYears");
-  //     // If the EMI has a tenure longer than one year,
-  //     // we should add entries for the following years as well
-  //     for (int yearOffset = 1; yearOffset < 5; yearOffset++) {
-  //       for (int month = 1; month <= 12; month++) {
-  //         amortizationEntries.add(
-  //           AmortizationEntry(
-  //             title: emi.title,
-  //             principal: emi.principalAmount,
-  //             interest: (emi.totalEmi! - emi.principalAmount),
-  //             totalPayment: emi.totalEmi!,
-  //             year: currentYear + yearOffset,
-  //             month: month,
-  //           ),
-  //         );
-  //       }
-  //     }
-  //   }
-  //
-  //   return amortizationEntries;
-  // }
 
   List<AmortizationEntry> _groupAmortizationEntries(List<Emi> allEmis) {
     List<AmortizationEntry> amortizationEntries = [];
@@ -1100,6 +848,7 @@ class EmiCard extends ConsumerWidget {
     required this.interestAmount,
     required this.totalAmount,
     required this.principalAmount,
+    required this.onLoanOrLendModified, // Add callback parameter
   });
 
   final Color emiTypeColor;
@@ -1108,6 +857,7 @@ class EmiCard extends ConsumerWidget {
   final double interestAmount;
   final double totalAmount;
   final double principalAmount;
+  final VoidCallback onLoanOrLendModified; // Callback type
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -1302,6 +1052,7 @@ class EmiCard extends ConsumerWidget {
 
     if (shouldDelete == true) {
       ref.read(emisNotifierProvider.notifier).remove(emi);
+      onLoanOrLendModified(); // Trigger callback after deletion
     }
   }
 }
@@ -1331,50 +1082,13 @@ class _LegendItem extends StatelessWidget {
   }
 }
 
-// class Fab extends StatelessWidget {
-//   const Fab({
-//     super.key,
-//     required this.l10n,
-//     required this.fabLendHelpKey,
-//     required this.fabLoanHelpKey,
-//
-//   });
-//
-//   final AppLocalizations l10n;
-//   final GlobalKey fabLendHelpKey;
-//   final GlobalKey fabLoanHelpKey;
-//
-//   @override
-//   Widget build(BuildContext context) {
-//     return ShowCaseWidget(
-//       builder: (context)=> Row(
-//         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-//         crossAxisAlignment: CrossAxisAlignment.end,
-//         children: [
-//           Showcase(
-//             key: fabLendHelpKey,
-//             description: "Add New Lend from Here",
-//             child: FloatingActionButton.extended(
-//               onPressed: () => const NewEmiRoute(emiType: 'lend').push(context),
-//               heroTag: 'newLendBtn',
-//               backgroundColor: lendColor(context, false),
-//               label: Text(l10n.lend),
-//               icon: const Icon(Icons.add),
-//             ),
-//           ),
-//           Showcase(
-//             key: fabLoanHelpKey,
-//             description: "Add new Loan from Here",
-//             child: FloatingActionButton.extended(
-//               onPressed: () => const NewEmiRoute(emiType: 'loan').push(context),
-//               heroTag: 'newLoanBtn',
-//               backgroundColor: loanColor(context, false),
-//               label: Text(l10n.loan),
-//               icon: const Icon(Icons.add),
-//             ),
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-//}
+class _HomePageNavigatorObserver extends NavigatorObserver {
+  final HomePageState homePageState;
+
+  _HomePageNavigatorObserver(this.homePageState);
+
+  void didPopNext() {
+    // Trigger the comparison Lottie animation when returning to the home screen
+    homePageState._triggerComparisonLottie();
+  }
+}
