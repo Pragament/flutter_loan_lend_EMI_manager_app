@@ -59,17 +59,43 @@ class HomePageState extends ConsumerState<HomePage> {
   bool _showLottie = false;
 
   // State variable to control Lottie animation visibility for comparison
+  bool _showComparisonLottie = false;
 
   // State variable to control Lottie animation visibility for errors
   bool _showErrorLottie = false;
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Trigger the comparison Lottie animation when returning to the home screen
+    _triggerComparisonLottie();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    // Attach a NavigatorObserver to detect navigation events
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Navigator.of(context)
+          .widget
+          .observers
+          .add(_HomePageNavigatorObserver(this));
+    });
+  }
+
+  // Trigger the animation after adding or deleting a loan/lend
+  void _onLoanOrLendModified() {
+    _triggerComparisonLottie();
+  }
+
+  // ignore: unused_element
   void _triggerLottieAnimation() {
     setState(() {
       _showLottie = true;
     });
 
     // Hide the animation after a short duration (e.g., 1.5 seconds)
-    Future.delayed(const Duration(milliseconds: 1500), () {
+    Future.delayed(const Duration(milliseconds: 1000), () {
       setState(() {
         _showLottie = false;
       });
@@ -77,11 +103,15 @@ class HomePageState extends ConsumerState<HomePage> {
   }
 
   void _triggerComparisonLottie() {
-    setState(() {});
+    setState(() {
+      _showComparisonLottie = true;
+    });
 
-    // Hide the animation after a short duration (e.g., 1.5 seconds)
-    Future.delayed(const Duration(milliseconds: 1500), () {
-      setState(() {});
+    // Show the scales balancing animation for 2 seconds
+    Future.delayed(const Duration(seconds: 2), () {
+      setState(() {
+        _showComparisonLottie = false;
+      });
     });
   }
 
@@ -97,6 +127,23 @@ class HomePageState extends ConsumerState<HomePage> {
         _showErrorLottie = false;
       });
     });
+  }
+
+  // ignore: unused_element
+  void _triggerSequentialAnimations() async {
+    // Trigger the checkmark animation
+    setState(() {
+      _showLottie = true;
+    });
+
+    // Wait for the checkmark animation to complete (1 second)
+    await Future.delayed(const Duration(seconds: 1));
+    setState(() {
+      _showLottie = false;
+    });
+
+    // Trigger the scales balancing animation
+    _triggerComparisonLottie();
   }
 
   void _showHelpOptions(BuildContext parentContext) {
@@ -150,7 +197,6 @@ class HomePageState extends ConsumerState<HomePage> {
       },
     );
   }
-
   // @override
   // Widget build(BuildContext context) {
   //   final l10n = AppLocalizations.of(context)!;
@@ -696,6 +742,11 @@ class HomePageState extends ConsumerState<HomePage> {
         .toSet()
         .toList(); // Unique years for grouping
 
+    // Trigger animation whenever the home page state changes
+    ref.listen(homeStateNotifierProvider, (_, __) {
+      _triggerComparisonLottie();
+    });
+
     return ShowCaseWidget(
       builder: (context) => Scaffold(
         appBar: AppBar(
@@ -824,19 +875,15 @@ class HomePageState extends ConsumerState<HomePage> {
                     padding: const EdgeInsets.all(16.0),
                     child: Column(
                       children: [
-                        // Replace "Comparison Results" text with Lottie animation
-                        SizedBox(
-                          height: 100, // Adjust height as needed
-                          child: Lottie.asset(
-                            'assets/animations/scales_balancing.json', // Replace with your Lottie file path
-                            repeat: true,
+                        if (_showComparisonLottie)
+                          SizedBox(
+                            height: 100, // Adjust height as needed
+                            child: Lottie.asset(
+                              'assets/animations/scales_balancing.json', // Replace with your Lottie file path
+                              repeat: false, // Play only once
+                            ),
                           ),
-                        ),
                         // Comparison data (example placeholder)
-                        Text(
-                          '',
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
                       ],
                     ),
                   ),
@@ -864,6 +911,8 @@ class HomePageState extends ConsumerState<HomePage> {
                         interestAmount: interestAmount,
                         totalAmount: totalAmount,
                         principalAmount: principalAmount,
+                        onLoanOrLendModified:
+                            _onLoanOrLendModified, // Pass callback
                       );
                     },
                   ),
@@ -894,13 +943,13 @@ class HomePageState extends ConsumerState<HomePage> {
               key: lendHelpKey,
               description: "Add New Lend from Here",
               child: FloatingActionButton.extended(
-                onPressed: () {
-                  _triggerLottieAnimation(); // Trigger animation
-                  Navigator.of(context).push(
+                onPressed: () async {
+                  await Navigator.of(context).push(
                     MaterialPageRoute(
                       builder: (context) => const NewEmiPage(emiType: 'lend'),
                     ),
-                  ); // Use Navigator instead of GoRouter
+                  );
+                  _triggerComparisonLottie(); // Trigger scales balancing animation
                 },
                 heroTag: 'newLendBtn',
                 backgroundColor: lendColor(context, false),
@@ -912,13 +961,13 @@ class HomePageState extends ConsumerState<HomePage> {
               key: loanHelpKey,
               description: "Add new Loan from Here",
               child: FloatingActionButton.extended(
-                onPressed: () {
-                  _triggerLottieAnimation(); // Trigger animation
-                  Navigator.of(context).push(
+                onPressed: () async {
+                  await Navigator.of(context).push(
                     MaterialPageRoute(
                       builder: (context) => const NewEmiPage(emiType: 'loan'),
                     ),
-                  ); // Use Navigator instead of GoRouter
+                  );
+                  _triggerComparisonLottie(); // Trigger scales balancing animation
                 },
                 heroTag: 'newLoanBtn',
                 backgroundColor: loanColor(context, false),
@@ -948,7 +997,6 @@ class HomePageState extends ConsumerState<HomePage> {
         allEmis.map((emi) => emi.year).reduce((a, b) => a > b ? a : b);
     return latestYear - earliestYear + 1;
   }
-
   // Group amortization entries by year for the Amortization Table
   // List<AmortizationEntry> _groupAmortizationEntries(List<Emi> emis) {
   //   return emis
@@ -1008,7 +1056,6 @@ class HomePageState extends ConsumerState<HomePage> {
   //
   //   return amortizationEntries;
   // }
-
   List<AmortizationEntry> _groupAmortizationEntries(List<Emi> allEmis) {
     List<AmortizationEntry> amortizationEntries = [];
 
@@ -1100,6 +1147,7 @@ class EmiCard extends ConsumerWidget {
     required this.interestAmount,
     required this.totalAmount,
     required this.principalAmount,
+    required this.onLoanOrLendModified, // Add callback parameter
   });
 
   final Color emiTypeColor;
@@ -1108,6 +1156,7 @@ class EmiCard extends ConsumerWidget {
   final double interestAmount;
   final double totalAmount;
   final double principalAmount;
+  final VoidCallback onLoanOrLendModified; // Callback type
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -1302,32 +1351,8 @@ class EmiCard extends ConsumerWidget {
 
     if (shouldDelete == true) {
       ref.read(emisNotifierProvider.notifier).remove(emi);
+      onLoanOrLendModified(); // Trigger callback after deletion
     }
-  }
-}
-
-class _LegendItem extends StatelessWidget {
-  const _LegendItem({
-    required this.color,
-    required this.label,
-  });
-
-  final Color color;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Container(
-          width: 8,
-          height: 8,
-          color: color,
-        ),
-        const SizedBox(width: 2),
-        Text(label),
-      ],
-    );
   }
 }
 
@@ -1378,3 +1403,39 @@ class _LegendItem extends StatelessWidget {
 //     );
 //   }
 //}
+
+class _LegendItem extends StatelessWidget {
+  const _LegendItem({
+    required this.color,
+    required this.label,
+  });
+
+  final Color color;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          width: 8,
+          height: 8,
+          color: color,
+        ),
+        const SizedBox(width: 2),
+        Text(label),
+      ],
+    );
+  }
+}
+
+class _HomePageNavigatorObserver extends NavigatorObserver {
+  final HomePageState homePageState;
+
+  _HomePageNavigatorObserver(this.homePageState);
+
+  void didPopNext() {
+    // Trigger the comparison Lottie animation when returning to the home screen
+    homePageState._triggerComparisonLottie();
+  }
+}
