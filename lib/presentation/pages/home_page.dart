@@ -798,7 +798,10 @@ class HomePageState extends ConsumerState<HomePage> {
                 padding: const EdgeInsets.only(right: 13),
                 child: ListTile(
                   trailing: const Icon(Icons.settings),
-                  title: const Text('Settings'),
+                  title: const Text(
+                    'Settings',
+                    style: TextStyle(fontStyle: FontStyle.normal),
+                  ),
                   onTap: () {
                     Navigator.pop(context); // Close the drawer
                     context.push('/settings'); // Navigate to settings
