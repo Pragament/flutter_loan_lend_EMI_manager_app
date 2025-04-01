@@ -1,6 +1,8 @@
 import 'package:emi_manager/data/models/emi_model.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'dart:math';
 
 part 'emis_provider.g.dart';
 
@@ -46,5 +48,28 @@ class EmisNotifier extends _$EmisNotifier {
 
   Future<Emi?> getEmiById(String id) async {
     return _box.get(id);
+  }
+
+  double calculateMonthlyEmi(
+      double principal, double interestRate, int tenureYears) {
+    // Convert annual interest rate to monthly rate
+    double monthlyRate = interestRate / (12 * 100);
+
+    // Calculate total number of monthly payments
+    int totalPayments = tenureYears * 12;
+
+    // Calculate EMI using the standard formula
+    double emi = principal *
+        monthlyRate *
+        pow(1 + monthlyRate, totalPayments) /
+        (pow(1 + monthlyRate, totalPayments) - 1);
+
+    return emi;
+  }
+
+  // A method to apply rounding to a calculated EMI value
+  double applyRounding(WidgetRef ref, double value) {
+    // This method will be called from outside the provider with the appropriate WidgetRef
+    return value; // For now return the original value - actual rounding will be done by the GlobalFormatter
   }
 }
