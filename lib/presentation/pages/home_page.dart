@@ -16,6 +16,8 @@ import 'package:emi_manager/presentation/pages/home/widgets/tags_strip.dart';
 import 'package:emi_manager/presentation/pages/new_emi_page.dart';
 import 'package:emi_manager/presentation/router/routes.dart';
 import 'package:emi_manager/presentation/widgets/home_bar_graph.dart';
+import 'package:emi_manager/presentation/widgets/formatted_amount.dart';
+import 'package:emi_manager/utils/global_formatter.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -793,6 +795,20 @@ class HomePageState extends ConsumerState<HomePage> {
                 ),
               ),
               Padding(
+                padding: const EdgeInsets.only(right: 13),
+                child: ListTile(
+                  trailing: const Icon(Icons.settings),
+                  title: const Text(
+                    'Settings',
+                    style: TextStyle(fontStyle: FontStyle.normal),
+                  ),
+                  onTap: () {
+                    Navigator.pop(context); // Close the drawer
+                    context.push('/settings'); // Navigate to settings
+                  },
+                ),
+              ),
+              Padding(
                 padding: const EdgeInsets.all(10),
                 child: FloatingActionButton.extended(
                   onPressed: () {
@@ -1056,15 +1072,14 @@ class HomePageState extends ConsumerState<HomePage> {
   //
   //   return amortizationEntries;
   // }
+
   List<AmortizationEntry> _groupAmortizationEntries(List<Emi> allEmis) {
     List<AmortizationEntry> amortizationEntries = [];
 
     for (var emi in allEmis) {
-      // print(emi.title);
       DateTime startDate = emi.startDate;
       final int tenureInYears = ((emi.endDate?.year ?? 0) - emi.startDate.year);
 
-      // Calculate monthly EMI for the current EMI item
       final int sign = emi.emiType == 'loan' ? (-1) : 1;
       double monthlyEmi =
           _calculateEMI(emi.principalAmount, emi.interestRate, tenureInYears);
@@ -1089,26 +1104,23 @@ class HomePageState extends ConsumerState<HomePage> {
       }
     }
 
-    // Calculate total interest and total amount across all amortization entries
-    double totalInterest = _calculateTotalInterest(amortizationEntries);
-    double totalAmount = _calculateTotalAmount(amortizationEntries);
-
-    // Print or log totals if needed
-
     return amortizationEntries;
   }
 
   double _calculateEMI(
       double principalAmount, double interestRate, int tenureYears) {
-    // Calculate monthly interest rate from the annual rate
+    // Calculate the monthly interest rate
     double monthlyInterestRate = interestRate / (12 * 100);
     int totalMonths = tenureYears * 12;
 
-    // Calculate monthly EMI amount using the compound interest formula
-    return (principalAmount *
+    // Calculate and return the EMI amount
+    double emiAmount = (principalAmount *
             monthlyInterestRate *
             pow(1 + monthlyInterestRate, totalMonths)) /
         (pow(1 + monthlyInterestRate, totalMonths) - 1);
+
+    // Apply rounding from our GlobalFormatter
+    return GlobalFormatter.roundNumber(ref, emiAmount);
   }
 
   double _calculateTotalInterest(List<AmortizationEntry> amortizationEntries) {
@@ -1120,7 +1132,6 @@ class HomePageState extends ConsumerState<HomePage> {
         0.0, (sum, entry) => sum + entry.totalPayment);
   }
 
-  // Build legend for the BarGraph
   Widget _buildLegend(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
@@ -1147,7 +1158,7 @@ class EmiCard extends ConsumerWidget {
     required this.interestAmount,
     required this.totalAmount,
     required this.principalAmount,
-    required this.onLoanOrLendModified, // Add callback parameter
+    required this.onLoanOrLendModified,
   });
 
   final Color emiTypeColor;
@@ -1156,7 +1167,7 @@ class EmiCard extends ConsumerWidget {
   final double interestAmount;
   final double totalAmount;
   final double principalAmount;
-  final VoidCallback onLoanOrLendModified; // Callback type
+  final VoidCallback onLoanOrLendModified;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -1173,16 +1184,13 @@ class EmiCard extends ConsumerWidget {
         elevation: 4,
         margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
         shape: RoundedRectangleBorder(
-          side: BorderSide(
-              color: emiTypeColor, width: 2), // Outline color and width
-          borderRadius:
-              BorderRadius.circular(borderRadius), // Card corner radius
+          side: BorderSide(color: emiTypeColor, width: 2),
+          borderRadius: BorderRadius.circular(borderRadius),
         ),
         child: Padding(
           padding: const EdgeInsets.all(8.0),
           child: Column(
             children: [
-              // Title and Popup Menu
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -1197,10 +1205,8 @@ class EmiCard extends ConsumerWidget {
                   PopupMenuButton<String>(
                     onSelected: (value) {
                       if (value == 'edit') {
-                        final emiId = emi
-                            .id; // Assume emi is your EMI object and you have an id field
-                        final emiType = emi
-                            .emiType; // Assuming emiType is part of the EMI object
+                        final emiId = emi.id;
+                        final emiType = emi.emiType;
                         GoRouter.of(context).go(
                             NewEmiRoute(emiType: emiType, emiId: emiId)
                                 .location);
@@ -1222,27 +1228,47 @@ class EmiCard extends ConsumerWidget {
                   ),
                 ],
               ),
-              // Row for EMI details and Pie Chart
               Row(
                 children: [
-                  // Left Column: EMI details
                   Expanded(
                     flex: 3,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Divider(),
-                        Text(
-                          '${l10n.emi}: $currencySymbol${emi.monthlyEmi?.toStringAsFixed(2) ?? l10n.enterAmount}',
-                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        Row(
+                          children: [
+                            Text(
+                              '${l10n.emi}: ',
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                            FormattedAmount(
+                              amount: emi.monthlyEmi ?? 0.0,
+                              currencySymbol: currencySymbol,
+                              boldText: true,
+                            ),
+                          ],
                         ),
-                        const Divider(), // Add a divider after the first text
-                        Text(
-                          '${l10n.interestAmount}: $currencySymbol${interestAmount.toStringAsFixed(2)}',
+                        const Divider(),
+                        Row(
+                          children: [
+                            Text('${l10n.interestAmount}: '),
+                            FormattedAmount(
+                              amount: interestAmount,
+                              currencySymbol: currencySymbol,
+                            ),
+                          ],
                         ),
-                        const Divider(), // Add a divider after the second text
-                        Text(
-                          '${l10n.totalAmount}: $currencySymbol${totalAmount.toStringAsFixed(2)}',
+                        const Divider(),
+                        Row(
+                          children: [
+                            Text('${l10n.totalAmount}: '),
+                            FormattedAmount(
+                              amount: totalAmount,
+                              currencySymbol: currencySymbol,
+                            ),
+                          ],
                         ),
                         const Divider(),
                       ],
@@ -1253,7 +1279,6 @@ class EmiCard extends ConsumerWidget {
                     color: Colors.grey,
                     width: 2,
                   ),
-                  // Right Pie Chart
                   Expanded(
                     flex: 2,
                     child: Column(
@@ -1263,7 +1288,7 @@ class EmiCard extends ConsumerWidget {
                         Padding(
                           padding: const EdgeInsets.symmetric(vertical: 8.0),
                           child: Text(
-                            l10n.caroselHeading, // Replacing with localized string for "EMI Breakdown"
+                            l10n.caroselHeading,
                             style: Theme.of(context).textTheme.bodyLarge,
                           ),
                         ),
@@ -1276,8 +1301,8 @@ class EmiCard extends ConsumerWidget {
                                 PieChartSectionData(
                                   color: Colors.blue,
                                   value: interestAmount,
-                                  title:
-                                      '${interestPercentage.toStringAsFixed(1)}%',
+                                  title: GlobalFormatter.formatPercentage(
+                                      ref, interestPercentage),
                                   radius: 60,
                                   titleStyle: const TextStyle(
                                     fontSize: 14,
@@ -1288,8 +1313,8 @@ class EmiCard extends ConsumerWidget {
                                 PieChartSectionData(
                                   color: Colors.green,
                                   value: principalAmount,
-                                  title:
-                                      '${principalPercentage.toStringAsFixed(1)}%',
+                                  title: GlobalFormatter.formatPercentage(
+                                      ref, principalPercentage),
                                   radius: 60,
                                   titleStyle: const TextStyle(
                                     fontSize: 14,
@@ -1298,9 +1323,6 @@ class EmiCard extends ConsumerWidget {
                                   ),
                                 ),
                               ],
-                              borderData: FlBorderData(show: false),
-                              sectionsSpace: 4,
-                              centerSpaceRadius: 0,
                             ),
                           ),
                         ),
@@ -1351,11 +1373,10 @@ class EmiCard extends ConsumerWidget {
 
     if (shouldDelete == true) {
       ref.read(emisNotifierProvider.notifier).remove(emi);
-      onLoanOrLendModified(); // Trigger callback after deletion
+      onLoanOrLendModified();
     }
   }
 }
-
 // class Fab extends StatelessWidget {
 //   const Fab({
 //     super.key,
@@ -1435,7 +1456,6 @@ class _HomePageNavigatorObserver extends NavigatorObserver {
   _HomePageNavigatorObserver(this.homePageState);
 
   void didPopNext() {
-    // Trigger the comparison Lottie animation when returning to the home screen
     homePageState._triggerComparisonLottie();
   }
 }

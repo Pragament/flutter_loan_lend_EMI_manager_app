@@ -9,6 +9,7 @@ import 'package:lottie/lottie.dart'; // Import Lottie
 import 'dart:async'; // Import Timer functionality
 
 import 'package:emi_manager/data/models/emi_model.dart';
+import 'package:emi_manager/data/models/rounding_settings.dart'; // Import rounding settings
 import 'package:emi_manager/logic/locale_provider.dart';
 import 'package:emi_manager/presentation/router/router.dart';
 import 'package:showcaseview/showcaseview.dart';
@@ -21,9 +22,16 @@ void main() async {
   await Hive.initFlutter();
   // Hive.deleteBoxFromDisk('preferences');
   // Hive.deleteBoxFromDisk('emis');
+
+  // Register all adapters
   Hive.registerAdapter(EmiAdapter());
   Hive.registerAdapter(TagAdapter());
   Hive.registerAdapter(TransactionAdapter());
+
+  // Register rounding settings adapters
+  Hive.registerAdapter(RoundingSettingsAdapter());
+  Hive.registerAdapter(PrecisionTypeAdapter());
+  Hive.registerAdapter(RoundingMethodAdapter());
 
   await Hive.openBox<Emi>('emis');
   await Hive.openBox<Tag>('tags');

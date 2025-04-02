@@ -414,13 +414,11 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
                           lastDate: DateTime(2100),
                         );
 
-                        if (pickedDate != null) {
-                          setState(() {
-                            startDateC.text =
-                                pickedDate.toLocal().toString().split(' ')[0];
-                          });
-                        }
-                      },
+                        setState(() {
+                          startDateC.text =
+                              pickedDate!.toLocal().toString().split(' ')[0];
+                        });
+                                            },
                       child: IgnorePointer(
                         child: TextFormField(
                           controller: startDateC,

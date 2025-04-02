@@ -1,5 +1,7 @@
 import 'package:emi_manager/presentation/pages/error_page.dart';
 import 'package:emi_manager/presentation/router/routes.dart';
+import 'package:emi_manager/presentation/screens/settings/rounding_settings_page.dart';
+import 'package:emi_manager/presentation/screens/settings/settings_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -18,6 +20,16 @@ final routerProvider = Provider<GoRouter>((ref) {
     initialLocation: isFirstRun ? '/onboarding' : '/',
     errorPageBuilder: (context, state) =>
         const MaterialPage(child: ErrorPage()),
-    routes: $appRoutes,
+    routes: [
+      ...$appRoutes,
+      GoRoute(
+        path: '/settings',
+        builder: (context, state) => const SettingsPage(),
+      ),
+      GoRoute(
+        path: '/settings/rounding',
+        builder: (context, state) => const RoundingSettingsPage(),
+      ),
+    ],
   );
 });
