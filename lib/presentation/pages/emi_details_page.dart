@@ -1,9 +1,14 @@
+// ignore_for_file: unused_local_variable
+
 import 'package:collection/collection.dart';
+import 'package:emi_manager/data/models/emi_model.dart';
 import 'package:emi_manager/logic/currency_provider.dart';
 import 'package:emi_manager/logic/emis_provider.dart';
 import 'package:emi_manager/logic/transaction_provider.dart';
+import 'package:emi_manager/logic/rounding_provider.dart';
 import 'package:emi_manager/presentation/constants.dart';
 import 'package:emi_manager/presentation/pages/new_transaction_page.dart';
+import 'package:emi_manager/utils/global_formatter.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -49,8 +54,18 @@ class _EmiDetailsPageState extends ConsumerState<EmiDetailsPage> {
 
     final DateTime startDate = emi.startDate;
     final DateTime? endDate = emi.endDate;
-    final String tenure = _calculateTenure(l10n, startDate, endDate);
-    final int tenureInYears = int.parse(tenure.split(' ')[0]);
+
+    // Get the exact tenure values from the EMI object
+    final String tenure = _calculateTenure(l10n, emi);
+
+    // Correctly parse the tenure for years
+    final int tenureInYears;
+    if (emi.selectedYears != null) {
+      tenureInYears = emi.selectedYears!.toInt();
+    } else {
+      final parts = tenure.split(' ');
+      tenureInYears = int.parse(parts[0]);
+    }
 
     final List<AmortizationEntry> schedule = _generateAmortizationSchedule(
       tenureYears: tenureInYears,
@@ -67,6 +82,8 @@ class _EmiDetailsPageState extends ConsumerState<EmiDetailsPage> {
       tenureInYears,
       (index) => startDate.year + index,
     );
+
+    final settings = ref.watch(roundingProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -148,7 +165,7 @@ class _EmiDetailsPageState extends ConsumerState<EmiDetailsPage> {
               _buildEmiInfoSection(context, ref, emi, l10n, interestAmount,
                   principalAmount, totalAmount, tenure),
               const SizedBox(height: 24),
-              _buildPieChart(interestAmount, principalAmount, totalAmount),
+              _buildPieChart(ref, interestAmount, principalAmount, totalAmount),
               Center(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -230,7 +247,7 @@ class _EmiDetailsPageState extends ConsumerState<EmiDetailsPage> {
                   style: const TextStyle(color: Colors.grey),
                 ),
                 trailing: Text(
-                  "${isCredit ? '+' : '-'}₹${transaction.amount.toStringAsFixed(2)}",
+                  "${isCredit ? '+' : '-'}₹${GlobalFormatter.formatNumber(ref, transaction.amount)}",
                   style: TextStyle(
                       fontSize: 16.0,
                       color: amountColor,
@@ -267,16 +284,16 @@ class _EmiDetailsPageState extends ConsumerState<EmiDetailsPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildInfoRow(ref, l10n.emi,
-            '$currencySymbol${emi.monthlyEmi?.toStringAsFixed(2) ?? 'N/A'}',
+            '$currencySymbol${emi.monthlyEmi != null ? GlobalFormatter.formatNumber(ref, emi.monthlyEmi!) : 'N/A'}',
             isBold: true, fontSize: 20),
         const Divider(thickness: 1, color: Colors.grey),
         _buildInfoRow(ref, l10n.interestAmount,
-            '$currencySymbol${interestAmount.toStringAsFixed(2)}'),
+            '$currencySymbol${GlobalFormatter.formatNumber(ref, interestAmount)}'),
         _buildInfoRow(ref, l10n.totalAmount,
-            '$currencySymbol${totalAmount.toStringAsFixed(2)}'),
+            '$currencySymbol${GlobalFormatter.formatNumber(ref, totalAmount)}'),
         const SizedBox(height: 16),
         _buildInfoRow(ref, l10n.loanAmount,
-            '$currencySymbol${principalAmount.toStringAsFixed(2)}'),
+            '$currencySymbol${GlobalFormatter.formatNumber(ref, principalAmount)}'),
         _buildInfoRow(ref, l10n.tenure, tenure),
         _buildInfoRow(ref, l10n.tenure, tenure),
       ],
@@ -309,8 +326,16 @@ class _EmiDetailsPageState extends ConsumerState<EmiDetailsPage> {
     );
   }
 
-  Widget _buildPieChart(
-      double interestAmount, double principalAmount, double totalAmount) {
+  Widget _buildPieChart(WidgetRef ref, double interestAmount,
+      double principalAmount, double totalAmount) {
+    final interestPercent = totalAmount > 0
+        ? GlobalFormatter.roundNumber(ref, (interestAmount / totalAmount * 100))
+        : 0.0;
+    final principalPercent = totalAmount > 0
+        ? GlobalFormatter.roundNumber(
+            ref, (principalAmount / totalAmount * 100))
+        : 0.0;
+
     return SizedBox(
       width: double.infinity,
       height: 200,
@@ -320,8 +345,7 @@ class _EmiDetailsPageState extends ConsumerState<EmiDetailsPage> {
             PieChartSectionData(
               color: Colors.blue,
               value: interestAmount,
-              title:
-                  '${(interestAmount / totalAmount * 100).toStringAsFixed(1)}%',
+              title: '$interestPercent%',
               radius: 100,
               titleStyle: const TextStyle(
                 fontSize: 18,
@@ -332,8 +356,7 @@ class _EmiDetailsPageState extends ConsumerState<EmiDetailsPage> {
             PieChartSectionData(
               color: Colors.green,
               value: principalAmount,
-              title:
-                  '${(principalAmount / totalAmount * 100).toStringAsFixed(1)}%',
+              title: '$principalPercent%',
               radius: 100,
               titleStyle: const TextStyle(
                 fontSize: 18,
@@ -363,24 +386,26 @@ class _EmiDetailsPageState extends ConsumerState<EmiDetailsPage> {
     double monthlyInterestRate = interestAmount / (12 * 100);
     int totalMonths = tenureYears * 12;
 
-    // Calculate monthly EMI
-    double monthlyEmi = (principalAmount *
-            monthlyInterestRate *
-            pow(1 + monthlyInterestRate, totalMonths)) /
-        (pow(1 + monthlyInterestRate, totalMonths) - 1);
+    double monthlyEmi = GlobalFormatter.roundNumber(
+        ref,
+        (principalAmount *
+                monthlyInterestRate *
+                pow(1 + monthlyInterestRate, totalMonths)) /
+            (pow(1 + monthlyInterestRate, totalMonths) - 1));
 
     double remainingPrincipal = principalAmount;
 
     for (int month = 0; month < totalMonths; month++) {
-      double monthlyInterest = remainingPrincipal * monthlyInterestRate;
-      double monthlyPrincipal = monthlyEmi - monthlyInterest;
-      remainingPrincipal -= monthlyPrincipal;
+      double monthlyInterest = GlobalFormatter.roundNumber(
+          ref, remainingPrincipal * monthlyInterestRate);
+      double monthlyPrincipal =
+          GlobalFormatter.roundNumber(ref, monthlyEmi - monthlyInterest);
+      remainingPrincipal = GlobalFormatter.roundNumber(
+          ref, remainingPrincipal - monthlyPrincipal);
 
-      // Ensure payment starts from the exact month and year of the start date
       DateTime currentMonth =
           DateTime(paymentDate.year, paymentDate.month + month);
 
-      // Add amortization entry for each month from startDate onwards
       schedule.add(AmortizationEntry(
         paymentDate: currentMonth,
         principal: monthlyPrincipal,
@@ -399,8 +424,8 @@ class _EmiDetailsPageState extends ConsumerState<EmiDetailsPage> {
     final groupByYear =
         groupBy(schedule, (AmortizationEntry entry) => entry.year);
     return groupByYear.values
-        .map((entries) =>
-            entries.fold(0.0, (prev, entry) => prev + entry.principal))
+        .map((entries) => GlobalFormatter.roundNumber(
+            ref, entries.fold(0.0, (prev, entry) => prev + entry.principal)))
         .toList();
   }
 
@@ -408,8 +433,8 @@ class _EmiDetailsPageState extends ConsumerState<EmiDetailsPage> {
     final groupByYear =
         groupBy(schedule, (AmortizationEntry entry) => entry.year);
     return groupByYear.values
-        .map((entries) =>
-            entries.fold(0.0, (prev, entry) => prev + entry.interest))
+        .map((entries) => GlobalFormatter.roundNumber(
+            ref, entries.fold(0.0, (prev, entry) => prev + entry.interest)))
         .toList();
   }
 
@@ -417,17 +442,32 @@ class _EmiDetailsPageState extends ConsumerState<EmiDetailsPage> {
     final groupByYear =
         groupBy(schedule, (AmortizationEntry entry) => entry.year);
     return groupByYear.values
-        .map((entries) =>
-            entries.fold(0.0, (prev, entry) => prev + entry.balance))
+        .map((entries) => GlobalFormatter.roundNumber(
+            ref,
+            entries.fold(0.0, (prev, entry) => prev + entry.balance) /
+                entries.length))
         .toList();
   }
 
-  String _calculateTenure(
-      AppLocalizations l10n, DateTime startDate, DateTime? endDate) {
-    if (endDate == null) return 'Unknown';
+  String _calculateTenure(AppLocalizations l10n, Emi emi) {
+    // Check if we have the originally selected values
+    if (emi.selectedYears != null && emi.selectedMonths != null) {
+      final int years = emi.selectedYears!.toInt();
+      final int months = emi.selectedMonths!.toInt();
+      return '$years ${l10n.years} $months ${l10n.months}';
+    }
 
-    final int years = endDate.year - startDate.year;
-    final int months = endDate.month - startDate.month;
+    // Fallback to calculation from dates if no selected values are stored
+    if (emi.endDate == null) return 'Unknown';
+
+    final int years = emi.endDate!.year - emi.startDate.year;
+    final int months = emi.endDate!.month - emi.startDate.month;
+
+    // Adjust for negative months (if end month is earlier in the year than start month)
+    if (months < 0) {
+      return '${years - 1} ${l10n.years} ${months + 12} ${l10n.months}';
+    }
+
     return '$years ${l10n.years} $months ${l10n.months}';
   }
 }

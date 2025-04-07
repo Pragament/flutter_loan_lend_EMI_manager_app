@@ -111,21 +111,46 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
 
   void _saveEmi() {
     final startDate = DateTime.parse(startDateC.text);
-    final totalMonths = (years * 12 + months).toInt();
-    final endDate =
-        startDate.add(Duration(days: (totalMonths * 30))); // Approximation
 
-    // EMI Calculation using the formula
-    final monthlyInterestRate = interestRate / 12 / 100;
-    final powTerm = pow((1 + monthlyInterestRate), totalMonths);
-    final numerator = principalAmount * monthlyInterestRate * powTerm;
-    final denominator = powTerm - 1;
-    final monthlyEmi = numerator / denominator;
-    final totalEmi = monthlyEmi * totalMonths;
+    // Store exact user input for total months (important for consistency)
+    final int yearsInt = years.toInt();
+    final int monthsInt = months.toInt();
+    final int totalMonths = (yearsInt * 12 + monthsInt);
+
+    // Calculate end date using the exact number of months
+    final endDate = DateTime(
+      startDate.year + yearsInt,
+      startDate.month + monthsInt,
+      startDate.day,
+    );
+
+    // Precise EMI calculation with exact formulas
+    double monthlyEmi;
+    double totalEmi;
+
+    if (interestRate <= 0 || totalMonths <= 0) {
+      // Handle 0% interest case
+      monthlyEmi = totalMonths > 0 ? principalAmount / totalMonths : 0;
+      totalEmi = principalAmount;
+    } else {
+      // Use exact decimal conversion with precise division
+      final double monthlyInterestRate =
+          interestRate / 1200; // Divide by 12 and 100
+
+      // Calculate EMI using standard formula with high precision
+      final powFactor = pow(1 + monthlyInterestRate, totalMonths);
+      monthlyEmi =
+          principalAmount * monthlyInterestRate * powFactor / (powFactor - 1);
+
+      // Use fixed precision for financial calculations
+      monthlyEmi = double.parse(monthlyEmi.toStringAsFixed(2));
+
+      // Calculate total amount based on precise monthly EMI
+      totalEmi = monthlyEmi * totalMonths;
+    }
 
     final emi = Emi(
-      id: emiId ??
-          const Uuid().v4(), // Use provided emiId or generate a new one
+      id: emiId ?? const Uuid().v4(),
       title: titleC.text,
       principalAmount: principalAmount,
       interestRate: interestRate,
@@ -134,6 +159,7 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
       contactPersonName: contactPersonNameC.text,
       contactPersonPhone: contactPersonPhoneC.text,
       contactPersonEmail: contactPersonEmailC.text,
+      // Store precise calculation results
       monthlyEmi: monthlyEmi,
       totalEmi: totalEmi,
       emiType: emiType,
@@ -148,6 +174,9 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
       moratoriumType: '',
       paid: null,
       tags: tags,
+      // Store exact user input values for consistency
+      selectedYears: years,
+      selectedMonths: months,
     );
 
     if (emiId != null) {
@@ -418,7 +447,7 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
                           startDateC.text =
                               pickedDate!.toLocal().toString().split(' ')[0];
                         });
-                                            },
+                      },
                       child: IgnorePointer(
                         child: TextFormField(
                           controller: startDateC,
