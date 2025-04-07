@@ -148,6 +148,8 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
       moratoriumType: '',
       paid: null,
       tags: tags,
+      selectedYears: years,
+      selectedMonths: months,
     );
 
     if (emiId != null) {
@@ -418,7 +420,7 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
                           startDateC.text =
                               pickedDate!.toLocal().toString().split(' ')[0];
                         });
-                                            },
+                      },
                       child: IgnorePointer(
                         child: TextFormField(
                           controller: startDateC,

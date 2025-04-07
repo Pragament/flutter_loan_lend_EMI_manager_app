@@ -1,4 +1,7 @@
+// ignore_for_file: unused_local_variable
+
 import 'package:collection/collection.dart';
+import 'package:emi_manager/data/models/emi_model.dart';
 import 'package:emi_manager/logic/currency_provider.dart';
 import 'package:emi_manager/logic/emis_provider.dart';
 import 'package:emi_manager/logic/transaction_provider.dart';
@@ -51,8 +54,18 @@ class _EmiDetailsPageState extends ConsumerState<EmiDetailsPage> {
 
     final DateTime startDate = emi.startDate;
     final DateTime? endDate = emi.endDate;
-    final String tenure = _calculateTenure(l10n, startDate, endDate);
-    final int tenureInYears = int.parse(tenure.split(' ')[0]);
+
+    // Get the exact tenure values from the EMI object
+    final String tenure = _calculateTenure(l10n, emi);
+
+    // Correctly parse the tenure for years
+    final int tenureInYears;
+    if (emi.selectedYears != null) {
+      tenureInYears = emi.selectedYears!.toInt();
+    } else {
+      final parts = tenure.split(' ');
+      tenureInYears = int.parse(parts[0]);
+    }
 
     final List<AmortizationEntry> schedule = _generateAmortizationSchedule(
       tenureYears: tenureInYears,
@@ -313,13 +326,14 @@ class _EmiDetailsPageState extends ConsumerState<EmiDetailsPage> {
     );
   }
 
-  Widget _buildPieChart(
-      WidgetRef ref, double interestAmount, double principalAmount, double totalAmount) {
+  Widget _buildPieChart(WidgetRef ref, double interestAmount,
+      double principalAmount, double totalAmount) {
     final interestPercent = totalAmount > 0
         ? GlobalFormatter.roundNumber(ref, (interestAmount / totalAmount * 100))
         : 0.0;
     final principalPercent = totalAmount > 0
-        ? GlobalFormatter.roundNumber(ref, (principalAmount / totalAmount * 100))
+        ? GlobalFormatter.roundNumber(
+            ref, (principalAmount / totalAmount * 100))
         : 0.0;
 
     return SizedBox(
@@ -384,8 +398,8 @@ class _EmiDetailsPageState extends ConsumerState<EmiDetailsPage> {
     for (int month = 0; month < totalMonths; month++) {
       double monthlyInterest = GlobalFormatter.roundNumber(
           ref, remainingPrincipal * monthlyInterestRate);
-      double monthlyPrincipal = GlobalFormatter.roundNumber(
-          ref, monthlyEmi - monthlyInterest);
+      double monthlyPrincipal =
+          GlobalFormatter.roundNumber(ref, monthlyEmi - monthlyInterest);
       remainingPrincipal = GlobalFormatter.roundNumber(
           ref, remainingPrincipal - monthlyPrincipal);
 
@@ -429,16 +443,31 @@ class _EmiDetailsPageState extends ConsumerState<EmiDetailsPage> {
         groupBy(schedule, (AmortizationEntry entry) => entry.year);
     return groupByYear.values
         .map((entries) => GlobalFormatter.roundNumber(
-            ref, entries.fold(0.0, (prev, entry) => prev + entry.balance) / entries.length))
+            ref,
+            entries.fold(0.0, (prev, entry) => prev + entry.balance) /
+                entries.length))
         .toList();
   }
 
-  String _calculateTenure(
-      AppLocalizations l10n, DateTime startDate, DateTime? endDate) {
-    if (endDate == null) return 'Unknown';
+  String _calculateTenure(AppLocalizations l10n, Emi emi) {
+    // Check if we have the originally selected values
+    if (emi.selectedYears != null && emi.selectedMonths != null) {
+      final int years = emi.selectedYears!.toInt();
+      final int months = emi.selectedMonths!.toInt();
+      return '$years ${l10n.years} $months ${l10n.months}';
+    }
 
-    final int years = endDate.year - startDate.year;
-    final int months = endDate.month - startDate.month;
+    // Fallback to calculation from dates if no selected values are stored
+    if (emi.endDate == null) return 'Unknown';
+
+    final int years = emi.endDate!.year - emi.startDate.year;
+    final int months = emi.endDate!.month - emi.startDate.month;
+
+    // Adjust for negative months (if end month is earlier in the year than start month)
+    if (months < 0) {
+      return '${years - 1} ${l10n.years} ${months + 12} ${l10n.months}';
+    }
+
     return '$years ${l10n.years} $months ${l10n.months}';
   }
 }

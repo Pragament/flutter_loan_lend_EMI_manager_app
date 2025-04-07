@@ -52,6 +52,10 @@ class Emi {
   double? paid;
   @HiveField(23)
   List<Tag> tags;
+  @HiveField(24)
+  double? selectedYears;
+  @HiveField(25)
+  double? selectedMonths;
 
   Emi({
     required this.id,
@@ -77,6 +81,8 @@ class Emi {
     required this.totalEmi,
     required this.paid,
     required this.tags,
+    this.selectedYears,
+    this.selectedMonths,
   }) {
     _calculateEmi();
   }
@@ -124,6 +130,8 @@ class Emi {
     double? totalEmi,
     double? paid,
     List<Tag>? tags,
+    double? selectedYears,
+    double? selectedMonths,
   }) =>
       Emi(
         id: id ?? this.id,
@@ -149,6 +157,8 @@ class Emi {
         totalEmi: totalEmi ?? this.totalEmi,
         paid: paid ?? this.paid,
         tags: tags ?? this.tags,
+        selectedYears: selectedYears ?? this.selectedYears,
+        selectedMonths: selectedMonths ?? this.selectedMonths,
       );
 
   factory Emi.fromMap(Map<String, dynamic> map, String id) => Emi(
@@ -201,5 +211,7 @@ class Emi {
     "totalEmi": totalEmi,
     "paid": paid,
     "tags": tags,
+    "selectedYears": selectedYears,
+    "selectedMonths": selectedMonths,
   };
 }
