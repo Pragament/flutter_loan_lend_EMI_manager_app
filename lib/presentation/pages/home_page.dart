@@ -19,7 +19,7 @@ import 'package:emi_manager/presentation/widgets/home_bar_graph.dart';
 import 'package:emi_manager/presentation/widgets/formatted_amount.dart';
 import 'package:emi_manager/utils/global_formatter.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:emi_manager/presentation/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_chart/fl_chart.dart'; // For charting widgets

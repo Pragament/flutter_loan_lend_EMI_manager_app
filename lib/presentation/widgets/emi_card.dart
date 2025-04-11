@@ -6,7 +6,7 @@ import 'package:emi_manager/presentation/widgets/formatted_amount.dart';
 import 'package:emi_manager/utils/global_formatter.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:emi_manager/presentation/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
