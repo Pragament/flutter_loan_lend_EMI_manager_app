@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart'; // Import Riverpod for state management
-import 'package:flutter_gen/gen_l10n/app_localizations.dart'; // Import localization
+import 'package:emi_manager/presentation/l10n/app_localizations.dart'; // Import localization
 
 void completeOnboarding(BuildContext context) {
   var prefsBox = Hive.box('preferences');
