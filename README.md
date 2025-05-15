@@ -79,7 +79,12 @@ Contributions are welcome! Please fork the repository and submit a pull request.
 ---
 
 ## Current App screenshots
-![image](https://github.com/user-attachments/assets/3d01ab75-a65b-436d-8239-4f05da7b9df3)
-![image](https://github.com/user-attachments/assets/bb3e5da7-88ec-4f14-b5e9-afba5aa15330)
-![image](https://github.com/user-attachments/assets/9f7d7541-aa3b-4ac4-9ccb-b4671a571492)
-![image](https://github.com/user-attachments/assets/aa824bcc-516f-4c7c-a42b-6266098602a4)
+
+<div style="display: flex; flex-wrap: wrap; gap: 10px;">
+  <img src="https://github.com/user-attachments/assets/3d01ab75-a65b-436d-8239-4f05da7b9df3" alt="Screenshot 1" width="200">
+  <img src="https://github.com/user-attachments/assets/bb3e5da7-88ec-4f14-b5e9-afba5aa15330" alt="Screenshot 2" width="200">
+  <img src="https://github.com/user-attachments/assets/9f7d7541-aa3b-4ac4-9ccb-b4671a571492" alt="Screenshot 3" width="200">
+  <img src="https://github.com/user-attachments/assets/aa824bcc-516f-4c7c-a42b-6266098602a4" alt="Screenshot 4" width="200">
+</div>
+
+---
