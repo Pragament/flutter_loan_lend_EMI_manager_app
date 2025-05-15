@@ -88,3 +88,68 @@ Contributions are welcome! Please fork the repository and submit a pull request.
 </div>
 
 ---
+
+## Code Flow
+
+This section explains the structure and flow of the Flutter app to help new contributors understand the codebase.
+
+### 1. **Entry Point**
+- The app starts from the `main()` function in `lib/main.dart`.
+- Hive is initialized for local storage, and adapters for models like `Emi`, `Tag`, and `Transaction` are registered.
+- The `MainApp` widget is launched with a `ProviderScope` to enable state management using Riverpod.
+
+### 2. **Splash Screen**
+- The `SplashScreen` widget is displayed first.
+- It shows a Lottie animation (`assets/animations/coin_stack.json`) and navigates to the main app content after a 3-second delay.
+
+### 3. **Main App Content**
+- The `MainAppContent` widget is the core of the app.
+- It uses `MaterialApp.router` for navigation and integrates Riverpod for state management.
+- Localization is handled using `AppLocalizations` with support for English, Hindi, and Telugu.
+
+### 4. **Routing**
+- The app's navigation is managed by the `routerProvider` in `lib/presentation/router/router.dart`.
+- Define routes and their corresponding screens in the router configuration.
+
+### 5. **State Management**
+- Riverpod is used for state management.
+- Example: `localeNotifierProvider` is used to manage the app's locale.
+
+### 6. **Data Models**
+- Data models like `Emi`, `Tag`, and `Transaction` are defined in `lib/data/models/`.
+- These models are registered with Hive for local storage.
+
+### 7. **Localization**
+- Localization files are stored in `lib/presentation/l10n/`.
+- Add new translations to support additional languages.
+
+### 8. **Themes**
+- Light and dark themes are defined using `ThemeData` and `_colorScheme` in `lib/main.dart`.
+
+### 9. **Showcase View**
+- The `ShowCaseWidget` is used to provide an interactive onboarding experience for first-time users.
+
+### 10. **Animations**
+- Lottie animations are used to enhance the user experience.
+- Animation files are stored in the `assets/animations/` directory.
+
+---
+
+### Suggested Workflow for New Contributors
+
+1. **Understand the App Flow**:
+   - Start by reviewing `lib/main.dart` to understand the app's entry point and initialization.
+
+2. **Explore Features**:
+   - Check the widgets and screens in `lib/presentation/` to understand the UI components.
+
+3. **Review State Management**:
+   - Look into Riverpod providers in `lib/logic/` to see how state is managed.
+
+4. **Work on Localization**:
+   - Add or update translations in `lib/presentation/l10n/`.
+
+5. **Test Your Changes**:
+   - Use `flutter run` to test changes locally.
+
+---
