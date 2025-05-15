@@ -14,6 +14,7 @@ import 'package:emi_manager/presentation/constants.dart';
 import 'package:emi_manager/presentation/pages/home/logic/home_state_provider.dart';
 import 'package:emi_manager/presentation/pages/home/widgets/tags_strip.dart';
 import 'package:emi_manager/presentation/pages/new_emi_page.dart';
+import 'package:emi_manager/presentation/pages/new_transaction_page.dart';
 import 'package:emi_manager/presentation/router/routes.dart';
 import 'package:emi_manager/presentation/widgets/home_bar_graph.dart';
 import 'package:emi_manager/presentation/widgets/formatted_amount.dart';
@@ -697,12 +698,13 @@ class HomePageState extends ConsumerState<HomePage> {
                 description: "Add New Lend from Here",
                 targetBorderRadius: BorderRadius.circular(35),
                 child: FloatingActionButton.extended(
-                  onPressed: () {
-                    Navigator.of(context).push(
+                  onPressed: () async {
+                    await Navigator.of(context).push(
                       MaterialPageRoute(
                         builder: (context) => const NewEmiPage(emiType: 'lend'),
                       ),
-                    ); // Use Navigator instead of GoRouter
+                    );
+                    _triggerComparisonLottie();
                   },
                   heroTag: 'newLendBtn',
                   backgroundColor: lendColor(context, false),
@@ -714,18 +716,69 @@ class HomePageState extends ConsumerState<HomePage> {
                 key: loanHelpKey,
                 description: "Add new Loan from Here",
                 child: FloatingActionButton.extended(
-                  onPressed: () {
-                    Navigator.of(context).push(
+                  onPressed: () async {
+                    await Navigator.of(context).push(
                       MaterialPageRoute(
                         builder: (context) => const NewEmiPage(emiType: 'loan'),
                       ),
-                    ); // Use Navigator instead of GoRouter
+                    );
+                    _triggerComparisonLottie();
                   },
                   heroTag: 'newLoanBtn',
                   backgroundColor: loanColor(context, false),
                   label: Text(l10n.loan),
                   icon: const Icon(Icons.remove),
                 ),
+              ),
+              FloatingActionButton(
+                heroTag: 'newTransactionBtn',
+                onPressed: () {
+                  // Show dialog to select an EMI first
+                  showDialog(
+                    context: context,
+                    builder: (context) {
+                      return AlertDialog(
+                        title: const Text('Select EMI'),
+                        content: SizedBox(
+                          width: double.maxFinite,
+                          child: ListView.builder(
+                            shrinkWrap: true,
+                            itemCount: allEmis.length,
+                            itemBuilder: (context, index) {
+                              final emi = allEmis[index];
+                              return ListTile(
+                                title: Text(emi.title),
+                                onTap: () {
+                                  Navigator.pop(context); // Close dialog
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => NewTransactionPage(
+                                        type: emi.emiType == 'lend' ? "CR" : "DR",
+                                        emiId: emi.id,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              );
+                            },
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                },
+                backgroundColor: Colors.green,
+                child: const Icon(Icons.add),
+              ),
+              FloatingActionButton.extended(
+                onPressed: () {
+                  _triggerComparisonLottie();
+                  exportToCSV(context, allEmis);
+                },
+                backgroundColor: Colors.green,
+                label: Text(l10n.share),
+                icon: const Icon(Icons.share),
               ),
             ],
           ),
@@ -872,6 +925,7 @@ class HomePageState extends ConsumerState<HomePage> {
                         entries: _groupAmortizationEntries(allEmis),
                         startDate: DateTime.now(),
                         tenureInYears: _calculateTenure(allEmis),
+                        emiId: allEmis[0].id,  // Add the EMI ID
                       ),
                     ),
                   ),
@@ -951,56 +1005,20 @@ class HomePageState extends ConsumerState<HomePage> {
               ),
           ],
         ),
-        floatingActionButton: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Showcase(
-              key: lendHelpKey,
-              description: "Add New Lend from Here",
-              child: FloatingActionButton.extended(
-                onPressed: () async {
-                  await Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => const NewEmiPage(emiType: 'lend'),
-                    ),
-                  );
-                  _triggerComparisonLottie(); // Trigger scales balancing animation
-                },
-                heroTag: 'newLendBtn',
-                backgroundColor: lendColor(context, false),
-                label: Text(l10n.lend),
-                icon: const Icon(Icons.add),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const NewTransactionPage(
+                  type: "CR",
+                  emiId: "default_emi_id", // You'll need to select an EMI ID
+                ),
               ),
-            ),
-            Showcase(
-              key: loanHelpKey,
-              description: "Add new Loan from Here",
-              child: FloatingActionButton.extended(
-                onPressed: () async {
-                  await Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => const NewEmiPage(emiType: 'loan'),
-                    ),
-                  );
-                  _triggerComparisonLottie(); // Trigger scales balancing animation
-                },
-                heroTag: 'newLoanBtn',
-                backgroundColor: loanColor(context, false),
-                label: Text(l10n.loan),
-                icon: const Icon(Icons.remove),
-              ),
-            ),
-            FloatingActionButton.extended(
-              onPressed: () {
-                _triggerComparisonLottie(); // Trigger comparison animation
-                exportToCSV(context, allEmis);
-              },
-              backgroundColor: Colors.green,
-              label: Text(l10n.share),
-              icon: const Icon(Icons.share),
-            ),
-          ],
+            );
+          },
+          backgroundColor: Colors.green,
+          child: const Icon(Icons.add),
         ),
       ),
     );

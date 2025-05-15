@@ -1,37 +1,74 @@
 import 'package:flutter/material.dart';
+import '../../data/models/transaction_model.dart';
+import 'package:intl/intl.dart';
 
 class AmortizationScheduleTable extends StatefulWidget {
   final List<AmortizationEntry> schedule;
   final DateTime startDate;
   final int tenureInYears;
+  final List<Transaction> transactions;
 
   const AmortizationScheduleTable({
     super.key,
     required this.schedule,
     required this.startDate,
     required this.tenureInYears,
+    required this.transactions,
   });
 
   @override
-  // ignore: library_private_types_in_public_api
-  _AmortizationScheduleTableState createState() =>
-      _AmortizationScheduleTableState();
+  _AmortizationScheduleTableState createState() => _AmortizationScheduleTableState();
 }
 
 class _AmortizationScheduleTableState extends State<AmortizationScheduleTable> {
   final Map<int, List<AmortizationEntry>> _groupedByYear = {};
   int? _expandedYear;
+  final currencyFormat = NumberFormat.currency(symbol: '₹', decimalDigits: 2);
 
   @override
   void initState() {
     super.initState();
     _groupData();
+    _updatePrincipalWithTransactions();
   }
 
   void _groupData() {
     for (var entry in widget.schedule) {
-      // Group amortization data by year
       _groupedByYear.putIfAbsent(entry.year, () => []).add(entry);
+    }
+  }
+
+  void _updatePrincipalWithTransactions() {
+    // Start with original principal values
+    double runningBalance = widget.schedule.first.principal;
+    
+    // Initialize adjusted principal with original principal
+    for (var entry in widget.schedule) {
+      entry.adjustedPrincipal = entry.principal;
+    }
+
+    // Sort transactions by date
+    final sortedTransactions = [...widget.transactions]..sort((a, b) => a.datetime.compareTo(b.datetime));
+
+    // For each entry, calculate the updated principal and interest considering all previous transactions
+    for (var entry in widget.schedule) {
+      // Apply any transactions that occurred before this payment
+      for (var transaction in sortedTransactions) {
+        if (transaction.datetime.isBefore(entry.paymentDate)) {
+          if (transaction.type == 'CR') {
+            runningBalance -= transaction.amount; // Credit reduces principal
+          } else {
+            runningBalance += transaction.amount; // Debit increases principal
+          }
+        }
+      }
+      entry.adjustedPrincipal = runningBalance;
+      
+      // Calculate adjusted interest based on the effective interest rate
+      double effectiveRate = entry.interest / entry.principal; // Get original interest rate
+      entry.adjustedInterest = entry.adjustedPrincipal * effectiveRate; // Apply rate to new principal
+      
+      runningBalance -= entry.principal; // Reduce by monthly principal payment
     }
   }
 
@@ -41,135 +78,230 @@ class _AmortizationScheduleTableState extends State<AmortizationScheduleTable> {
       return const Center(child: Text('No data available.'));
     }
 
-    // Generate years dynamically based on tenure and startDate
-    List<int> years = List.generate(widget.tenureInYears, (index) {
-      return widget.startDate.year + index;
-    });
+    final screenWidth = MediaQuery.of(context).size.width;
 
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: DataTable(
-        columns: const [
-          DataColumn(label: Text('Year')),
-          DataColumn(label: Text('Principal')),
-          DataColumn(label: Text('Interest')),
-          DataColumn(label: Text('Total Payment')),
-          DataColumn(label: Text('Balance')),
-        ],
-        rows: _buildYearlyEntries(years), // Build rows dynamically
+    return Scrollbar(
+      thumbVisibility: true,
+      thickness: 6.0,
+      radius: const Radius.circular(10),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: SizedBox(
+          width: screenWidth * 1.5,
+          child: DataTable(
+            columnSpacing: 15,
+            horizontalMargin: 8,
+            dataRowHeight: 48,
+            headingRowHeight: 48,
+            columns: [
+              DataColumn(
+                label: Container(
+                  width: screenWidth * 0.2,
+                  alignment: Alignment.centerLeft,
+                  child: const Text(
+                    'Year/Month',
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+              DataColumn(
+                label: Container(
+                  width: screenWidth * 0.25,
+                  alignment: Alignment.centerRight,
+                  child: const Text(
+                    'Principal (₹)',
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+              DataColumn(
+                label: Container(
+                  width: screenWidth * 0.25,
+                  alignment: Alignment.centerRight,
+                  child: const Text(
+                    'Updated\nPrincipal (₹)',
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+              DataColumn(
+                label: Container(
+                  width: screenWidth * 0.25,
+                  alignment: Alignment.centerRight,
+                  child: const Text(
+                    'Interest (₹)',
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+              DataColumn(
+                label: Container(
+                  width: screenWidth * 0.25,
+                  alignment: Alignment.centerRight,
+                  child: const Text(
+                    'Updated\nInterest (₹)',
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
+            ],
+            rows: _buildYearlyEntries(),
+          ),
+        ),
       ),
     );
   }
 
-  // Build yearly entries for the table, and handle expansion for months
-  List<DataRow> _buildYearlyEntries(List<int> years) {
+  List<DataRow> _buildYearlyEntries() {
     List<DataRow> rows = [];
 
-    for (var year in years) {
+    for (var year in _groupedByYear.keys) {
       final yearlyData = _groupedByYear[year] ?? [];
-      final totalPrincipal =
-          yearlyData.fold(0.0, (sum, entry) => sum + entry.principal);
-      final totalInterest =
-          yearlyData.fold(0.0, (sum, entry) => sum + entry.interest);
-      final totalPayment =
-          yearlyData.fold(0.0, (sum, entry) => sum + entry.totalPayment);
-      final totalBalance =
-          yearlyData.isNotEmpty ? yearlyData.last.balance : 0.0;
+      final totalPrincipal = yearlyData.fold(0.0, (sum, entry) => sum + entry.principal);
+      final totalAdjustedPrincipal = yearlyData.fold(0.0, (sum, entry) => sum + entry.adjustedPrincipal);
+      final totalInterest = yearlyData.fold(0.0, (sum, entry) => sum + entry.interest);
+      final totalAdjustedInterest = yearlyData.fold(0.0, (sum, entry) => sum + (entry.adjustedInterest ?? entry.interest));
 
-      // Add year row
       rows.add(DataRow(
         cells: [
           DataCell(
             Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Expanded(child: Text('$year')),
+                Text(
+                  '$year',
+                  style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                ),
                 IconButton(
+                  padding: const EdgeInsets.all(4),
+                  constraints: const BoxConstraints(),
                   icon: Icon(
-                    _expandedYear == year
-                        ? Icons.expand_less
-                        : Icons.expand_more,
+                    _expandedYear == year ? Icons.expand_less : Icons.expand_more,
                     color: Colors.blue,
+                    size: 20,
                   ),
                   onPressed: () {
                     setState(() {
-                      _expandedYear = _expandedYear == year
-                          ? null
-                          : year; // Toggle expanded state
+                      _expandedYear = _expandedYear == year ? null : year;
                     });
                   },
                 ),
               ],
             ),
           ),
-          DataCell(Text(totalPrincipal.toStringAsFixed(2))),
-          DataCell(Text(totalInterest.toStringAsFixed(2))),
-          DataCell(Text(totalPayment.toStringAsFixed(2))),
-          DataCell(Text(totalBalance.toStringAsFixed(2))),
+          DataCell(
+            Align(
+              alignment: Alignment.centerRight,
+              child: Text(
+                currencyFormat.format(totalPrincipal),
+                style: const TextStyle(fontSize: 13),
+              ),
+            ),
+          ),
+          DataCell(
+            Align(
+              alignment: Alignment.centerRight,
+              child: Text(
+                currencyFormat.format(totalAdjustedPrincipal),
+                style: const TextStyle(fontSize: 13),
+              ),
+            ),
+          ),
+          DataCell(
+            Align(
+              alignment: Alignment.centerRight,
+              child: Text(
+                currencyFormat.format(totalInterest),
+                style: const TextStyle(fontSize: 13),
+              ),
+            ),
+          ),
+          DataCell(
+            Align(
+              alignment: Alignment.centerRight,
+              child: Text(
+                currencyFormat.format(totalAdjustedInterest),
+                style: const TextStyle(fontSize: 13),
+              ),
+            ),
+          ),
         ],
       ));
 
-      // Add month rows if this year is expanded
       if (_expandedYear == year) {
-        rows.addAll(_buildMonthlyDataRows(yearlyData, year));
+        rows.addAll(_buildMonthlyDataRows(yearlyData));
       }
     }
-
     return rows;
   }
 
-  // Build monthly rows for expanded year
-  List<DataRow> _buildMonthlyDataRows(
-      List<AmortizationEntry> yearlyData, int year) {
+  List<DataRow> _buildMonthlyDataRows(List<AmortizationEntry> yearlyData) {
     List<DataRow> rows = [];
 
-    final startMonth = widget.startDate.month;
-    final startYear = widget.startDate.year;
-
     for (var entry in yearlyData) {
-      // Ensure entries are only shown starting from the start date's month/year
-      if (entry.year > startYear ||
-          (entry.year == startYear && entry.month >= startMonth)) {
-        rows.add(DataRow(
-          cells: [
-            DataCell(
-              Padding(
-                padding: const EdgeInsets.only(left: 32.0), // Indent month rows
-                child: Text(_getMonthName(entry.month)),
+      rows.add(DataRow(
+        cells: [
+          DataCell(
+            Padding(
+              padding: const EdgeInsets.only(left: 16.0),
+              child: Text(
+                _getMonthName(entry.month),
+                style: const TextStyle(fontSize: 13),
               ),
             ),
-            DataCell(Text(entry.principal.toStringAsFixed(2))),
-            DataCell(Text(entry.interest.toStringAsFixed(2))),
-            DataCell(Text(entry.totalPayment.toStringAsFixed(2))),
-            DataCell(Text(entry.balance.toStringAsFixed(2))),
-          ],
-        ));
-      }
+          ),
+          DataCell(
+            Align(
+              alignment: Alignment.centerRight,
+              child: Text(
+                currencyFormat.format(entry.principal),
+                style: const TextStyle(fontSize: 13),
+              ),
+            ),
+          ),
+          DataCell(
+            Align(
+              alignment: Alignment.centerRight,
+              child: Text(
+                currencyFormat.format(entry.adjustedPrincipal),
+                style: const TextStyle(fontSize: 13),
+              ),
+            ),
+          ),
+          DataCell(
+            Align(
+              alignment: Alignment.centerRight,
+              child: Text(
+                currencyFormat.format(entry.interest),
+                style: const TextStyle(fontSize: 13),
+              ),
+            ),
+          ),
+          DataCell(
+            Align(
+              alignment: Alignment.centerRight,
+              child: Text(
+                currencyFormat.format(entry.adjustedInterest ?? entry.interest),
+                style: const TextStyle(fontSize: 13),
+              ),
+            ),
+          ),
+        ],
+      ));
     }
-
     return rows;
   }
 
-  // Utility function to get month name from month number
   String _getMonthName(int month) {
     const months = [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec'
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
     ];
     return months[month - 1];
   }
 }
 
-// Model for amortization entry
 class AmortizationEntry {
   final DateTime paymentDate;
   final double principal;
@@ -178,6 +310,8 @@ class AmortizationEntry {
   final double balance;
   final int year;
   final int month;
+  double adjustedPrincipal;
+  double? adjustedInterest;
 
   AmortizationEntry({
     required this.paymentDate,
@@ -187,5 +321,7 @@ class AmortizationEntry {
     required this.balance,
     required this.year,
     required this.month,
+    this.adjustedPrincipal = 0.0,
+    this.adjustedInterest,
   });
 }

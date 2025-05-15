@@ -208,6 +208,7 @@ class _EmiDetailsPageState extends ConsumerState<EmiDetailsPage> {
                 schedule: schedule,
                 startDate: startDate,
                 tenureInYears: tenureInYears,
+                transactions: transactions,
               ),
               _buildTransactionList(context, transactions),
             ],
