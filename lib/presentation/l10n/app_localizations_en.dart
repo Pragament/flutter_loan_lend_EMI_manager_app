@@ -204,5 +204,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get next => 'next';
 
   @override
-  String get welcome => 'Welcome to the English version of our app. Here you can manage your loans and EMIs efficiently.';
+  String get welcome =>
+      'Welcome to the English version of our app. Here you can manage your loans and EMIs efficiently.';
 }
