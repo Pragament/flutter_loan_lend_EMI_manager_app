@@ -8,7 +8,7 @@ class EulaProvider {
   static const String _lastCheckedKey = 'eula_last_checked';
 
   /// Fetch the latest active EULA from the API for the given language
-  static Future<Map<String, dynamic>?> getActiveEula([String languageCode = 'en']) async {
+  static Future<Map<String, dynamic>?> getActiveEula([String? languageCode]) async {
     String url;
     switch (languageCode) {
       case 'hi':

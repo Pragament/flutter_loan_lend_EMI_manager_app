@@ -67,6 +67,16 @@
   "language": "language",
   "selectLanguage": "selectLanguage",
   "next":"next",
-  "welcome": "Welcome to the English version of our app. Here you can manage your loans and EMIs efficiently."
+  "welcome": "Welcome to the English version of our app. Here you can manage your loans and EMIs efficiently.",
+  "eulaLoadError":"Failed to load EULA.",
+  "eulaRetry":"Retry",
+  "eulaVersion":"Version",
+  "eulaAgree":"I have read the entire terms and conditions",
+  "eulaAccept":"Accept",
+  "eulaDecline":"Decline",
+  "eulaTitle":"End User License Agreement",
+  "eulaDeclined":"EULA Declined",
+  "eulaAlertDialog":"You must accept the EULA to use this app.",
+  "close":"Close"
 
 }

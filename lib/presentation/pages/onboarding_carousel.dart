@@ -23,7 +23,7 @@ class OnboardingScreen extends ConsumerStatefulWidget {
 class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   int currentIndex = 0;
   final PageController _pageController = PageController();
-  Locale? selectedLocale; // Track the selected locale
+  Locale? selectedLocale =const Locale('en'); // Track the selected locale
 
   @override
   Widget build(BuildContext context) {
@@ -224,13 +224,16 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   }
 
   Widget _buildFourthPage() {
+    final langCode = (selectedLocale ?? const Locale('en')).languageCode;
     return EulaPage(
+      languageCode: langCode,
       onAccepted: () async {
-              final activeEula = await EulaProvider.getActiveEula();
-              await EulaProvider.acceptEula(activeEula?['version']);
-              completeOnboarding(context);
-            },
+        final activeEula = await EulaProvider.getActiveEula(langCode);
+        await EulaProvider.acceptEula(activeEula?['version']);
+        completeOnboarding(context);
+      },
       onDeclined: () {
+        final localizations = AppLocalizations.of(context)!;
         showDialog(
           context: context,
           barrierDismissible: false,
@@ -241,16 +244,16 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Icon(Icons.error_outline, color: Colors.redAccent, size: 48),
-                SizedBox(height: 16),
+                const Icon(Icons.error_outline, color: Colors.redAccent, size: 48),
+                const SizedBox(height: 16),
                 Text(
-                  'EULA Declined',
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: Colors.redAccent),
+                  localizations.eulaDeclined,
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: Colors.redAccent),
                   textAlign: TextAlign.center,
                 ),
-                SizedBox(height: 12),
+                const SizedBox(height: 12),
                 Text(
-                  'You must accept the EULA to use this app.',
+                  localizations.eulaAlertDialog,
                   style: TextStyle(fontSize: 16),
                   textAlign: TextAlign.center,
                 ),
@@ -263,12 +266,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   backgroundColor: Colors.redAccent,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                  padding: EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
                 ),
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
-                child: Text('Close'),
+                child:Text(localizations.close),
               ),
             ],
           ),

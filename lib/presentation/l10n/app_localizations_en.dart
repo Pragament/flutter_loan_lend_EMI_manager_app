@@ -227,4 +227,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get eulaTitle => 'End User License Agreement';
+
+  @override
+  String get eulaDeclined => 'EULA Declined';
+
+  @override
+  String get eulaAlertDialog => 'You must accept the EULA to use this app.';
+
+  @override
+  String get close => 'Close';
 }

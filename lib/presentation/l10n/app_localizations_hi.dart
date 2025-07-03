@@ -208,13 +208,17 @@ class AppLocalizationsHi extends AppLocalizations {
       'आप हमारे ऐप के हिंदी संस्करण में हैं। यहाँ आप अपने ऋण और ई.एम.आई को आसानी से प्रबंधित कर सकते हैं।';
 
   @override
-  String get eulaTitle => 'अंतिम उपयोगकर्ता लाइसेंस समझौता (EULA)';
+  String get eulaLoadError => 'EULA लोड करने में विफल.';
+
+  @override
+  String get eulaRetry => 'पुन: प्रयास करें';
 
   @override
   String get eulaVersion => 'संस्करण';
 
   @override
-  String get eulaAgree => 'मैंने अंतिम उपयोगकर्ता लाइसेंस अनुबंध (EULA) पढ़ लिया है और उससे सहमत हूँ।';
+  String get eulaAgree =>
+      'मैंने अंतिम उपयोगकर्ता लाइसेंस अनुबंध (EULA) पढ़ लिया है और उससे सहमत हूँ।';
 
   @override
   String get eulaAccept => 'स्वीकार करना';
@@ -223,8 +227,15 @@ class AppLocalizationsHi extends AppLocalizations {
   String get eulaDecline => 'गिरावट';
 
   @override
-  String get eulaLoadError => 'EULA लोड करने में विफल.';
+  String get eulaTitle => 'अंतिम उपयोगकर्ता लाइसेंस समझौता (EULA)';
 
   @override
-  String get eulaRetry => 'पुन: प्रयास करें';
+  String get eulaDeclined => 'EULA अस्वीकृत';
+
+  @override
+  String get eulaAlertDialog =>
+      'आपको इस ऐप का उपयोग करने के लिए EULA स्वीकार करना होगा।';
+
+  @override
+  String get close => 'बंद करें';
 }

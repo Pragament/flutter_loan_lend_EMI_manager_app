@@ -502,31 +502,31 @@ abstract class AppLocalizations {
   /// **'Failed to load EULA.'**
   String get eulaLoadError;
 
-  /// No description provided for @retry.
+  /// No description provided for @eulaRetry.
   ///
   /// In en, this message translates to:
   /// **'Retry'**
   String get eulaRetry;
 
-  /// No description provided for @version.
+  /// No description provided for @eulaVersion.
   ///
   /// In en, this message translates to:
   /// **'Version'**
   String get eulaVersion;
 
-  /// No description provided for @eulaCheckbox.
+  /// No description provided for @eulaAgree.
   ///
   /// In en, this message translates to:
   /// **'I have read the entire terms and conditions'**
   String get eulaAgree;
 
-  /// No description provided for @accept.
+  /// No description provided for @eulaAccept.
   ///
   /// In en, this message translates to:
   /// **'Accept'**
   String get eulaAccept;
 
-  /// No description provided for @decline.
+  /// No description provided for @eulaDecline.
   ///
   /// In en, this message translates to:
   /// **'Decline'**
@@ -537,6 +537,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'End User License Agreement'**
   String get eulaTitle;
+
+  /// No description provided for @eulaDeclined.
+  ///
+  /// In en, this message translates to:
+  /// **'EULA Declined'**
+  String get eulaDeclined;
+
+  /// No description provided for @eulaAlertDialog.
+  ///
+  /// In en, this message translates to:
+  /// **'You must accept the EULA to use this app.'**
+  String get eulaAlertDialog;
+
+  /// No description provided for @close.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get close;
 }
 
 class _AppLocalizationsDelegate

@@ -228,4 +228,14 @@ class AppLocalizationsTe extends AppLocalizations {
 
   @override
   String get eulaTitle => 'ఎండ్ యూజర్ లైసెన్స్ ఒప్పందం';
+
+  @override
+  String get eulaDeclined => 'EULA తిరస్కరించబడింది';
+
+  @override
+  String get eulaAlertDialog =>
+      'ఈ యాప్‌ను ఉపయోగించడానికి మీరు EULAని అంగీకరించాలి.';
+
+  @override
+  String get close => 'మూసివేయి';
 }
