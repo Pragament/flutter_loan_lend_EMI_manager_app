@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:emi_manager/logic/eula_provider.dart';
+import 'package:emi_manager/presentation/l10n/app_localizations.dart';
 
 class EulaPage extends StatefulWidget {
   final VoidCallback onAccepted;
   final VoidCallback onDeclined;
-  const EulaPage({Key? key, required this.onAccepted, required this.onDeclined}) : super(key: key);
+  final String languageCode;
+  const EulaPage({Key? key, required this.onAccepted, required this.onDeclined, this.languageCode = 'en'}) : super(key: key);
 
   @override
   State<EulaPage> createState() => _EulaPageState();
@@ -30,7 +32,7 @@ class _EulaPageState extends State<EulaPage> {
       _error = false;
     });
     try {
-      final activeEula = await EulaProvider.getActiveEula();
+      final activeEula = await EulaProvider.getActiveEula(widget.languageCode);
       if (activeEula != null) {
         setState(() {
           _eulaText = activeEula['agreement_text'] ?? '';
@@ -59,6 +61,7 @@ class _EulaPageState extends State<EulaPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final localizations = AppLocalizations.of(context)!;
     if (_loading) {
       return Scaffold(
         body: Center(child: CircularProgressIndicator()),
@@ -70,11 +73,11 @@ class _EulaPageState extends State<EulaPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text('Failed to load EULA.'),
+              Text(localizations.eulaLoadError),
               SizedBox(height: 16),
               ElevatedButton(
                 onPressed: _fetchEula,
-                child: Text('Retry'),
+                child: Text(localizations.eulaRetry),
               ),
             ],
           ),
@@ -86,7 +89,7 @@ class _EulaPageState extends State<EulaPage> {
       child: Scaffold(
         appBar: AppBar(
           title: Text(
-            'End User License Agreement',
+            localizations.eulaTitle,
             style: TextStyle(
               fontWeight: FontWeight.bold,
               color: Colors.blueAccent,
@@ -104,7 +107,7 @@ class _EulaPageState extends State<EulaPage> {
                 if (_eulaVersion != null)
                   Padding(
                     padding: const EdgeInsets.only(top: 8.0),
-                    child: Text('Version: $_eulaVersion', style: TextStyle(fontWeight: FontWeight.bold)),
+                    child: Text('${localizations.eulaVersion}: $_eulaVersion', style: TextStyle(fontWeight: FontWeight.bold)),
                   ),
                 SizedBox(height: 8),
                 Expanded(
@@ -162,7 +165,7 @@ class _EulaPageState extends State<EulaPage> {
                           });
                         },
                         child: Text(
-                          'I have read the entire terms and conditions',
+                          localizations.eulaAgree,
                           style: theme.textTheme.bodyMedium,
                         ),
                       ),
@@ -175,11 +178,11 @@ class _EulaPageState extends State<EulaPage> {
                   children: [
                     ElevatedButton(
                       onPressed: _hasRead ? _acceptEula : null,
-                      child: Text('Accept'),
+                      child: Text(localizations.eulaAccept),
                     ),
                     OutlinedButton(
                       onPressed: widget.onDeclined,
-                      child: Text('Decline'),
+                      child: Text(localizations.eulaDecline),
                     ),
                   ],
                 ),

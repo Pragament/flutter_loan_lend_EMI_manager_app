@@ -495,6 +495,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Welcome to the English version of our app. Here you can manage your loans and EMIs efficiently.'**
   String get welcome;
+
+  /// No description provided for @eulaLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load EULA.'**
+  String get eulaLoadError;
+
+  /// No description provided for @retry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get eulaRetry;
+
+  /// No description provided for @version.
+  ///
+  /// In en, this message translates to:
+  /// **'Version'**
+  String get eulaVersion;
+
+  /// No description provided for @eulaCheckbox.
+  ///
+  /// In en, this message translates to:
+  /// **'I have read the entire terms and conditions'**
+  String get eulaAgree;
+
+  /// No description provided for @accept.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept'**
+  String get eulaAccept;
+
+  /// No description provided for @decline.
+  ///
+  /// In en, this message translates to:
+  /// **'Decline'**
+  String get eulaDecline;
+
+  /// No description provided for @eulaTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'End User License Agreement'**
+  String get eulaTitle;
 }
 
 class _AppLocalizationsDelegate

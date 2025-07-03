@@ -207,4 +207,25 @@ class AppLocalizationsTe extends AppLocalizations {
   @override
   String get welcome =>
       'మీరు మా యాప్ యొక్క తెలుగు సంచికలో ఉన్నారు. ఇక్కడ మీరు మీ రుణాలను మరియు ఈ.ఎమ్.ఐలను సులభంగా నిర్వహించవచ్చు.';
+
+  @override
+  String get eulaLoadError => 'EULA లోడ్ చేయడంలో విఫలమైంది.';
+
+  @override
+  String get eulaRetry => 'మళ్లీ ప్రయత్నించండి';
+
+  @override
+  String get eulaVersion => 'వెర్షన్';
+
+  @override
+  String get eulaAgree => 'నేను అన్ని నిబంధనలు మరియు షరతులను చదివాను';
+
+  @override
+  String get eulaAccept => 'అంగీకరించు';
+
+  @override
+  String get eulaDecline => 'నిరాకరించు';
+
+  @override
+  String get eulaTitle => 'ఎండ్ యూజర్ లైసెన్స్ ఒప్పందం';
 }
