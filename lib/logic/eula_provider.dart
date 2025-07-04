@@ -7,6 +7,7 @@ class EulaProvider {
   static const String _acceptedEulaKey = 'accepted_eula';
   static const String _lastCheckedKey = 'eula_last_checked';
 
+
   /// Fetch the latest active EULA from the API for the given language
   static Future<Map<String, dynamic>?> getActiveEula([String? languageCode]) async {
     String url;
@@ -23,6 +24,7 @@ class EulaProvider {
         break;
     }
     final response = await http.get(Uri.parse(url));
+
     if (response.statusCode == 200) {
       try {
         final Map<String, dynamic> json = jsonDecode(response.body);
@@ -33,8 +35,10 @@ class EulaProvider {
         } else if (agreementsRaw is Map) {
           eulas = [agreementsRaw];
         } else {
+
           return null;
         }
+
         final active = eulas.where((e) => e['is_active'] == true).toList();
         if (active.isEmpty) return null;
         active.sort((a, b) => Version.parse(a['version']).compareTo(Version.parse(b['version'])));
@@ -56,8 +60,10 @@ class EulaProvider {
         final acceptedEula = jsonDecode(acceptedEulaJson);
         lastAcceptedVersion = acceptedEula['accepted_eula_version'];
       } catch (_) {}
+
     }else {
       return false;
+
     }
     final lastChecked = prefs.getInt(_lastCheckedKey) ?? 0;
     final now = DateTime.now().millisecondsSinceEpoch;

@@ -112,6 +112,7 @@ class _SplashScreenState extends State<SplashScreen> {
     await Future.delayed(const Duration(seconds: 3), () {});
     bool showEula = await EulaProvider.needsEulaAcceptance();
     if (showEula && !widget.isFirstRun ) {
+
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
