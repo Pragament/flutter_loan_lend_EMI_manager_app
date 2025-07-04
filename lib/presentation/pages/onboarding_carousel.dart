@@ -1,9 +1,11 @@
+import 'package:emi_manager/logic/eula_provider.dart';
 import 'package:emi_manager/logic/locale_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart'; // Import Riverpod for state management
 import 'package:emi_manager/presentation/l10n/app_localizations.dart'; // Import localization
+import 'package:emi_manager/presentation/pages/eula_page.dart';
 
 void completeOnboarding(BuildContext context) {
   var prefsBox = Hive.box('preferences');
@@ -21,7 +23,7 @@ class OnboardingScreen extends ConsumerStatefulWidget {
 class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   int currentIndex = 0;
   final PageController _pageController = PageController();
-  Locale? selectedLocale; // Track the selected locale
+  Locale? selectedLocale =const Locale('en'); // Track the selected locale
 
   @override
   Widget build(BuildContext context) {
@@ -222,19 +224,59 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   }
 
   Widget _buildFourthPage() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const SizedBox(height: 40),
-          ElevatedButton(
-            onPressed: () {
-              completeOnboarding(context);
-            },
-            child: Text(AppLocalizations.of(context)!.completeOnboarding),
+    final langCode = (selectedLocale ?? const Locale('en')).languageCode;
+    return EulaPage(
+      languageCode: langCode,
+      onAccepted: () async {
+        final activeEula = await EulaProvider.getActiveEula(langCode);
+        await EulaProvider.acceptEula(activeEula?['version']);
+        completeOnboarding(context);
+      },
+      onDeclined: () {
+        final localizations = AppLocalizations.of(context)!;
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) => AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const Icon(Icons.error_outline, color: Colors.redAccent, size: 48),
+                const SizedBox(height: 16),
+                Text(
+                  localizations.eulaDeclined,
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: Colors.redAccent),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  localizations.eulaAlertDialog,
+                  style: TextStyle(fontSize: 16),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+            actionsAlignment: MainAxisAlignment.center,
+            actions: [
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.redAccent,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                ),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child:Text(localizations.close),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 

@@ -1,11 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:emi_manager/logic/eula_provider.dart';
+import 'package:emi_manager/presentation/l10n/app_localizations.dart';
+
 
 class EulaPage extends StatefulWidget {
   final VoidCallback onAccepted;
   final VoidCallback onDeclined;
-  const EulaPage({Key? key, required this.onAccepted, required this.onDeclined}) : super(key: key);
+
+  final String languageCode;
+  final bool showAppBar;
+  const EulaPage({Key? key, required this.onAccepted, required this.onDeclined, this.languageCode = 'en', this.showAppBar = true}) : super(key: key);
+
 
   @override
   State<EulaPage> createState() => _EulaPageState();
@@ -30,7 +36,9 @@ class _EulaPageState extends State<EulaPage> {
       _error = false;
     });
     try {
-      final activeEula = await EulaProvider.getActiveEula();
+
+      final activeEula = await EulaProvider.getActiveEula(widget.languageCode);
+
       if (activeEula != null) {
         setState(() {
           _eulaText = activeEula['agreement_text'] ?? '';
@@ -59,6 +67,9 @@ class _EulaPageState extends State<EulaPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+
+    final localizations = AppLocalizations.of(context)!;
+
     if (_loading) {
       return Scaffold(
         body: Center(child: CircularProgressIndicator()),
@@ -70,49 +81,62 @@ class _EulaPageState extends State<EulaPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text('Failed to load EULA.'),
+
+              Text(localizations.eulaLoadError),
               SizedBox(height: 16),
               ElevatedButton(
                 onPressed: _fetchEula,
-                child: Text('Retry'),
+                child: Text(localizations.eulaRetry),
               ),
             ],
           ),
         ),
       );
     }
+    final cardHeight = MediaQuery.of(context).size.height * 0.35;
+    final cardMinHeight = 550.0;
     return WillPopScope(
       onWillPop: () async => false, // Prevent back navigation
       child: Scaffold(
-        appBar: AppBar(
-          title: Text(
-            'End User License Agreement',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: Colors.blueAccent,
-              fontSize: 24,
-            ),
-          ),
-          centerTitle: true,
-          automaticallyImplyLeading: false, // No back button
-        ),
+        appBar: widget.showAppBar
+            ? AppBar(
+                title: Text(
+                  localizations.eulaTitle,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blueAccent,
+                    fontSize: 24,
+                  ),
+                ),
+                centerTitle: true,
+                automaticallyImplyLeading: false, // No back button
+              )
+            : null,
         body: SafeArea(
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
+
+              mainAxisAlignment: MainAxisAlignment.start,
+
               children: [
                 if (_eulaVersion != null)
                   Padding(
                     padding: const EdgeInsets.only(top: 8.0),
-                    child: Text('Version: $_eulaVersion', style: TextStyle(fontWeight: FontWeight.bold)),
+
+                    child: Text('${localizations.eulaVersion}: $_eulaVersion', style: TextStyle(fontWeight: FontWeight.bold)),
                   ),
                 SizedBox(height: 8),
-                Expanded(
+                SizedBox(
+                  height: cardHeight < cardMinHeight ? cardMinHeight : cardHeight,
+
                   child: Card(
                     elevation: 2,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+
                       child: Markdown(
                         data: _eulaText ?? '',
                         styleSheet: MarkdownStyleSheet(
@@ -143,45 +167,20 @@ class _EulaPageState extends State<EulaPage> {
                     ),
                   ),
                 ),
+
+                // The following actions can be placed above the onboarding dots
                 SizedBox(height: 10),
-                Row(
-                  children: [
-                    Checkbox(
-                      value: _hasRead,
-                      onChanged: (val) {
-                        setState(() {
-                          _hasRead = val ?? false;
-                        });
-                      },
-                    ),
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            _hasRead = !_hasRead;
-                          });
-                        },
-                        child: Text(
-                          'I have read the entire terms and conditions',
-                          style: theme.textTheme.bodyMedium,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    ElevatedButton(
-                      onPressed: _hasRead ? _acceptEula : null,
-                      child: Text('Accept'),
-                    ),
-                    OutlinedButton(
-                      onPressed: widget.onDeclined,
-                      child: Text('Decline'),
-                    ),
-                  ],
+                EulaActions(
+                  hasRead: _hasRead,
+                  onHasReadChanged: (val) {
+                    setState(() {
+                      _hasRead = val ?? false;
+                    });
+                  },
+                  onAccept: _hasRead ? _acceptEula : null,
+                  onDecline: widget.onDeclined,
+                  localizations: localizations,
+                  theme: theme,
                 ),
               ],
             ),
@@ -191,3 +190,61 @@ class _EulaPageState extends State<EulaPage> {
     );
   }
 }
+
+class EulaActions extends StatelessWidget {
+  final bool hasRead;
+  final ValueChanged<bool?> onHasReadChanged;
+  final VoidCallback? onAccept;
+  final VoidCallback onDecline;
+  final AppLocalizations localizations;
+  final ThemeData theme;
+  const EulaActions({
+    Key? key,
+    required this.hasRead,
+    required this.onHasReadChanged,
+    required this.onAccept,
+    required this.onDecline,
+    required this.localizations,
+    required this.theme,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Row(
+          children: [
+            Checkbox(
+              value: hasRead,
+              onChanged: onHasReadChanged,
+            ),
+            Expanded(
+              child: GestureDetector(
+                onTap: () => onHasReadChanged(!hasRead),
+                child: Text(
+                  localizations.eulaAgree,
+                  style: theme.textTheme.bodyMedium,
+                ),
+              ),
+            ),
+          ],
+        ),
+        SizedBox(height: 8),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            ElevatedButton(
+              onPressed: onAccept,
+              child: Text(localizations.eulaAccept),
+            ),
+            OutlinedButton(
+              onPressed: onDecline,
+              child: Text(localizations.eulaDecline),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+

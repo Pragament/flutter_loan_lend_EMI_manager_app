@@ -67,5 +67,22 @@
   "manageTags": "ట్యాగ్‌లను నిర్వహించండి",
   "noEmis": "EMIలు లేవు",
   "language": "భాష",
-  "selectLanguage": "భాషను ఎంచుకోండి"  
+  "selectLanguage": "భాషను ఎంచుకోండి",
+  "eulaLoadError":"EULA లోడ్ చేయడంలో విఫలమైంది.",
+
+  "eulaRetry":"మళ్లీ ప్రయత్నించండి",
+
+  "eulaVersion":"వెర్షన్",
+
+  "eulaAgree":"నేను అన్ని నిబంధనలు మరియు షరతులను చదివాను",
+
+  "eulaAccept":"అంగీకరించు",
+
+  "eulaDecline":"నిరాకరించు",
+
+  "eulaTitle":"ఎండ్ యూజర్ లైసెన్స్ ఒప్పందం",
+
+  "eulaDeclined": "EULA తిరస్కరించబడింది",
+  "eulaAlertDialog": "ఈ యాప్‌ను ఉపయోగించడానికి మీరు EULAని అంగీకరించాలి.",
+  "close": "మూసివేయి"
 }

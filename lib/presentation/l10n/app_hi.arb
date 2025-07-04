@@ -67,5 +67,21 @@
   "manageTags": "टैग प्रबंधित करें",
   "noEmis": "कोई ईएमआई नहीं",
   "language": "भाषा",
-  "selectLanguage": "भाषा चुनें"
+  "selectLanguage": "भाषा चुनें",
+  "eulaTitle":"अंतिम उपयोगकर्ता लाइसेंस समझौता (EULA)",
+  "eulaVersion": "संस्करण",
+
+  "eulaAgree":"मैंने अंतिम उपयोगकर्ता लाइसेंस अनुबंध (EULA) पढ़ लिया है और उससे सहमत हूँ।",
+
+  "eulaAccept":"स्वीकार करना",
+
+  "eulaDecline":"गिरावट",
+
+  "eulaLoadError":"EULA लोड करने में विफल.",
+
+  "eulaRetry":"पुन: प्रयास करें",
+
+  "eulaDeclined": "EULA अस्वीकृत",
+  "eulaAlertDialog": "आपको इस ऐप का उपयोग करने के लिए EULA स्वीकार करना होगा।",
+  "close": "बंद करें"
 }
