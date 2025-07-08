@@ -706,22 +706,14 @@ class HomePageState extends ConsumerState<HomePage> {
       final loanLendBox = Hive.box<Emi>('emis');
       final Map<String, String> autoMapped = {};
       final List<String> tagsToMap = [];
-
-      print('Starting auto-mapping of group tags...');
-      print('Group tags found in CSV: ' + groupTags.toString());
-
       for (final tag in groupTags) {
         final isCredit = transactions.any(
           (tx) => tx['group_tag'] == tag && (tx['credit'] ?? 0) > 0,
         );
-
-         print('Checking tag: "' + tag + '" | isCredit: ' + isCredit.toString());
-
         final matchingEmis = loanLendBox.values.where((emi) {
           final hasMatchingTag = emi.tags.any(
             (t) => t.name.trim().toLowerCase() == tag.trim().toLowerCase(),
           );
-          print('  EMI: ' + emi.title + ' | Tags: ' + emi.tags.map((t) => t.name).join(', ') + ' | hasMatchingTag: ' + hasMatchingTag.toString() + ' | emiType: ' + emi.emiType);
           return hasMatchingTag && (
             (isCredit && emi.emiType == 'lend') || 
             (!isCredit && emi.emiType == 'loan')
@@ -729,20 +721,13 @@ class HomePageState extends ConsumerState<HomePage> {
         }).toList();
 
         if (matchingEmis.isNotEmpty) {
-          print('  Found matching EMIs for tag "' + tag + '": ' + matchingEmis.map((e) => e.title).join(', '));
           for (final emi in matchingEmis) {
             autoMapped['${tag}_${emi.id}'] = emi.id;
           }
         } else {
-            print('  No matching EMIs found for tag "' + tag + '". Adding to manual mapping list.');
             tagsToMap.add(tag);
           }
       }
-
-      print('Auto-mapping result: ' + autoMapped.toString());
-      print('Tags requiring manual mapping: ' + tagsToMap.toString());
-
-
       final Map<String, String?> manualMapped = await _promptUserForMappings(transactions, tagsToMap);
       final Map<String, String?> mapping = {...autoMapped, ...manualMapped};
       if (mapping.values.any((v) => v == null)) {
@@ -755,7 +740,6 @@ class HomePageState extends ConsumerState<HomePage> {
       for (final row in transactions) {
         final debit = row['debit'] as double;
         final credit = row['credit'] as double;
-        //my change final amount = credit > 0 ? credit : debit; // Use credit since your CSV has amounts in credit column
         double amount = 0;
         String transactionType = '';
 
@@ -776,9 +760,6 @@ class HomePageState extends ConsumerState<HomePage> {
 
         final date = DateFormat('dd-MMM-yyyy').parse(row['date']);
         final tag = row['group_tag'].toString().trim();
-        // Replace isDebit/isCredit logic with transactionType
-        // my change final transactionType = credit > 0 ? 'CR' : 'DR';
-
         final matchedEmis = loanLendBox.values.where((emi) {
           final matchesTag = emi.tags.any(
             (t) => t.name.trim().toLowerCase() == tag.toLowerCase(),
@@ -793,7 +774,6 @@ class HomePageState extends ConsumerState<HomePage> {
         }).toList();
 
         if (matchedEmis.isEmpty) {
-          print("❌ No matching EMIs for tag: $tag | type: $transactionType");
           continue;
         }
 
@@ -812,7 +792,6 @@ class HomePageState extends ConsumerState<HomePage> {
               datetime: date,
               loanLendId: emi.id,
             );
-            print("✅ Adding: ${transaction.title} → ₹${transaction.amount} → EMI ID: ${emi.id}");
             ref.read(transactionsNotifierProvider.notifier).add(transaction);
             addedEmiIds.add(emi.id);
           }
