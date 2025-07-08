@@ -236,4 +236,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get close => 'Close';
+
+  @override
+  String get noDataTitle => 'No data yet. Let\'s get started!';
+
+  @override
+  String get noDataDescription =>
+      'Start by creating a Loan or Lend using the buttons below.\nYou\'ll then see helpful charts and tables here to track your finances.\nTap the Tour button anytime to let the app guide you through the process.';
+
+  @override
+  String get tourButtonLabel => 'Tour';
 }
