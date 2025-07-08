@@ -573,6 +573,7 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Tour'**
   String get tourButtonLabel;
+
 }
 
 class _AppLocalizationsDelegate

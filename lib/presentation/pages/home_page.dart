@@ -32,6 +32,11 @@ import 'package:showcaseview/showcaseview.dart';
 import 'package:lottie/lottie.dart'; // Import Lottie package
 import '../widgets/amorzation_table.dart';
 import '../widgets/locale_selector_popup_menu.dart';
+import 'package:intl/intl.dart';
+import 'package:uuid/uuid.dart';
+import 'package:hive/hive.dart';
+import '../../data/models/transaction_model.dart';
+import 'package:emi_manager/logic/transaction_provider.dart';
 
 class HomePage extends ConsumerStatefulWidget {
   // GlobalKey loanHelpKey, GlobalKey lendHelpKey, GlobalKey langHelpKey, GlobalKey helpHelpKey
@@ -659,7 +664,169 @@ class HomePageState extends ConsumerState<HomePage> {
       );
     }
   }
+    Future<void> _importTransactionsCSV() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles();
 
+    if (result != null) {
+      final file = File(result.files.single.path!);
+      final content = await file.readAsString();
+      List<List<dynamic>> csv = [];
+      try {
+        csv = CsvToListConverter(eol: '\n', fieldDelimiter: ',', textDelimiter: '"').convert(content);
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Invalid CSV format.")));
+        return;
+      }
+
+      final List<Map<String, dynamic>> transactions = [];
+      final Set<String> groupTags = {};
+      final Set<String> seenTagsLowercase = {};
+
+      for (int i = 1; i < csv.length; i++) {
+        final row = csv[i];
+        final originalTag = row[4].toString().trim();
+        final lowerTag = originalTag.toLowerCase();
+  
+        // Clean amounts by removing quotes and commas
+        final debitStr = row[0].toString().replaceAll(RegExp(r'[",]'), '').trim();
+        final creditStr = row[1].toString().replaceAll(RegExp(r'[",]'), '').trim();
+  
+        transactions.add({
+          'debit': double.tryParse(debitStr) ?? 0,
+          'credit': double.tryParse(creditStr) ?? 0,
+          'date': row[2],
+          'title': row[3],
+          'group_tag': originalTag,
+        });
+        if (!seenTagsLowercase.contains(lowerTag)) {
+          groupTags.add(originalTag);
+          seenTagsLowercase.add(lowerTag);
+        }
+      }
+
+      // Automap group_tags to existing EMI groupTag (not Tag box)
+      final loanLendBox = Hive.box<Emi>('emis');
+      final Map<String, String> autoMapped = {};
+      final List<String> tagsToMap = [];
+      for (final tag in groupTags) {
+        final isCredit = transactions.any(
+          (tx) => tx['group_tag'] == tag && (tx['credit'] ?? 0) > 0,
+        );
+        final matchingEmis = loanLendBox.values.where((emi) {
+          final hasMatchingTag = emi.tags.any(
+            (t) => t.name.trim().toLowerCase() == tag.trim().toLowerCase(),
+          );
+          return hasMatchingTag && (
+            (isCredit && emi.emiType == 'lend') || 
+            (!isCredit && emi.emiType == 'loan')
+          );
+        }).toList();
+
+        if (matchingEmis.isNotEmpty) {
+          for (final emi in matchingEmis) {
+            autoMapped['${tag}_${emi.id}'] = emi.id;
+          }
+        } else {
+            tagsToMap.add(tag);
+          }
+      }
+      final Map<String, String?> manualMapped = await _promptUserForMappings(transactions, tagsToMap);
+      final Map<String, String?> mapping = {...autoMapped, ...manualMapped};
+      if (mapping.values.any((v) => v == null)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Please map all group tags.")),
+        );
+        return;
+      }
+
+      for (final row in transactions) {
+        final debit = row['debit'] as double;
+        final credit = row['credit'] as double;
+        double amount = 0;
+        String transactionType = '';
+
+        if (credit > 0) {
+          amount = credit;
+          transactionType = 'CR';
+        } else if (debit > 0) {
+          amount = debit;
+          transactionType = 'DR';
+        } else {
+          // Skip if both are zero or blank
+          continue;
+        }
+        if (amount == 0) {
+          print("Skipping empty transaction with 0 amount: ${row['title']}");
+          continue;
+        }
+
+        final date = DateFormat('dd-MMM-yyyy').parse(row['date']);
+        final tag = row['group_tag'].toString().trim();
+        final matchedEmis = loanLendBox.values.where((emi) {
+          final matchesTag = emi.tags.any(
+            (t) => t.name.trim().toLowerCase() == tag.toLowerCase(),
+          );
+          final isMappedEmi = mapping[tag] == emi.id;
+
+          // Use transactionType for logic
+          final matchLoan = transactionType == 'DR' && emi.emiType == 'loan';
+          final matchLend = transactionType == 'CR' && emi.emiType == 'lend';
+
+          return (matchLoan || matchLend) && (matchesTag || isMappedEmi);
+        }).toList();
+
+        if (matchedEmis.isEmpty) {
+          continue;
+        }
+
+        final addedEmiIds = <String>{};
+        for (final emi in matchedEmis) {
+          final isMappedEmi = mapping[tag] == emi.id;
+          final hasTag = emi.tags.any((t) => t.name.trim().toLowerCase() == tag.toLowerCase());
+
+          if ((isMappedEmi || hasTag) && !addedEmiIds.contains(emi.id)) {
+            final transaction = Transaction(
+              id: const Uuid().v4(),
+              title: row['title'].toString(),
+              description: '',
+              amount: amount,
+              type: transactionType, // Use the calculated type
+              datetime: date,
+              loanLendId: emi.id,
+            );
+            ref.read(transactionsNotifierProvider.notifier).add(transaction);
+            addedEmiIds.add(emi.id);
+          }
+        }
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Transactions imported from CSV")),
+      );
+    }
+  }
+
+  Future<Map<String, String?>> _promptUserForMappings(
+      List<Map<String, dynamic>> transactions,
+      List<String> tags) async {
+    
+    if (tags.isEmpty) {
+      return {};
+    }
+
+    final result = await Navigator.push<Map<String, String?>>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => MappingScreen(
+          transactions: transactions,
+          tags: tags,
+        ),
+      ),
+    );
+    
+    return result ?? {};
+  }
+  
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -898,6 +1065,15 @@ class HomePageState extends ConsumerState<HomePage> {
                   backgroundColor: loanColor(context, false),
                   label: const Text("Import CSV"),
                   icon: const Icon(Icons.arrow_downward),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(top: 10, left: 10, right: 10),
+                child: FloatingActionButton.extended(
+                  onPressed: _importTransactionsCSV,
+                  backgroundColor: loanColor(context, false), // same color as Import CSV
+                  label: const Text("Import Transactions CSV"),
+                  icon: const Icon(Icons.arrow_downward), // same icon as Import CSV
                 ),
               ),
             ],
@@ -1519,3 +1695,106 @@ class _HomePageNavigatorObserver extends NavigatorObserver {
     homePageState._triggerComparisonLottie();
   }
 }
+
+class MappingScreen extends StatefulWidget {
+  final List<Map<String, dynamic>> transactions;
+  final List<String> tags;
+
+  const MappingScreen({super.key, required this.transactions, required this.tags});
+
+  @override
+  State<MappingScreen> createState() => _MappingScreenState();
+}
+
+class _MappingScreenState extends State<MappingScreen> {
+  final Map<String, String?> mapping = {};
+
+  @override
+  void initState() {
+    super.initState();
+    for (final tag in widget.tags) {
+      mapping[tag] = null;
+    }
+  }
+
+  List<Emi> getOptions(String tag) {
+    final isDebit = widget.transactions.any(
+        (tx) => tx['group_tag'] == tag && (tx['debit'] ?? 0) > 0);
+    final loanLendBox = Hive.box<Emi>('emis');
+    final allEntries = loanLendBox.values.toList();
+    return allEntries
+        .where((entry) =>
+            (isDebit && entry.emiType == 'loan') ||
+            (!isDebit && entry.emiType == 'lend'))
+        .toList();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text("Map Group Tags")),
+      body: ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: widget.tags.length,
+        itemBuilder: (context, index) {
+          final tag = widget.tags[index];
+          final options = getOptions(tag);
+
+          return Card(
+            margin: const EdgeInsets.only(bottom: 20),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    tag,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  DropdownButton<String>(
+                    isExpanded: true,
+                    value: mapping[tag],
+                    hint: const Text("Select from available loans/lends"),
+                    items: options
+                        .map((e) => DropdownMenuItem<String>(
+                              value: e.id,
+                              child: Text(e.title),
+                            ))
+                        .toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        mapping[tag] = value;
+                      });
+                    },
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: TextButton(
+          onPressed: () {
+            Navigator.pop(context, mapping);
+          },
+          child: const Text(
+            "Done",
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+          ),
+        ),
+      ),
+    );
+  }
+}
+  // Helper to get transactions sorted by datetime ascending
+  List<Transaction> _getSortedTransactions(WidgetRef ref) {
+    final transactions = ref.watch(transactionsNotifierProvider);
+    final sorted = [...transactions]..sort((a, b) => a.datetime.compareTo(b.datetime));
+    return sorted;
+  }
