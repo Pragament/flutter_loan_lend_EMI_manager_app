@@ -37,10 +37,10 @@ class _EmiDetailsPageState extends ConsumerState<EmiDetailsPage> {
     final emi = ref.watch(emisNotifierProvider
         .select((emis) => emis.firstWhere((emi) => emi.id == widget.emiId)));
 
-    final List<Transaction> transactions = ref
+    final List<Transaction> transactions = [...ref
         .watch(transactionsNotifierProvider)
-        .where((transaction) => transaction.loanLendId == widget.emiId)
-        .toList();
+        .where((transaction) => transaction.loanLendId == widget.emiId)]
+      ..sort((a, b) => a.datetime.compareTo(b.datetime));
 
     final l10n = AppLocalizations.of(context)!;
     final emiTypeColor = emi.emiType == 'lend'
