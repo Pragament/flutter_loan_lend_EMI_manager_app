@@ -238,4 +238,14 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get close => 'बंद करें';
+
+  @override
+  String get noDataTitle => 'अभी कोई डेटा नहीं है। चलिए शुरू करते हैं!';
+
+  @override
+  String get noDataDescription =>
+      'नीचे दिए गए बटन का उपयोग करके एक लोन या लेंड बनाएं।\nइसके बाद आप यहाँ उपयोगी चार्ट्स और टेबल्स देख पाएंगे।\nकिसी भी समय टूर बटन टैप करें, ऐप आपको प्रक्रिया में मार्गदर्शन करेगा।';
+
+  @override
+  String get tourButtonLabel => 'टूर';
 }

@@ -16,9 +16,10 @@ import 'package:uuid/uuid.dart';
 import 'package:lottie/lottie.dart';
 
 class NewEmiPage extends ConsumerStatefulWidget {
-  const NewEmiPage({super.key, required this.emiType, this.emiId});
   final String emiType;
   final String? emiId;
+  final bool startTour;
+  const NewEmiPage({super.key, required this.emiType, this.emiId, this.startTour = false});
   @override
   ConsumerState<ConsumerStatefulWidget> createState() => _NewEmiPageState();
 }
@@ -29,6 +30,7 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
   GlobalKey tagsKey = GlobalKey();
   GlobalKey selectTagsKey = GlobalKey();
   GlobalKey createTagsKey = GlobalKey();
+  GlobalKey saveButtonKey = GlobalKey();
   final _formKey = GlobalKey<FormState>();
 
   // Controllers
@@ -67,6 +69,15 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
       principalAmountC.text = principalAmount.toStringAsFixed(0);
       interestRateC.text = interestRate.toStringAsFixed(1);
       startDateC.text = DateTime.now().toLocal().toString().split(' ')[0];
+    }
+
+    if (widget.startTour) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ShowCaseWidget.of(context).startShowCase([
+          tagsKey,
+          saveButtonKey,
+        ]);
+      });
     }
   }
 
@@ -632,13 +643,17 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
                   // Submit Button
                   Padding(
                     padding: const EdgeInsets.all(8.0),
-                    child: ElevatedButton(
-                      onPressed: () {
-                        if (_formKey.currentState?.validate() ?? false) {
-                          _saveEmi(); // Ensure the save function is called
-                        }
-                      },
-                      child: Text(l10n.save),
+                    child: Showcase(
+                      key: saveButtonKey,
+                      description: "Tap here to save your loan/lend entry.",
+                      child: ElevatedButton(
+                        onPressed: () {
+                          if (_formKey.currentState?.validate() ?? false) {
+                            _saveEmi();
+                          }
+                        },
+                        child: Text(l10n.save),
+                      ),
                     ),
                   ),
                 ],

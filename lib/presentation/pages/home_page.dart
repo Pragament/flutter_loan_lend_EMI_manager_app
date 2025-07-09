@@ -71,6 +71,8 @@ class HomePageState extends ConsumerState<HomePage> {
   // State variable to control Lottie animation visibility for errors
   bool _showErrorLottie = false;
 
+  bool _tourInProgress = false;
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -847,12 +849,58 @@ class HomePageState extends ConsumerState<HomePage> {
             ],
           ),
           body: Center(
-            child: Lottie.asset(
-              'assets/animations/nodata_search.json',
-              width: 300,
-              height: 300,
-              fit: BoxFit.contain,
-              repeat: true,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Lottie.asset(
+                  'assets/animations/nodata_search.json',
+                  width: 200,
+                  height: 200,
+                  fit: BoxFit.contain,
+                  repeat: true,
+                ),
+                const SizedBox(height: 24),
+                AnimatedOpacity(
+                  opacity: 1.0,
+                  duration: Duration(milliseconds: 800),
+                  child: Card(
+                    elevation: 4,
+                    margin: const EdgeInsets.symmetric(horizontal: 24),
+                    child: Padding(
+                      padding: const EdgeInsets.all(24.0),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            AppLocalizations.of(context)!.noDataTitle,
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            AppLocalizations.of(context)!.noDataDescription,
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 24),
+                          ElevatedButton.icon(
+                            icon: Icon(Icons.tour),
+                            label: Text(AppLocalizations.of(context)!.tourButtonLabel),
+                            onPressed: () {
+                              setState(() {
+                                _tourInProgress = true;
+                              });
+                              ShowCaseWidget.of(context).startShowCase([
+                                lendHelpKey,
+                                loanHelpKey,
+                              ]);
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
           floatingActionButton: Row(
@@ -869,7 +917,7 @@ class HomePageState extends ConsumerState<HomePage> {
                       MaterialPageRoute(
                         builder: (context) => const NewEmiPage(emiType: 'lend'),
                       ),
-                    ); // Use Navigator instead of GoRouter
+                    );
                   },
                   heroTag: 'newLendBtn',
                   backgroundColor: lendColor(context, false),
@@ -886,7 +934,7 @@ class HomePageState extends ConsumerState<HomePage> {
                       MaterialPageRoute(
                         builder: (context) => const NewEmiPage(emiType: 'loan'),
                       ),
-                    ); // Use Navigator instead of GoRouter
+                    );
                   },
                   heroTag: 'newLoanBtn',
                   backgroundColor: loanColor(context, false),
@@ -917,6 +965,18 @@ class HomePageState extends ConsumerState<HomePage> {
     });
 
     return ShowCaseWidget(
+      onFinish: () {
+        if (_tourInProgress) {
+          setState(() {
+            _tourInProgress = false;
+          });
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => NewEmiPage(emiType: 'loan', startTour: true),
+            ),
+          );
+        }
+      },
       builder: (context) => Scaffold(
         appBar: AppBar(
           title: Text(l10n.appTitle),

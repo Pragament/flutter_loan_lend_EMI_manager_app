@@ -555,6 +555,25 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Close'**
   String get close;
+
+  /// No description provided for @noDataTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No data yet. Let\'s get started!'**
+  String get noDataTitle;
+
+  /// No description provided for @noDataDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Start by creating a Loan or Lend using the buttons below.\nYou\'ll then see helpful charts and tables here to track your finances.\nTap the Tour button anytime to let the app guide you through the process.'**
+  String get noDataDescription;
+
+  /// No description provided for @tourButtonLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Tour'**
+  String get tourButtonLabel;
+
 }
 
 class _AppLocalizationsDelegate

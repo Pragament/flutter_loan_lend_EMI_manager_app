@@ -239,4 +239,16 @@ class AppLocalizationsTe extends AppLocalizations {
 
   @override
   String get close => 'మూసివేయి';
+
+
+  @override
+  String get noDataTitle => 'ఇంకా డేటా లేదు. ప్రారంభిద్దాం!';
+
+  @override
+  String get noDataDescription =>
+      'కింద ఉన్న బటన్‌లను ఉపయోగించి లోన్ లేదా లెండ్‌ను సృష్టించండి.\nమీ ఆర్థికాలను ట్రాక్ చేయడానికి మీరు ఇక్కడ సహాయక చార్ట్‌లు మరియు పట్టికలను చూడవచ్చు.\nయాప్ మీకు ప్రక్రియను చూపించేందుకు ఎప్పుడైనా టూర్ బటన్‌ను నొక్కండి.';
+
+  @override
+  String get tourButtonLabel => 'టూర్';
+
 }
