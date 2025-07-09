@@ -3,35 +3,35 @@ import 'package:emi_manager/utils/number_formatter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:math';
 
-/// A provider that calculates and rounds EMI values
-final emiCalculationProvider =
-    Provider.family<double, EmiParams>((ref, params) {
-  // Calculate EMI
-  final monthlyRate = params.annualInterestRate / (12 * 100);
-  final totalMonths = params.tenureInYears * 12;
+/// Provider to calculate and round EMI values for given parameters.
+final emiCalculationProvider = Provider.family<double, EmiParams>((ref, params) {
+  final double monthlyRate = params.annualInterestRate / 1200;
+  final int totalMonths = params.tenureInYears * 12;
 
-  final emi = params.principalAmount *
-      monthlyRate *
-      pow(1 + monthlyRate, totalMonths) /
-      (pow(1 + monthlyRate, totalMonths) - 1);
+  double emi;
+  if (params.principalAmount <= 0 || totalMonths <= 0) {
+    emi = 0;
+  } else if (monthlyRate == 0) {
+    // 0% interest: simple division
+    emi = params.principalAmount / totalMonths;
+  } else {
+    final powFactor = pow(1 + monthlyRate, totalMonths);
+    emi = params.principalAmount * monthlyRate * powFactor / (powFactor - 1);
+  }
 
   // Round the EMI according to settings
   final settings = ref.watch(roundingProvider);
   return NumberFormatter.formatNumber(emi, settings);
 });
 
-/// A provider that performs general calculations with rounding
-final calculationProvider =
-    Provider.family<double, CalculationParams>((ref, params) {
-  // Perform the calculation
+/// Provider for general calculations with rounding.
+final calculationProvider = Provider.family<double, CalculationParams>((ref, params) {
   final result = params.calculationFn();
-
-  // Round the result
   final settings = ref.watch(roundingProvider);
   return NumberFormatter.formatNumber(result, settings);
 });
 
-/// Parameters for EMI calculation
+/// Parameters for EMI calculation.
 class EmiParams {
   final double principalAmount;
   final double annualInterestRate;
@@ -44,7 +44,7 @@ class EmiParams {
   });
 }
 
-/// Parameters for general calculations
+/// Parameters for general calculations.
 class CalculationParams {
   final double Function() calculationFn;
 

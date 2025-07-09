@@ -407,14 +407,15 @@ class _EmiDetailsPageState extends ConsumerState<EmiDetailsPage> {
           DateTime(paymentDate.year, paymentDate.month + month);
 
       schedule.add(AmortizationEntry(
-        paymentDate: currentMonth,
-        principal: monthlyPrincipal,
-        interest: monthlyInterest,
-        totalPayment: monthlyEmi,
-        balance: remainingPrincipal,
-        year: currentMonth.year,
-        month: currentMonth.month,
-      ));
+  title: "Month ${month + 1}", // Add this line
+  paymentDate: currentMonth,
+  principal: monthlyPrincipal,
+  interest: monthlyInterest,
+  totalPayment: monthlyEmi,
+  balance: remainingPrincipal,
+  year: currentMonth.year,
+  month: currentMonth.month, type: 'emi',
+));
     }
 
     return schedule;

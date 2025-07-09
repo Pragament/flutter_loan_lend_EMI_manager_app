@@ -1,4 +1,5 @@
 import 'package:emi_manager/data/models/emi_model.dart';
+import 'package:emi_manager/presentation/widgets/amortization_schedule_table.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -52,24 +53,83 @@ class EmisNotifier extends _$EmisNotifier {
 
   double calculateMonthlyEmi(
       double principal, double interestRate, int tenureYears) {
-    // Convert annual interest rate to monthly rate
     double monthlyRate = interestRate / (12 * 100);
-
-    // Calculate total number of monthly payments
     int totalPayments = tenureYears * 12;
 
-    // Calculate EMI using the standard formula
-    double emi = principal *
-        monthlyRate *
-        pow(1 + monthlyRate, totalPayments) /
-        (pow(1 + monthlyRate, totalPayments) - 1);
-
-    return emi;
+    if (monthlyRate == 0) {
+      return principal / totalPayments;
+    } else {
+      return principal *
+          monthlyRate *
+          pow(1 + monthlyRate, totalPayments) /
+          (pow(1 + monthlyRate, totalPayments) - 1);
+    }
   }
 
-  // A method to apply rounding to a calculated EMI value
   double applyRounding(WidgetRef ref, double value) {
-    // This method will be called from outside the provider with the appropriate WidgetRef
-    return value; // For now return the original value - actual rounding will be done by the GlobalFormatter
+    // Placeholder for global formatting logic
+    return value;
+  }
+
+  /// Generates the amortization schedule for a given loan.
+  /// Returns a list of AmortizationEntry objects.
+  List<AmortizationEntry> generateAmortizationSchedule(
+    double principal,
+    double annualInterestRate,
+    int tenureYears,
+    String emiId, {
+    required DateTime startDate,
+  }) {
+    final List<AmortizationEntry> schedule = [];
+    double monthlyEmi = calculateMonthlyEmi(principal, annualInterestRate, tenureYears);
+    monthlyEmi = monthlyEmi.roundToDouble();
+
+    double remainingPrincipal = principal;
+    final double monthlyRate = annualInterestRate / (12 * 100);
+    final int totalMonths = tenureYears * 12;
+
+    for (int month = 0; month < totalMonths; month++) {
+      double interest = monthlyRate * remainingPrincipal;
+      double principalComponent = monthlyEmi - interest;
+
+      // For 0% interest, all payment goes to principal
+      if (monthlyRate == 0) {
+        principalComponent = monthlyEmi;
+        interest = 0;
+      }
+
+      // Final payment adjustment to clear the principal
+      if (month == totalMonths - 1 || principalComponent > remainingPrincipal) {
+        principalComponent = remainingPrincipal;
+        monthlyEmi = interest + principalComponent;
+      }
+
+      // Update balance before adding to schedule
+      remainingPrincipal -= principalComponent;
+      if (remainingPrincipal < 0) remainingPrincipal = 0;
+
+      // Calculate payment date robustly
+      DateTime paymentDate = DateTime(
+        startDate.year,
+        startDate.month + month,
+        startDate.day,
+      );
+
+      schedule.add(
+        AmortizationEntry(
+          title : month == 0 ? 'First Payment' : 'EMI Payment',
+          principal: principalComponent,
+          interest: interest,
+          totalPayment: monthlyEmi,
+          year: paymentDate.year,
+          month: paymentDate.month,
+          type: month == 0 ? 'First Payment' : 'EMI',
+          paymentDate: paymentDate,
+          balance: remainingPrincipal,
+        ),
+      );
+    }
+
+    return schedule;
   }
 }

@@ -186,6 +186,6 @@ class AmortizationEntry {
     required this.totalPayment,
     required this.balance,
     required this.year,
-    required this.month,
+    required this.month, required String title, required String type,
   });
 }

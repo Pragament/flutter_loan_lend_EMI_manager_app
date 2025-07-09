@@ -24,12 +24,17 @@ class BarGraph extends StatelessWidget {
     List<BarChartGroupData> barGroups = [];
     double maxPayment = principalAmounts.isNotEmpty
         ? principalAmounts.reduce((a, b) => max(a, b)) +
-        interestAmounts.reduce((a, b) => max(a, b))
+          interestAmounts.reduce((a, b) => max(a, b))
         : 0;
 
+    // Ensure maxPayment is at least 1 to avoid flat graph and assertion errors
+    maxPayment = max(maxPayment, 1);
+    maxPayment += maxPayment * 0.1; // Add 10% buffer
+
     for (int i = 0; i < years.length; i++) {
-      final double principalAmount = principalAmounts[i];
-      final double interestAmount = interestAmounts[i];
+      // Clamp values to zero or above
+      final double principalAmount = (i < principalAmounts.length && principalAmounts[i] > 0) ? principalAmounts[i] : 0.0;
+      final double interestAmount = (i < interestAmounts.length && interestAmounts[i] > 0) ? interestAmounts[i] : 0.0;
       final double totalPayment = principalAmount + interestAmount;
 
       barGroups.add(
@@ -55,11 +60,11 @@ class BarGraph extends StatelessWidget {
     }
     // Change the size according to total number of loans.
     final len = years.length;
-    var prod = len<5 ? 0.95: len<10? 1.25: len<15 ?1.75: 2.5;
+    var prod = len < 5 ? 0.95 : len < 10 ? 1.25 : len < 15 ? 1.75 : 2.5;
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: SizedBox(
-        width: w*prod,
+        width: w * prod,
         child: AspectRatio(
           aspectRatio: 1.5,
           child: Padding(
@@ -71,7 +76,7 @@ class BarGraph extends StatelessWidget {
                   leftTitles: AxisTitles(
                     sideTitles: SideTitles(
                       showTitles: true,
-                      reservedSize: 45,  // Adjust this value to increase left margin
+                      reservedSize: 45,
                       getTitlesWidget: (value, meta) {
                         return SideTitleWidget(
                           axisSide: meta.axisSide,
@@ -90,7 +95,7 @@ class BarGraph extends StatelessWidget {
                       getTitlesWidget: (value, meta) {
                         int index = value.toInt();
                         String title = years.isNotEmpty && index < years.length
-                            ?  years[index].toString()
+                            ? years[index].toString()
                             : '';
 
                         return SideTitleWidget(

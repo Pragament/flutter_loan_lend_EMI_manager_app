@@ -129,7 +129,8 @@ class AppLocalizationsTe extends AppLocalizations {
   String get confirmDelete => 'తొలగింపు ధృవీకరణ';
 
   @override
-  String get areYouSure => 'మీరు నిజంగా ఈ EMI రికార్డును తొలగించాలని అనుకుంటున్నారా?';
+  String get areYouSure =>
+      'మీరు నిజంగా ఈ EMI రికార్డును తొలగించాలని అనుకుంటున్నారా?';
 
   @override
   String get cancel => 'రద్దు';
@@ -204,5 +205,6 @@ class AppLocalizationsTe extends AppLocalizations {
   String get next => 'తదుపరి';
 
   @override
-  String get welcome => 'మీరు మా యాప్ యొక్క తెలుగు సంచికలో ఉన్నారు. ఇక్కడ మీరు మీ రుణాలను మరియు ఈ.ఎమ్.ఐలను సులభంగా నిర్వహించవచ్చు.';
+  String get welcome =>
+      'మీరు మా యాప్ యొక్క తెలుగు సంచికలో ఉన్నారు. ఇక్కడ మీరు మీ రుణాలను మరియు ఈ.ఎమ్.ఐలను సులభంగా నిర్వహించవచ్చు.';
 }

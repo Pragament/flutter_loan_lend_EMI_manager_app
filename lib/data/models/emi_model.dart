@@ -94,45 +94,38 @@ class Emi {
     }
 
     if (endDate != null) {
-      // Use exact stored years and months when available
       int totalMonths;
-
       if (selectedYears != null && selectedMonths != null) {
-        // Use the exact values the user selected
         totalMonths = (selectedYears!.toInt() * 12 + selectedMonths!.toInt());
       } else {
-        // Fall back to date calculation only if user values not available
         totalMonths = (endDate!.year - startDate.year) * 12 +
             (endDate!.month - startDate.month);
       }
 
-      if (interestRate <= 0 || totalMonths <= 0) {
+      // Add this check:
+      if (principalAmount <= 0 || totalMonths <= 0) {
+        monthlyEmi = 0;
+        totalEmi = 0;
+        return;
+      }
+
+      if (interestRate <= 0) {
         // Handle 0% interest case
-        monthlyEmi =
-            totalMonths > 0 ? principalAmount / totalMonths : principalAmount;
+        monthlyEmi = principalAmount / totalMonths;
         totalEmi = principalAmount;
       } else {
-        // Use exact decimal conversion with precise division
         final double monthlyInterestRate = interestRate / 1200;
-
-        if (monthlyInterestRate > 0) {
-          // Calculate using standard formula
-          final powFactor = pow(1 + monthlyInterestRate, totalMonths);
-          double calculatedEmi = principalAmount *
-              monthlyInterestRate *
-              powFactor /
-              (powFactor - 1);
-
-          // Use fixed precision for financial calculations
-          monthlyEmi = double.parse(calculatedEmi.toStringAsFixed(2));
-
-          // Calculate total based on precise monthly EMI
-          totalEmi = monthlyEmi! * totalMonths;
-        } else {
-          monthlyEmi = principalAmount / totalMonths;
-          totalEmi = principalAmount;
-        }
+        final powFactor = pow(1 + monthlyInterestRate, totalMonths);
+        double calculatedEmi = principalAmount *
+            monthlyInterestRate *
+            powFactor /
+            (powFactor - 1);
+        monthlyEmi = double.parse(calculatedEmi.toStringAsFixed(2));
+        totalEmi = monthlyEmi! * totalMonths;
       }
+    } else {
+      monthlyEmi = 0;
+      totalEmi = 0;
     }
   }
 

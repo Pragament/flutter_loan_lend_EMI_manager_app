@@ -24,19 +24,20 @@ class BarGraph extends StatelessWidget {
     List<BarChartGroupData> barGroups = [];
     double maxPayment = principalAmounts.isNotEmpty
         ? principalAmounts.reduce((a, b) => max(a, b)) +
-        interestAmounts.reduce((a, b) => max(a, b))
+          interestAmounts.reduce((a, b) => max(a, b))
         : 0;
 
     maxPayment += maxPayment * 0.1; // Add 10% buffer
 
     for (int i = 0; i < years.length; i++) {
-      final double principalAmount = principalAmounts[i];
-      final double interestAmount = interestAmounts[i];
+      // Clamp values to zero or above
+      final double principalAmount = (i < principalAmounts.length && principalAmounts[i] > 0) ? principalAmounts[i] : 0.0;
+      final double interestAmount = (i < interestAmounts.length && interestAmounts[i] > 0) ? interestAmounts[i] : 0.0;
       final double totalPayment = principalAmount + interestAmount;
 
       barGroups.add(
         BarChartGroupData(
-          x: i, // Use index for x-axis
+          x: i,
           barRods: [
             BarChartRodData(
               toY: totalPayment,
@@ -44,8 +45,8 @@ class BarGraph extends StatelessWidget {
                 BarChartRodStackItem(0, principalAmount, Colors.green),
                 BarChartRodStackItem(principalAmount, totalPayment, Colors.orange),
               ],
-              width:18, // Adjust width for better spacing
-              borderRadius: BorderRadius.circular(4), // Rounded corners
+              width: 18,
+              borderRadius: BorderRadius.circular(4),
             ),
           ],
         ),

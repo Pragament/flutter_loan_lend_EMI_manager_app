@@ -412,7 +412,6 @@ class HomePageState extends ConsumerState<HomePage> {
   //           Showcase(
   //             key: lendHelpKey,
   //             description: "Add New Lend from Here",
-  //             targetBorderRadius: BorderRadius.circular(35),
   //             child: FloatingActionButton.extended(
   //               onPressed: () =>
   //                   const NewEmiRoute(emiType: 'lend').push(context),
@@ -1109,17 +1108,20 @@ class HomePageState extends ConsumerState<HomePage> {
 
   double _calculateEMI(
       double principalAmount, double interestRate, int tenureYears) {
-    // Calculate the monthly interest rate
     double monthlyInterestRate = interestRate / (12 * 100);
     int totalMonths = tenureYears * 12;
 
-    // Calculate and return the EMI amount
-    double emiAmount = (principalAmount *
-            monthlyInterestRate *
-            pow(1 + monthlyInterestRate, totalMonths)) /
-        (pow(1 + monthlyInterestRate, totalMonths) - 1);
+    double emiAmount;
+    if (monthlyInterestRate == 0) {
+      // 0% interest: simple division
+      emiAmount = principalAmount / totalMonths;
+    } else {
+      emiAmount = (principalAmount *
+              monthlyInterestRate *
+              pow(1 + monthlyInterestRate, totalMonths)) /
+          (pow(1 + monthlyInterestRate, totalMonths) - 1);
+    }
 
-    // Apply rounding from our GlobalFormatter
     return GlobalFormatter.roundNumber(ref, emiAmount);
   }
 
