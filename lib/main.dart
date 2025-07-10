@@ -188,9 +188,12 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: Lottie.asset(
-            'assets/animations/coin_stack.json'), // Lottie animation
+      body: Stack(
+        children: [
+          Center(
+            child: Lottie.asset('assets/animations/coin_stack.json'),
+          ),
+        ],
       ),
     );
   }
