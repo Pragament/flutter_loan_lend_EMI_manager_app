@@ -204,5 +204,46 @@ class AppLocalizationsEn extends AppLocalizations {
   String get next => 'next';
 
   @override
-  String get welcome => 'Welcome to the English version of our app. Here you can manage your loans and EMIs efficiently.';
+  String get welcome =>
+      'Welcome to the English version of our app. Here you can manage your loans and EMIs efficiently.';
+
+  @override
+  String get eulaLoadError => 'Failed to load EULA.';
+
+  @override
+  String get eulaRetry => 'Retry';
+
+  @override
+  String get eulaVersion => 'Version';
+
+  @override
+  String get eulaAgree => 'I have read the entire terms and conditions';
+
+  @override
+  String get eulaAccept => 'Accept';
+
+  @override
+  String get eulaDecline => 'Decline';
+
+  @override
+  String get eulaTitle => 'End User License Agreement';
+
+  @override
+  String get eulaDeclined => 'EULA Declined';
+
+  @override
+  String get eulaAlertDialog => 'You must accept the EULA to use this app.';
+
+  @override
+  String get close => 'Close';
+
+  @override
+  String get noDataTitle => 'No data yet. Let\'s get started!';
+
+  @override
+  String get noDataDescription =>
+      'Start by creating a Loan or Lend using the buttons below.\nYou\'ll then see helpful charts and tables here to track your finances.\nTap the Tour button anytime to let the app guide you through the process.';
+
+  @override
+  String get tourButtonLabel => 'Tour';
 }

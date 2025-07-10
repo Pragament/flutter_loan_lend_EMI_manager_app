@@ -67,6 +67,19 @@
   "language": "language",
   "selectLanguage": "selectLanguage",
   "next":"next",
-  "welcome": "Welcome to the English version of our app. Here you can manage your loans and EMIs efficiently."
+  "welcome": "Welcome to the English version of our app. Here you can manage your loans and EMIs efficiently.",
+  "eulaLoadError":"Failed to load EULA.",
+  "eulaRetry":"Retry",
+  "eulaVersion":"Version",
+  "eulaAgree":"I have read the entire terms and conditions",
+  "eulaAccept":"Accept",
+  "eulaDecline":"Decline",
+  "eulaTitle":"End User License Agreement",
+  "eulaDeclined":"EULA Declined",
+  "eulaAlertDialog":"You must accept the EULA to use this app.",
+  "close":"Close",
+  "noDataTitle": "No data yet. Let's get started!",
+  "noDataDescription": "Start by creating a Loan or Lend using the buttons below.\nYou'll then see helpful charts and tables here to track your finances.\nTap the Tour button anytime to let the app guide you through the process.",
+  "tourButtonLabel": "Tour"
 
 }

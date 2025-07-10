@@ -15,9 +15,12 @@ import 'package:emi_manager/presentation/router/router.dart';
 import 'package:showcaseview/showcaseview.dart';
 
 import 'data/models/transaction_model.dart';
+import 'package:emi_manager/presentation/pages/eula_page.dart';
+import 'package:emi_manager/logic/eula_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
 
   await Hive.initFlutter();
   // Hive.deleteBoxFromDisk('preferences');
@@ -41,6 +44,8 @@ void main() async {
 
   bool isFirstRun = prefsBox.get('isFirstRun', defaultValue: true);
 
+  
+
   runApp(ProviderScope(
     child: MainApp(isFirstRun: isFirstRun),
   ));
@@ -57,6 +62,7 @@ class MainApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final locale = ref.watch(localeNotifierProvider);
     return ShowCaseWidget(
+      
       builder: (context) => MaterialApp(
         locale: locale,
         supportedLocales: const [
@@ -70,6 +76,7 @@ class MainApp extends ConsumerWidget {
           GlobalWidgetsLocalizations.delegate,
           GlobalCupertinoLocalizations.delegate,
         ],
+        debugShowCheckedModeBanner: false,
         theme: ThemeData(
             useMaterial3: true, colorScheme: _colorScheme(Brightness.light)),
         darkTheme: ThemeData(
@@ -103,13 +110,79 @@ class _SplashScreenState extends State<SplashScreen> {
 
   _navigateToNextScreen() async {
     await Future.delayed(const Duration(seconds: 3), () {});
-    // Navigate to main app after splash screen
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (context) => MainAppContent(isFirstRun: widget.isFirstRun),
-      ),
-    );
+    bool showEula = await EulaProvider.needsEulaAcceptance();
+    if (showEula && !widget.isFirstRun ) {
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => EulaPage(
+            onAccepted: () async {
+              final activeEula = await EulaProvider.getActiveEula();
+              await EulaProvider.acceptEula(activeEula?['version']);
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => MainAppContent(isFirstRun: widget.isFirstRun),
+                ),
+              );
+            },
+            onDeclined: () {
+              // Block usage or exit app
+              showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (context) => AlertDialog(
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+                  content: const Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Icon(Icons.error_outline, color: Colors.redAccent, size: 48),
+                      SizedBox(height: 16),
+                      Text(
+                        'EULA Declined',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: Colors.redAccent),
+                        textAlign: TextAlign.center,
+                      ),
+                      SizedBox(height: 12),
+                      Text(
+                        'You must accept the EULA to use this app.',
+                        style: TextStyle(fontSize: 16),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                  actionsAlignment: MainAxisAlignment.center,
+                  actions: [
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.redAccent,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        padding: EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                      ),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                      child: Text('Close'),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
+      );
+    } else {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => MainAppContent(isFirstRun: widget.isFirstRun),
+        ),
+      );
+    }
   }
 
   @override
