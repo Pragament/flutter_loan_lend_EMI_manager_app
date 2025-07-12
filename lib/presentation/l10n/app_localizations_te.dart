@@ -208,7 +208,6 @@ class AppLocalizationsTe extends AppLocalizations {
   String get welcome =>
       'మీరు మా యాప్ యొక్క తెలుగు సంచికలో ఉన్నారు. ఇక్కడ మీరు మీ రుణాలను మరియు ఈ.ఎమ్.ఐలను సులభంగా నిర్వహించవచ్చు.';
 
-
   @override
   String get eulaLoadError => 'EULA లోడ్ చేయడంలో విఫలమైంది.';
 
@@ -240,7 +239,6 @@ class AppLocalizationsTe extends AppLocalizations {
   @override
   String get close => 'మూసివేయి';
 
-
   @override
   String get noDataTitle => 'ఇంకా డేటా లేదు. ప్రారంభిద్దాం!';
 
@@ -250,5 +248,4 @@ class AppLocalizationsTe extends AppLocalizations {
 
   @override
   String get tourButtonLabel => 'టూర్';
-
 }

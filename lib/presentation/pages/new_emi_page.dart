@@ -31,6 +31,17 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
   GlobalKey selectTagsKey = GlobalKey();
   GlobalKey createTagsKey = GlobalKey();
   GlobalKey saveButtonKey = GlobalKey();
+  // Add showcase keys for all fields
+  final GlobalKey titleKey = GlobalKey();
+  final GlobalKey principalAmountKey = GlobalKey();
+  final GlobalKey interestRateKey = GlobalKey();
+  final GlobalKey startDateKey = GlobalKey();
+  final GlobalKey tenureKey = GlobalKey();
+  final GlobalKey contactPersonNameKey = GlobalKey();
+  final GlobalKey contactPersonPhoneKey = GlobalKey();
+  final GlobalKey contactPersonEmailKey = GlobalKey();
+  final GlobalKey emiTypeKey = GlobalKey(); // For lend/loan buttons
+
   final _formKey = GlobalKey<FormState>();
 
   // Controllers
@@ -56,6 +67,21 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
   // New state variable to control Lottie animation visibility
   bool _showLottie = false;
 
+  // Short help texts for each field
+  final Map<String, String> _helpTexts = {
+    'emiType': 'Choose whether this entry is a lend or a loan.',
+    'title': 'A short name for your loan or lend.',
+    'principalAmount': 'Total money you lend or borrow.',
+    'interestRate': 'Yearly interest rate (0 if none).',
+    'startDate': 'Date when the loan/lend starts.',
+    'tenure': 'How long the loan/lend lasts.',
+    'contactPersonName': 'Who you are lending to or borrowing from.',
+    'contactPersonPhone': 'Their phone number.',
+    'contactPersonEmail': 'Their email address.',
+    'tags': 'Tags help you organize and search.',
+    'save': 'Save your entry after filling details.',
+  };
+
   @override
   void initState() {
     super.initState();
@@ -74,6 +100,15 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
     if (widget.startTour) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ShowCaseWidget.of(context).startShowCase([
+          emiTypeKey,
+          titleKey,
+          principalAmountKey,
+          interestRateKey,
+          startDateKey,
+          tenureKey,
+          contactPersonNameKey,
+          contactPersonPhoneKey,
+          contactPersonEmailKey,
           tagsKey,
           saveButtonKey,
         ]);
@@ -214,26 +249,36 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
     });
   }
 
-  void _showHelpOptions(BuildContext parentContext) {
-    showModalBottomSheet(
-      context: parentContext, //parentModel context
-      builder: (BuildContext context) {
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            ListTile(
-              leading: const Icon(Icons.home),
-              title: const Text('Tags Help'),
-              onTap: () async {
-                Navigator.pop(context); // Close the modal with current context
-                ShowCaseWidget.of(parentContext)
-                    .startShowCase([tagsKey]); //language help model context
-              },
-            ),
-          ],
-        );
-      },
+  void _showHelpDialog(BuildContext context, String fieldKey) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Help'),
+        content: Text(_helpTexts[fieldKey] ?? 'No help available for this field.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
     );
+  }
+
+  void _showHelpOptions(BuildContext parentContext) {
+    ShowCaseWidget.of(parentContext).startShowCase([
+      emiTypeKey,
+      titleKey,
+      principalAmountKey,
+      interestRateKey,
+      startDateKey,
+      tenureKey,
+      contactPersonNameKey,
+      contactPersonPhoneKey,
+      contactPersonEmailKey,
+      tagsKey,
+      saveButtonKey,
+    ]);
   }
 
   void _addTag(Tag newTag) {
@@ -249,50 +294,48 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
     ref.watch(currencyProvider);
     final l10n = AppLocalizations.of(context)!;
 
-    return ShowCaseWidget(
-      builder: (context) => Scaffold(
-        appBar: AppBar(
-          title: Text(l10n.emi),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.help_outline),
-              onPressed: () {
-                _showHelpOptions(context);
-              },
-            ),
-          ],
-        ),
-        body: Stack(
-          children: [
-            Column(
-              children: [
-                // Removed Lottie animation for loan repayment visualization
-                Expanded(
-                  child: body(context, l10n), // Your existing form body
-                ),
-              ],
-            ),
-            if (_showLottie)
-              Positioned.fill(
-                child: GestureDetector(
-                  onTap: () {}, // Prevent interaction with the background
-                  child: Container(
-                    // ignore: deprecated_member_use
-                    color: Colors.black.withOpacity(0.3), // Background blur
-                    child: Center(
-                      child: Lottie.asset(
-                        'assets/animations/check_mark.json', // Path to your Lottie file
-                        width: 500, // Width of the animation
-                        height: 500, // Height of the animation
-                        fit: BoxFit.contain,
-                        repeat: false, // Run the animation only once
-                      ),
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(l10n.emi),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.help_outline),
+            onPressed: () {
+              _showHelpOptions(context);
+            },
+          ),
+        ],
+      ),
+      body: Stack(
+        children: [
+          Column(
+            children: [
+              // Removed Lottie animation for loan repayment visualization
+              Expanded(
+                child: body(context, l10n), // Your existing form body
+              ),
+            ],
+          ),
+          if (_showLottie)
+            Positioned.fill(
+              child: GestureDetector(
+                onTap: () {}, // Prevent interaction with the background
+                child: Container(
+                  // ignore: deprecated_member_use
+                  color: Colors.black.withOpacity(0.3), // Background blur
+                  child: Center(
+                    child: Lottie.asset(
+                      'assets/animations/check_mark.json', // Path to your Lottie file
+                      width: 500, // Width of the animation
+                      height: 500, // Height of the animation
+                      fit: BoxFit.contain,
+                      repeat: false, // Run the animation only once
                     ),
                   ),
                 ),
               ),
-          ],
-        ),
+            ),
+        ],
       ),
     );
   }
@@ -301,47 +344,51 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
     final currencySymbol = ref.watch(currencyProvider);
     return Column(
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(4.0),
-                child: InkWell(
-                  borderRadius:
-                      const BorderRadius.all(Radius.circular(borderRadius)),
-                  onTap: () => setState(() => emiType = 'lend'),
-                  child: Container(
-                    padding: const EdgeInsets.all(4.0),
-                    decoration: BoxDecoration(
-                      color: lendColor(context, false),
-                      border: emiType == 'lend' ? Border.all() : null,
-                      borderRadius: BorderRadius.circular(borderRadius),
+        Showcase(
+          key: emiTypeKey,
+          description: _helpTexts['emiType']!,
+          child: Row(
+            children: [
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(4.0),
+                  child: InkWell(
+                    borderRadius:
+                        const BorderRadius.all(Radius.circular(borderRadius)),
+                    onTap: () => setState(() => emiType = 'lend'),
+                    child: Container(
+                      padding: const EdgeInsets.all(4.0),
+                      decoration: BoxDecoration(
+                        color: lendColor(context, false),
+                        border: emiType == 'lend' ? Border.all() : null,
+                        borderRadius: BorderRadius.circular(borderRadius),
+                      ),
+                      child: Text(l10n.lend, textAlign: TextAlign.center),
                     ),
-                    child: Text(l10n.lend, textAlign: TextAlign.center),
                   ),
                 ),
               ),
-            ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(4.0),
-                child: InkWell(
-                  borderRadius:
-                      const BorderRadius.all(Radius.circular(borderRadius)),
-                  onTap: () => setState(() => emiType = 'loan'),
-                  child: Container(
-                    padding: const EdgeInsets.all(4.0),
-                    decoration: BoxDecoration(
-                      color: loanColor(context, false),
-                      border: emiType == 'loan' ? Border.all() : null,
-                      borderRadius: BorderRadius.circular(borderRadius),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(4.0),
+                  child: InkWell(
+                    borderRadius:
+                        const BorderRadius.all(Radius.circular(borderRadius)),
+                    onTap: () => setState(() => emiType = 'loan'),
+                    child: Container(
+                      padding: const EdgeInsets.all(4.0),
+                      decoration: BoxDecoration(
+                        color: loanColor(context, false),
+                        border: emiType == 'loan' ? Border.all() : null,
+                        borderRadius: BorderRadius.circular(borderRadius),
+                      ),
+                      child: Text(l10n.loan, textAlign: TextAlign.center),
                     ),
-                    child: Text(l10n.loan, textAlign: TextAlign.center),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
         const SizedBox(height: 20),
         Expanded(
@@ -353,122 +400,138 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
                   // Title Field
                   Padding(
                     padding: const EdgeInsets.all(4.0),
-                    child: TextFormField(
-                      controller: titleC,
-                      decoration: InputDecoration(
-                        labelText: l10n.title,
-                        border: const OutlineInputBorder(),
+                    child: Showcase(
+                      key: titleKey,
+                      description: _helpTexts['title']!,
+                      child: TextFormField(
+                        controller: titleC,
+                        decoration: InputDecoration(
+                          labelText: l10n.title,
+                          border: const OutlineInputBorder(),
+                        ),
                       ),
                     ),
                   ),
                   // Principal Amount Slider
                   Padding(
                     padding: const EdgeInsets.all(4.0),
-                    child: Row(
-                      children: [
-                        Text(
-                            '${l10n.loanAmount}: $currencySymbol${principalAmount.toStringAsFixed(0)}'),
-                        Expanded(
-                          child: Slider(
-                            value: principalAmount,
-                            min: 0,
-                            max: 10000000,
-                            divisions: 100,
-                            label: principalAmount.toStringAsFixed(0),
-                            onChanged: (value) {
-                              setState(() {
-                                principalAmount = value;
-                                principalAmountC.text =
-                                    value.toStringAsFixed(0);
-                              });
-                            },
-                          ),
-                        ),
-                        SizedBox(
-                          width: 100,
-                          child: TextField(
-                            controller: principalAmountC,
-                            keyboardType: TextInputType.number,
-                            decoration: const InputDecoration(
-                              border: OutlineInputBorder(),
+                    child: Showcase(
+                      key: principalAmountKey,
+                      description: _helpTexts['principalAmount']!,
+                      child: Row(
+                        children: [
+                          Text(
+                              '${l10n.loanAmount}: $currencySymbol${principalAmount.toStringAsFixed(0)}'),
+                          Expanded(
+                            child: Slider(
+                              value: principalAmount,
+                              min: 0,
+                              max: 10000000,
+                              divisions: 100,
+                              label: principalAmount.toStringAsFixed(0),
+                              onChanged: (value) {
+                                setState(() {
+                                  principalAmount = value;
+                                  principalAmountC.text =
+                                      value.toStringAsFixed(0);
+                                });
+                              },
                             ),
-                            onChanged: (value) {
-                              setState(() {
-                                principalAmount = double.tryParse(value) ?? 0;
-                              });
-                            },
                           ),
-                        ),
-                      ],
+                          SizedBox(
+                            width: 100,
+                            child: TextField(
+                              controller: principalAmountC,
+                              keyboardType: TextInputType.number,
+                              decoration: const InputDecoration(
+                                border: OutlineInputBorder(),
+                              ),
+                              onChanged: (value) {
+                                setState(() {
+                                  principalAmount = double.tryParse(value) ?? 0;
+                                });
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                   // Interest Rate Slider
                   Padding(
                     padding: const EdgeInsets.all(4.0),
-                    child: Row(
-                      children: [
-                        Text(
-                            '${l10n.interestRate}: ${interestRate.toStringAsFixed(1)}%'),
-                        Expanded(
-                          child: Slider(
-                            value: interestRate,
-                            min: 0,
-                            max: 20,
-                            divisions: 200,
-                            label: interestRate.toStringAsFixed(1),
-                            onChanged: (value) {
-                              setState(() {
-                                interestRate = value;
-                                interestRateC.text = value.toStringAsFixed(1);
-                              });
-                            },
-                          ),
-                        ),
-                        SizedBox(
-                          width: 100,
-                          child: TextField(
-                            controller: interestRateC,
-                            keyboardType: TextInputType.number,
-                            decoration: const InputDecoration(
-                              border: OutlineInputBorder(),
+                    child: Showcase(
+                      key: interestRateKey,
+                      description: _helpTexts['interestRate']!,
+                      child: Row(
+                        children: [
+                          Text(
+                              '${l10n.interestRate}: ${interestRate.toStringAsFixed(1)}%'),
+                          Expanded(
+                            child: Slider(
+                              value: interestRate,
+                              min: 0,
+                              max: 20,
+                              divisions: 200,
+                              label: interestRate.toStringAsFixed(1),
+                              onChanged: (value) {
+                                setState(() {
+                                  interestRate = value;
+                                  interestRateC.text = value.toStringAsFixed(1);
+                                });
+                              },
                             ),
-                            onChanged: (value) {
-                              setState(() {
-                                interestRate = double.tryParse(value) ?? 0;
-                              });
-                            },
                           ),
-                        ),
-                      ],
+                          SizedBox(
+                            width: 100,
+                            child: TextField(
+                              controller: interestRateC,
+                              keyboardType: TextInputType.number,
+                              decoration: const InputDecoration(
+                                border: OutlineInputBorder(),
+                              ),
+                              onChanged: (value) {
+                                setState(() {
+                                  interestRate = double.tryParse(value) ?? 0;
+                                });
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                   // Start Date Field with Date Picker
                   Padding(
                     padding: const EdgeInsets.all(4.0),
-                    child: InkWell(
-                      onTap: () async {
-                        DateTime? pickedDate = await showDatePicker(
-                          context: context,
-                          initialDate: DateTime.now(),
-                          firstDate: DateTime(2000),
-                          lastDate: DateTime(2100),
-                        );
+                    child: Showcase(
+                      key: startDateKey,
+                      description: _helpTexts['startDate']!,
+                      child: InkWell(
+                        onTap: () async {
+                          DateTime? pickedDate = await showDatePicker(
+                            context: context,
+                            initialDate: DateTime.now(),
+                            firstDate: DateTime(2000),
+                            lastDate: DateTime(2100),
+                          );
 
-                        setState(() {
-                          startDateC.text =
-                              pickedDate!.toLocal().toString().split(' ')[0];
-                        });
-                      },
-                      child: IgnorePointer(
-                        child: TextFormField(
-                          controller: startDateC,
-                          decoration: InputDecoration(
-                            labelText: l10n.startDate,
-                            border: const OutlineInputBorder(),
+                          setState(() {
+                            startDateC.text =
+                                pickedDate!.toLocal().toString().split(' ')[0];
+                          });
+                        },
+                        child: IgnorePointer(
+                          child: TextFormField(
+                            controller: startDateC,
+                            decoration: InputDecoration(
+                              labelText: l10n.startDate,
+                              border: const OutlineInputBorder(),
+                            ),
+                            validator: (value) => value == null || value.isEmpty
+                                ? l10n.enterStartDate
+                                : null,
                           ),
-                          validator: (value) => value == null || value.isEmpty
-                              ? l10n.enterStartDate
-                              : null,
                         ),
                       ),
                     ),
@@ -476,25 +539,29 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
                   // Years Slider
                   Padding(
                     padding: const EdgeInsets.all(4.0),
-                    child: Row(
-                      children: [
-                        Text(
-                            '${l10n.tenure}: ${years.toStringAsFixed(0)} ${l10n.years}'),
-                        Expanded(
-                          child: Slider(
-                            value: years,
-                            min: 1,
-                            max: 30,
-                            divisions: 29,
-                            label: years.toStringAsFixed(0),
-                            onChanged: (value) {
-                              setState(() {
-                                years = value;
-                              });
-                            },
+                    child: Showcase(
+                      key: tenureKey,
+                      description: _helpTexts['tenure']!,
+                      child: Row(
+                        children: [
+                          Text(
+                              '${l10n.tenure}: ${years.toStringAsFixed(0)} ${l10n.years}'),
+                          Expanded(
+                            child: Slider(
+                              value: years,
+                              min: 1,
+                              max: 30,
+                              divisions: 29,
+                              label: years.toStringAsFixed(0),
+                              onChanged: (value) {
+                                setState(() {
+                                  years = value;
+                                });
+                              },
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                   // Months Slider
@@ -524,31 +591,43 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
                   // Contact Person Fields
                   Padding(
                     padding: const EdgeInsets.all(4.0),
-                    child: TextFormField(
-                      controller: contactPersonNameC,
-                      decoration: InputDecoration(
-                        labelText: l10n.contactPersonName,
-                        border: const OutlineInputBorder(),
+                    child: Showcase(
+                      key: contactPersonNameKey,
+                      description: _helpTexts['contactPersonName']!,
+                      child: TextFormField(
+                        controller: contactPersonNameC,
+                        decoration: InputDecoration(
+                          labelText: l10n.contactPersonName,
+                          border: const OutlineInputBorder(),
+                        ),
                       ),
                     ),
                   ),
                   Padding(
                     padding: const EdgeInsets.all(4.0),
-                    child: TextFormField(
-                      controller: contactPersonPhoneC,
-                      decoration: InputDecoration(
-                        labelText: l10n.contactPersonPhone,
-                        border: const OutlineInputBorder(),
+                    child: Showcase(
+                      key: contactPersonPhoneKey,
+                      description: _helpTexts['contactPersonPhone']!,
+                      child: TextFormField(
+                        controller: contactPersonPhoneC,
+                        decoration: InputDecoration(
+                          labelText: l10n.contactPersonPhone,
+                          border: const OutlineInputBorder(),
+                        ),
                       ),
                     ),
                   ),
                   Padding(
                     padding: const EdgeInsets.all(4.0),
-                    child: TextFormField(
-                      controller: contactPersonEmailC,
-                      decoration: InputDecoration(
-                        labelText: l10n.contactPersonEmail,
-                        border: const OutlineInputBorder(),
+                    child: Showcase(
+                      key: contactPersonEmailKey,
+                      description: _helpTexts['contactPersonEmail']!,
+                      child: TextFormField(
+                        controller: contactPersonEmailC,
+                        decoration: InputDecoration(
+                          labelText: l10n.contactPersonEmail,
+                          border: const OutlineInputBorder(),
+                        ),
                       ),
                     ),
                   ),
