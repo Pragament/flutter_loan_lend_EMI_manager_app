@@ -72,6 +72,7 @@ class HomePageState extends ConsumerState<HomePage> {
   bool _showErrorLottie = false;
 
   bool _tourInProgress = false;
+  bool _newEmiTourInProgress = false;
 
   @override
   void didChangeDependencies() {
@@ -835,6 +836,28 @@ class HomePageState extends ConsumerState<HomePage> {
     // Check if there are any EMIs in the database
     if (allEmis.isEmpty) {
       return ShowCaseWidget(
+        onFinish: () async {
+          if (_tourInProgress) {
+            setState(() {
+              _tourInProgress = false;
+              _newEmiTourInProgress = true;
+            });
+            // Navigate to NewEmiPage and start its tour
+            await Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => NewEmiPage(
+                  emiType: 'loan',
+                  startTour: true,
+                  // Optionally pass a callback or use a global state to return
+                ),
+              ),
+            );
+            setState(() {
+              _newEmiTourInProgress = false;
+            });
+            // After returning from NewEmiPage, you are back on HomePage
+          }
+        },
         builder: (context) => Scaffold(
           appBar: AppBar(
             title: Text(l10n.appTitle),
@@ -965,16 +988,25 @@ class HomePageState extends ConsumerState<HomePage> {
     });
 
     return ShowCaseWidget(
-      onFinish: () {
+      onFinish: () async {
         if (_tourInProgress) {
           setState(() {
             _tourInProgress = false;
+            _newEmiTourInProgress = true;
           });
-          Navigator.of(context).push(
+          // Navigate to NewEmiPage and start its tour
+          await Navigator.of(context).push(
             MaterialPageRoute(
-              builder: (context) => NewEmiPage(emiType: 'loan', startTour: true),
+              builder: (context) => NewEmiPage(
+                emiType: 'loan',
+                startTour: true,
+              ),
             ),
           );
+          setState(() {
+            _newEmiTourInProgress = false;
+          });
+          // After returning from NewEmiPage, you are back on HomePage
         }
       },
       builder: (context) => Scaffold(
