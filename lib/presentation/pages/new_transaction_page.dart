@@ -97,7 +97,13 @@ class _NewTransactionPageState extends ConsumerState<NewTransactionPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('New Transaction'),
+        title: const Text('New Transaction', 
+          style: TextStyle(
+            fontFamily: 'Roboto',
+            fontSize: 22,
+            fontWeight: FontWeight.w500
+          )
+        ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
@@ -114,7 +120,13 @@ class _NewTransactionPageState extends ConsumerState<NewTransactionPage> {
                 children: [
                   widget.type == 'CR'
                       ? ChoiceChip(
-                          label: const Text('Income'),
+                          label: const Text('Income',
+                            style: TextStyle(
+                              fontFamily: 'Roboto',
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500
+                            )
+                          ),
                           selected: isIncome,
                           onSelected: (selected) {
                             setState(() {
@@ -124,6 +136,9 @@ class _NewTransactionPageState extends ConsumerState<NewTransactionPage> {
                           selectedColor: Colors.deepPurple,
                           labelStyle: TextStyle(
                             color: isIncome ? Colors.white : Colors.deepPurple,
+                            fontFamily: 'Roboto',
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500
                           ),
                           backgroundColor: Colors.white,
                           shape: const StadiumBorder(
@@ -131,7 +146,13 @@ class _NewTransactionPageState extends ConsumerState<NewTransactionPage> {
                           ),
                         )
                       : ChoiceChip(
-                          label: const Text('Expense'),
+                          label: const Text('Expense',
+                            style: TextStyle(
+                              fontFamily: 'Roboto',
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500
+                            )
+                          ),
                           selected: isIncome,
                           onSelected: (selected) {
                             setState(() {
@@ -141,6 +162,9 @@ class _NewTransactionPageState extends ConsumerState<NewTransactionPage> {
                           selectedColor: Colors.deepPurple,
                           labelStyle: TextStyle(
                             color: isIncome ? Colors.white : Colors.deepPurple,
+                            fontFamily: 'Roboto',
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500
                           ),
                           backgroundColor: Colors.white,
                           shape: const StadiumBorder(
@@ -150,8 +174,18 @@ class _NewTransactionPageState extends ConsumerState<NewTransactionPage> {
                   const SizedBox(height: 20),
                   TextFormField(
                     controller: _titleController,
+                    style: const TextStyle(
+                      fontFamily: 'Roboto',
+                      fontSize: 16,
+                      fontWeight: FontWeight.w400
+                    ),
                     decoration: InputDecoration(
                       labelText: 'Title',
+                      labelStyle: const TextStyle(
+                        fontFamily: 'Roboto',
+                        fontSize: 16,
+                        fontWeight: FontWeight.w400
+                      ),
                       filled: true,
                       fillColor: Colors.deepPurple[50],
                       border: OutlineInputBorder(
@@ -168,8 +202,18 @@ class _NewTransactionPageState extends ConsumerState<NewTransactionPage> {
                   const SizedBox(height: 16),
                   TextFormField(
                     controller: _descriptionController,
+                    style: const TextStyle(
+                      fontFamily: 'Roboto',
+                      fontSize: 16,
+                      fontWeight: FontWeight.w400
+                    ),
                     decoration: InputDecoration(
                       labelText: 'Description',
+                      labelStyle: const TextStyle(
+                        fontFamily: 'Roboto',
+                        fontSize: 16,
+                        fontWeight: FontWeight.w400
+                      ),
                       filled: true,
                       fillColor: Colors.deepPurple[50],
                       border: OutlineInputBorder(
@@ -180,10 +224,20 @@ class _NewTransactionPageState extends ConsumerState<NewTransactionPage> {
                   const SizedBox(height: 16),
                   TextFormField(
                     controller: _amountController,
+                    style: const TextStyle(
+                      fontFamily: 'Roboto',
+                      fontSize: 16,
+                      fontWeight: FontWeight.w400
+                    ),
                     keyboardType: TextInputType.number,
                     decoration: InputDecoration(
                       prefixText: '₹ ',
                       labelText: '0.0',
+                      labelStyle: const TextStyle(
+                        fontFamily: 'Roboto',
+                        fontSize: 16,
+                        fontWeight: FontWeight.w400
+                      ),
                       filled: true,
                       fillColor: Colors.deepPurple[50],
                       border: OutlineInputBorder(
@@ -213,7 +267,11 @@ class _NewTransactionPageState extends ConsumerState<NewTransactionPage> {
                             const SizedBox(width: 5),
                             Text(
                               _formattedDate,
-                              style: const TextStyle(fontSize: 16),
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontFamily: 'Roboto',
+                                fontWeight: FontWeight.w400
+                              ),
                             ),
                           ],
                         ),
@@ -227,7 +285,11 @@ class _NewTransactionPageState extends ConsumerState<NewTransactionPage> {
                             const SizedBox(width: 5),
                             Text(
                               _formattedTime,
-                              style: const TextStyle(fontSize: 16),
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontFamily: 'Roboto',
+                                fontWeight: FontWeight.w400
+                              ),
                             ),
                           ],
                         ),
@@ -261,7 +323,12 @@ class _NewTransactionPageState extends ConsumerState<NewTransactionPage> {
                       ),
                       child: const Text(
                         'Save',
-                        style: TextStyle(fontSize: 18, color: Colors.white),
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: Colors.white,
+                          fontFamily: 'Roboto',
+                          fontWeight: FontWeight.w500
+                        ),
                       ),
                     ),
                   ),
