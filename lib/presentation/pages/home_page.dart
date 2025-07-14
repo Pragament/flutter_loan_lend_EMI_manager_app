@@ -1354,7 +1354,7 @@ class HomePageState extends ConsumerState<HomePage> {
       double remainingPrincipal = emi.principalAmount;
       for (int month = 0; month < tenureInYears * 12; month++) {
         double monthlyInterestRate = emi.interestRate / (12 * 100);
-        double monthlyInterest = remainingPrincipal * monthlyInterestRate;
+        double monthlyInterest = monthlyInterestRate == 0 ? 0 : remainingPrincipal * monthlyInterestRate;
         double monthlyPrincipal = monthlyEmi - monthlyInterest;
         remainingPrincipal -= monthlyPrincipal;
 
@@ -1381,11 +1381,15 @@ class HomePageState extends ConsumerState<HomePage> {
     double monthlyInterestRate = interestRate / (12 * 100);
     int totalMonths = tenureYears * 12;
 
-    // Calculate and return the EMI amount
-    double emiAmount = (principalAmount *
-            monthlyInterestRate *
-            pow(1 + monthlyInterestRate, totalMonths)) /
-        (pow(1 + monthlyInterestRate, totalMonths) - 1);
+    double emiAmount;
+    if (monthlyInterestRate == 0 || totalMonths == 0) {
+      emiAmount = totalMonths > 0 ? principalAmount / totalMonths : principalAmount;
+    } else {
+      emiAmount = (principalAmount *
+              monthlyInterestRate *
+              pow(1 + monthlyInterestRate, totalMonths)) /
+          (pow(1 + monthlyInterestRate, totalMonths) - 1);
+    }
 
     // Apply rounding from our GlobalFormatter
     return GlobalFormatter.roundNumber(ref, emiAmount);

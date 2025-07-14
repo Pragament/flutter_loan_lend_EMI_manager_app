@@ -48,13 +48,18 @@ class HomeBarGraph extends StatelessWidget {
       tenureMonths = (endYear - startYear + 1) * 12;
 
       // Monthly EMI calculation
-      double monthlyEmi = (remainingPrincipal * monthlyInterestRate) /
-          (1 - pow(1 + monthlyInterestRate, -tenureMonths));
+      double monthlyEmi;
+      if (monthlyInterestRate == 0 || tenureMonths == 0) {
+        monthlyEmi = tenureMonths > 0 ? remainingPrincipal / tenureMonths : remainingPrincipal;
+      } else {
+        monthlyEmi = (remainingPrincipal * monthlyInterestRate) /
+            (1 - pow(1 + monthlyInterestRate, -tenureMonths));
+      }
 
       // Amortization loop to split EMI payments into yearly principal and interest
       for (int month = 0; month < tenureMonths; month++) {
         int currentYear = startYear + (month ~/ 12);
-        double monthlyInterest = remainingPrincipal * monthlyInterestRate;
+        double monthlyInterest = monthlyInterestRate == 0 ? 0 : remainingPrincipal * monthlyInterestRate;
         double monthlyPrincipal = monthlyEmi - monthlyInterest;
 
         // Deduct principal paid from the remaining principal
