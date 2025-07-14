@@ -387,22 +387,27 @@ class _EmiDetailsPageState extends ConsumerState<EmiDetailsPage> {
     double monthlyInterestRate = interestAmount / (12 * 100);
     int totalMonths = tenureYears * 12;
 
-    double monthlyEmi = GlobalFormatter.roundNumber(
+    double monthlyEmi;
+    if (monthlyInterestRate == 0) {
+      monthlyEmi = principalAmount / (totalMonths > 0 ? totalMonths : 1);
+    } else {
+      monthlyEmi = GlobalFormatter.roundNumber(
         ref,
         (principalAmount *
                 monthlyInterestRate *
                 pow(1 + monthlyInterestRate, totalMonths)) /
-            (pow(1 + monthlyInterestRate, totalMonths) - 1));
+            (pow(1 + monthlyInterestRate, totalMonths) - 1),
+      );
+    }
 
     double remainingPrincipal = principalAmount;
 
     for (int month = 0; month < totalMonths; month++) {
-      double monthlyInterest = GlobalFormatter.roundNumber(
-          ref, remainingPrincipal * monthlyInterestRate);
-      double monthlyPrincipal =
-          GlobalFormatter.roundNumber(ref, monthlyEmi - monthlyInterest);
-      remainingPrincipal = GlobalFormatter.roundNumber(
-          ref, remainingPrincipal - monthlyPrincipal);
+      double monthlyInterest = monthlyInterestRate == 0
+          ? 0
+          : GlobalFormatter.roundNumber(ref, remainingPrincipal * monthlyInterestRate);
+      double monthlyPrincipal = GlobalFormatter.roundNumber(ref, monthlyEmi - monthlyInterest);
+      remainingPrincipal = GlobalFormatter.roundNumber(ref, remainingPrincipal - monthlyPrincipal);
 
       DateTime currentMonth =
           DateTime(paymentDate.year, paymentDate.month + month);

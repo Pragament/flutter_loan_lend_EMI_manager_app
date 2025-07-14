@@ -1335,12 +1335,19 @@ class HomePageState extends ConsumerState<HomePage> {
       final int tenureInYears = ((emi.endDate?.year ?? 0) - emi.startDate.year);
 
       final int sign = emi.emiType == 'loan' ? (-1) : 1;
-      double monthlyEmi =
-          _calculateEMI(emi.principalAmount, emi.interestRate, tenureInYears);
+      double monthlyInterestRate = emi.interestRate / (12 * 100);
+      int totalMonths = tenureInYears * 12;
+      double monthlyEmi;
+      if (monthlyInterestRate == 0) {
+        monthlyEmi = emi.principalAmount / (totalMonths > 0 ? totalMonths : 1);
+      } else {
+        monthlyEmi = _calculateEMI(emi.principalAmount, emi.interestRate, tenureInYears);
+      }
       double remainingPrincipal = emi.principalAmount;
-      for (int month = 0; month < tenureInYears * 12; month++) {
-        double monthlyInterestRate = emi.interestRate / (12 * 100);
-        double monthlyInterest = remainingPrincipal * monthlyInterestRate;
+      for (int month = 0; month < totalMonths; month++) {
+        double monthlyInterest = monthlyInterestRate == 0
+            ? 0
+            : remainingPrincipal * monthlyInterestRate;
         double monthlyPrincipal = monthlyEmi - monthlyInterest;
         remainingPrincipal -= monthlyPrincipal;
 
@@ -1363,17 +1370,15 @@ class HomePageState extends ConsumerState<HomePage> {
 
   double _calculateEMI(
       double principalAmount, double interestRate, int tenureYears) {
-    // Calculate the monthly interest rate
     double monthlyInterestRate = interestRate / (12 * 100);
     int totalMonths = tenureYears * 12;
-
-    // Calculate and return the EMI amount
+    if (monthlyInterestRate == 0) {
+      return principalAmount / (totalMonths > 0 ? totalMonths : 1);
+    }
     double emiAmount = (principalAmount *
             monthlyInterestRate *
             pow(1 + monthlyInterestRate, totalMonths)) /
         (pow(1 + monthlyInterestRate, totalMonths) - 1);
-
-    // Apply rounding from our GlobalFormatter
     return GlobalFormatter.roundNumber(ref, emiAmount);
   }
 
