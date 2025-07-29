@@ -1,3 +1,4 @@
+import 'package:emi_manager/data/models/emi_model.dart';
 import 'package:emi_manager/data/models/transaction_model.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -35,4 +36,6 @@ class TransactionsNotifier extends _$TransactionsNotifier {
   Future<Transaction?> getTransactionById(String id) async {
     return _box.get(id);
   }
+
+  void deleteTransaction(Emi emi) {}
 }
