@@ -12,12 +12,14 @@ import 'package:go_router/go_router.dart';
 
 class EmiCardWidget extends ConsumerWidget {
   final Emi emi;
-  final VoidCallback? onDelete;
+  final VoidCallback? onDeletePressed;
+  final VoidCallback? onLoanOrLendModified;
 
   const EmiCardWidget({
     super.key,
     required this.emi,
-    this.onDelete,
+    this.onDeletePressed,
+    this.onLoanOrLendModified,
   });
 
   @override
@@ -59,13 +61,16 @@ class EmiCardWidget extends ConsumerWidget {
                   ),
                 ),
                 PopupMenuButton<String>(
-                  onSelected: (value) {
+                  onSelected: (value) async {
                     if (value == 'edit') {
-                      GoRouter.of(context).go(
-                          NewEmiRoute(emiType: emi.emiType, emiId: emi.id)
-                              .location);
+                      await GoRouter.of(context).push(
+                        NewEmiRoute(emiType: emi.emiType, emiId: emi.id)
+                            .location,
+                      );
+                      onLoanOrLendModified
+                          ?.call(); // ✅ Called after edit screen is popped
                     } else if (value == 'delete') {
-                      onDelete?.call();
+                      onDeletePressed?.call();
                     }
                   },
                   itemBuilder: (context) => [

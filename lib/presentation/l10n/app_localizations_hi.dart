@@ -206,6 +206,7 @@ class AppLocalizationsHi extends AppLocalizations {
   @override
   String get welcome =>
       'आप हमारे ऐप के हिंदी संस्करण में हैं। यहाँ आप अपने ऋण और ई.एम.आई को आसानी से प्रबंधित कर सकते हैं।';
+=======
 
   @override
   String get eulaLoadError => 'EULA लोड करने में विफल.';
@@ -248,4 +249,5 @@ class AppLocalizationsHi extends AppLocalizations {
 
   @override
   String get tourButtonLabel => 'टूर';
+
 }

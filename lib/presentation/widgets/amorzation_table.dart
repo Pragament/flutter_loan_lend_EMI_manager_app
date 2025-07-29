@@ -9,12 +9,14 @@ class AmortizationSummaryTable extends ConsumerStatefulWidget {
   final List<AmortizationEntry> entries; // Full schedule for all loans/lends
   final DateTime startDate;
   final int tenureInYears;
+  final void Function(AmortizationEntry)? onDeleteEntry; // ADD THIS LINE
 
   const AmortizationSummaryTable({
     super.key,
     required this.entries,
     required this.startDate,
     required this.tenureInYears,
+    this.onDeleteEntry, // ADD THIS LINE
   });
 
   @override
@@ -57,6 +59,9 @@ class _AmortizationSummaryTableState
           DataColumn(label: Text('Principal ($currencySymbol)')),
           DataColumn(label: Text('Interest ($currencySymbol)')),
           DataColumn(label: Text('Total Payment ($currencySymbol)')),
+          // ADD THIS COLUMN IF YOU WANT DELETE BUTTONS
+          if (widget.onDeleteEntry != null)
+            const DataColumn(label: Text('Actions')),
         ],
         rows: _buildYearlyRows(currentYear),
       ),
@@ -98,6 +103,9 @@ class _AmortizationSummaryTableState
           DataCell(FormattedAmount(amount: totalPrincipal)),
           DataCell(FormattedAmount(amount: totalInterest)),
           DataCell(FormattedAmount(amount: totalPayment)),
+          // ADD THIS CELL IF YOU WANT DELETE BUTTONS
+          if (widget.onDeleteEntry != null)
+            const DataCell(SizedBox.shrink()), // Empty cell for year rows
         ],
       ));
 
@@ -164,6 +172,9 @@ class _AmortizationSummaryTableState
           DataCell(FormattedAmount(amount: monthlyPrincipal)),
           DataCell(FormattedAmount(amount: monthlyInterest)),
           DataCell(FormattedAmount(amount: monthlyPayment)),
+          // ADD THIS CELL IF YOU WANT DELETE BUTTONS
+          if (widget.onDeleteEntry != null)
+            const DataCell(SizedBox.shrink()), // Empty cell for month rows
         ],
       ));
 
@@ -188,6 +199,14 @@ class _AmortizationSummaryTableState
           DataCell(FormattedAmount(amount: entry.principal)),
           DataCell(FormattedAmount(amount: entry.interest)),
           DataCell(FormattedAmount(amount: entry.totalPayment)),
+          // ADD THIS CELL FOR DELETE BUTTON ON INDIVIDUAL ENTRIES
+          if (widget.onDeleteEntry != null)
+            DataCell(
+              IconButton(
+                icon: const Icon(Icons.delete, color: Colors.red),
+                onPressed: () => widget.onDeleteEntry!(entry),
+              ),
+            ),
         ],
       );
     }).toList();
@@ -222,6 +241,7 @@ class AmortizationEntry {
   final int year;
   final int month;
   final int type;
+  final String emiId; // ADD THIS LINE
 
   AmortizationEntry({
     required this.title,
@@ -231,5 +251,6 @@ class AmortizationEntry {
     required this.year,
     required this.month,
     required this.type,
+    required this.emiId, // ADD THIS LINE
   });
 }

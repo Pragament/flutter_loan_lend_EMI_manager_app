@@ -99,6 +99,10 @@ class HomeBarGraph extends StatelessWidget {
             interest = (interest*monthsLeft)/12.0;
         }
 
+        // Clamp negative values to zero
+        principal = principal < 0 ? 0.0 : principal;
+        interest = interest < 0 ? 0.0 : interest;
+
         rods.add(
           BarChartRodData(
             toY: principal + interest,
