@@ -37,10 +37,10 @@ class _EmiDetailsPageState extends ConsumerState<EmiDetailsPage> {
     final emi = ref.watch(emisNotifierProvider
         .select((emis) => emis.firstWhere((emi) => emi.id == widget.emiId)));
 
-    final List<Transaction> transactions = ref
+    final List<Transaction> transactions = [...ref
         .watch(transactionsNotifierProvider)
-        .where((transaction) => transaction.loanLendId == widget.emiId)
-        .toList();
+        .where((transaction) => transaction.loanLendId == widget.emiId)]
+      ..sort((a, b) => a.datetime.compareTo(b.datetime));
 
     final l10n = AppLocalizations.of(context)!;
     final emiTypeColor = emi.emiType == 'lend'
@@ -386,6 +386,7 @@ class _EmiDetailsPageState extends ConsumerState<EmiDetailsPage> {
     double monthlyInterestRate = interestAmount / (12 * 100);
     int totalMonths = tenureYears * 12;
 
+
     double monthlyEmi = GlobalFormatter.roundNumber(
         ref,
         (principalAmount *
@@ -416,8 +417,56 @@ class _EmiDetailsPageState extends ConsumerState<EmiDetailsPage> {
   year: currentMonth.year,
   month: currentMonth.month, type: 'emi',
 ));
-    }
+=======
+    if (interestAmount == 0 || monthlyInterestRate == 0) {
+      // Handle 0% interest case
+      double monthlyPrincipal = principalAmount / totalMonths;
+      double remainingPrincipal = principalAmount;
+      for (int month = 0; month < totalMonths; month++) {
+        double principalPaid = (month == totalMonths - 1)
+            ? remainingPrincipal // last payment, clear all
+            : monthlyPrincipal;
+        remainingPrincipal -= principalPaid;
+        DateTime currentMonth = DateTime(paymentDate.year, paymentDate.month + month);
+        schedule.add(AmortizationEntry(
+          paymentDate: currentMonth,
+          principal: principalPaid,
+          interest: 0.0,
+          totalPayment: principalPaid,
+          balance: remainingPrincipal < 0 ? 0 : remainingPrincipal,
+          year: currentMonth.year,
+          month: currentMonth.month,
+        ));
+      }
+    } else {
+      double monthlyEmi = GlobalFormatter.roundNumber(
+          ref,
+          (principalAmount *
+                  monthlyInterestRate *
+                  pow(1 + monthlyInterestRate, totalMonths)) /
+              (pow(1 + monthlyInterestRate, totalMonths) - 1));
+      double remainingPrincipal = principalAmount;
+      for (int month = 0; month < totalMonths; month++) {
+        double monthlyInterest = GlobalFormatter.roundNumber(
+            ref, remainingPrincipal * monthlyInterestRate);
+        double monthlyPrincipal =
+            GlobalFormatter.roundNumber(ref, monthlyEmi - monthlyInterest);
+        remainingPrincipal = GlobalFormatter.roundNumber(
+            ref, remainingPrincipal - monthlyPrincipal);
+        DateTime currentMonth =
+            DateTime(paymentDate.year, paymentDate.month + month);
+        schedule.add(AmortizationEntry(
+          paymentDate: currentMonth,
+          principal: monthlyPrincipal,
+          interest: monthlyInterest,
+          totalPayment: monthlyEmi,
+          balance: remainingPrincipal,
+          year: currentMonth.year,
+          month: currentMonth.month,
+        ));
+      }
 
+    }
     return schedule;
   }
 

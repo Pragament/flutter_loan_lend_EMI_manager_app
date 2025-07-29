@@ -495,6 +495,84 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Welcome to the English version of our app. Here you can manage your loans and EMIs efficiently.'**
   String get welcome;
+
+  /// No description provided for @eulaLoadError.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to load EULA.'**
+  String get eulaLoadError;
+
+  /// No description provided for @eulaRetry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get eulaRetry;
+
+  /// No description provided for @eulaVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'Version'**
+  String get eulaVersion;
+
+  /// No description provided for @eulaAgree.
+  ///
+  /// In en, this message translates to:
+  /// **'I have read the entire terms and conditions'**
+  String get eulaAgree;
+
+  /// No description provided for @eulaAccept.
+  ///
+  /// In en, this message translates to:
+  /// **'Accept'**
+  String get eulaAccept;
+
+  /// No description provided for @eulaDecline.
+  ///
+  /// In en, this message translates to:
+  /// **'Decline'**
+  String get eulaDecline;
+
+  /// No description provided for @eulaTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'End User License Agreement'**
+  String get eulaTitle;
+
+  /// No description provided for @eulaDeclined.
+  ///
+  /// In en, this message translates to:
+  /// **'EULA Declined'**
+  String get eulaDeclined;
+
+  /// No description provided for @eulaAlertDialog.
+  ///
+  /// In en, this message translates to:
+  /// **'You must accept the EULA to use this app.'**
+  String get eulaAlertDialog;
+
+  /// No description provided for @close.
+  ///
+  /// In en, this message translates to:
+  /// **'Close'**
+  String get close;
+
+  /// No description provided for @noDataTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No data yet. Let\'s get started!'**
+  String get noDataTitle;
+
+  /// No description provided for @noDataDescription.
+  ///
+  /// In en, this message translates to:
+  /// **'Start by creating a Loan or Lend using the buttons below.\nYou\'ll then see helpful charts and tables here to track your finances.\nTap the Tour button anytime to let the app guide you through the process.'**
+  String get noDataDescription;
+
+  /// No description provided for @tourButtonLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Tour'**
+  String get tourButtonLabel;
 }
 
 class _AppLocalizationsDelegate

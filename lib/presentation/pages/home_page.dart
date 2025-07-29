@@ -665,6 +665,148 @@ class HomePageState extends ConsumerState<HomePage> {
       );
     }
   }
+    Future<void> _importTransactionsCSV() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles();
+
+    if (result != null) {
+      final file = File(result.files.single.path!);
+      final content = await file.readAsString();
+      List<List<dynamic>> csv = [];
+      try {
+        csv = CsvToListConverter(eol: '\n', fieldDelimiter: ',', textDelimiter: '"').convert(content);
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Invalid CSV format.")));
+        return;
+      }
+
+      final List<Map<String, dynamic>> transactions = [];
+      final Set<String> groupTags = {};
+      final Set<String> seenTagsLowercase = {};
+
+      for (int i = 1; i < csv.length; i++) {
+        final row = csv[i];
+        final originalTag = row[4].toString().trim();
+        final lowerTag = originalTag.toLowerCase();
+  
+        // Clean amounts by removing quotes and commas
+        final debitStr = row[0].toString().replaceAll(RegExp(r'[",]'), '').trim();
+        final creditStr = row[1].toString().replaceAll(RegExp(r'[",]'), '').trim();
+  
+        transactions.add({
+          'debit': double.tryParse(debitStr) ?? 0,
+          'credit': double.tryParse(creditStr) ?? 0,
+          'date': row[2],
+          'title': row[3],
+          'group_tag': originalTag,
+        });
+        if (!seenTagsLowercase.contains(lowerTag)) {
+          groupTags.add(originalTag);
+          seenTagsLowercase.add(lowerTag);
+        }
+      }
+
+      // Automap group_tags to existing EMI groupTag (not Tag box)
+      final loanLendBox = Hive.box<Emi>('emis');
+      final Map<String, String> autoMapped = {};
+      final List<String> tagsToMap = [];
+      for (final tag in groupTags) {
+        final isCredit = transactions.any(
+          (tx) => tx['group_tag'] == tag && (tx['credit'] ?? 0) > 0,
+        );
+        final matchingEmis = loanLendBox.values.where((emi) {
+          final hasMatchingTag = emi.tags.any(
+            (t) => t.name.trim().toLowerCase() == tag.trim().toLowerCase(),
+          );
+          return hasMatchingTag && (
+            (isCredit && emi.emiType == 'lend') || 
+            (!isCredit && emi.emiType == 'loan')
+          );
+        }).toList();
+
+        if (matchingEmis.isNotEmpty) {
+          for (final emi in matchingEmis) {
+            autoMapped['${tag}_${emi.id}'] = emi.id;
+          }
+        } else {
+            tagsToMap.add(tag);
+          }
+      }
+      final Map<String, String?> manualMapped = await _promptUserForMappings(transactions, tagsToMap);
+      final Map<String, String?> mapping = {...autoMapped, ...manualMapped};
+      if (mapping.values.any((v) => v == null)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Please map all group tags.")),
+        );
+        return;
+      }
+
+      for (final row in transactions) {
+        final debit = row['debit'] as double;
+        final credit = row['credit'] as double;
+        double amount = 0;
+        String transactionType = '';
+
+        if (credit > 0) {
+          amount = credit;
+          transactionType = 'CR';
+        } else if (debit > 0) {
+          amount = debit;
+          transactionType = 'DR';
+        } else {
+          // Skip if both are zero or blank
+          continue;
+        }
+        if (amount == 0) {
+          print("Skipping empty transaction with 0 amount: ${row['title']}");
+          continue;
+        }
+
+        final date = DateFormat('dd-MMM-yyyy').parse(row['date']);
+        final tag = row['group_tag'].toString().trim();
+        final matchedEmis = loanLendBox.values.where((emi) {
+          final matchesTag = emi.tags.any(
+            (t) => t.name.trim().toLowerCase() == tag.toLowerCase(),
+          );
+          final isMappedEmi = mapping[tag] == emi.id;
+
+          // Use transactionType for logic
+          final matchLoan = transactionType == 'DR' && emi.emiType == 'loan';
+          final matchLend = transactionType == 'CR' && emi.emiType == 'lend';
+
+          return (matchLoan || matchLend) && (matchesTag || isMappedEmi);
+        }).toList();
+
+        if (matchedEmis.isEmpty) {
+          continue;
+        }
+
+        final addedEmiIds = <String>{};
+        for (final emi in matchedEmis) {
+          final isMappedEmi = mapping[tag] == emi.id;
+          final hasTag = emi.tags.any((t) => t.name.trim().toLowerCase() == tag.toLowerCase());
+
+          if ((isMappedEmi || hasTag) && !addedEmiIds.contains(emi.id)) {
+            final transaction = Transaction(
+              id: const Uuid().v4(),
+              title: row['title'].toString(),
+              description: '',
+              amount: amount,
+              type: transactionType, // Use the calculated type
+              datetime: date,
+              loanLendId: emi.id,
+            );
+            ref.read(transactionsNotifierProvider.notifier).add(transaction);
+            addedEmiIds.add(emi.id);
+          }
+        }
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Transactions imported from CSV")),
+      );
+    }
+  }
+
 
   Future<void> _importTransactionsCSV() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles();
@@ -816,6 +958,11 @@ class HomePageState extends ConsumerState<HomePage> {
 
   Future<Map<String, String?>> _promptUserForMappings(
       List<Map<String, dynamic>> transactions, List<String> tags) async {
+=======
+  Future<Map<String, String?>> _promptUserForMappings(
+      List<Map<String, dynamic>> transactions,
+      List<String> tags) async {
+
     if (tags.isEmpty) {
       return {};
     }
@@ -830,8 +977,15 @@ class HomePageState extends ConsumerState<HomePage> {
       ),
     );
 
+
     return result ?? {};
   }
+
+=======
+    
+    return result ?? {};
+  }
+  
 
   @override
   Widget build(BuildContext context) {
@@ -901,8 +1055,12 @@ class HomePageState extends ConsumerState<HomePage> {
                         children: [
                           Text(
                             AppLocalizations.of(context)!.noDataTitle,
+
                             style: TextStyle(
                                 fontWeight: FontWeight.bold, fontSize: 20),
+=======
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+
                             textAlign: TextAlign.center,
                           ),
                           const SizedBox(height: 12),
@@ -913,8 +1071,11 @@ class HomePageState extends ConsumerState<HomePage> {
                           const SizedBox(height: 24),
                           ElevatedButton.icon(
                             icon: Icon(Icons.tour),
+
                             label: Text(
                                 AppLocalizations.of(context)!.tourButtonLabel),
+=======
+                            label: Text(AppLocalizations.of(context)!.tourButtonLabel)
                             onPressed: () {
                               setState(() {
                                 _tourInProgress = true;
@@ -1110,11 +1271,17 @@ class HomePageState extends ConsumerState<HomePage> {
                 padding: const EdgeInsets.only(top: 10, left: 10, right: 10),
                 child: FloatingActionButton.extended(
                   onPressed: _importTransactionsCSV,
+
+                  
                   backgroundColor:
                       loanColor(context, false), // same color as Import CSV
                   label: const Text("Import Transactions CSV"),
                   icon: const Icon(
                       Icons.arrow_downward), // same icon as Import CSV
+=======
+                  backgroundColor: loanColor(context, false), // same color as Import CSV
+                  label: const Text("Import Transactions CSV"),
+                  icon: const Icon(Icons.arrow_downward), // same icon as Import CSV
                 ),
               ),
             ],
@@ -1365,9 +1532,13 @@ class HomePageState extends ConsumerState<HomePage> {
       double remainingPrincipal = emi.principalAmount;
       for (int month = 0; month < tenureInYears * 12; month++) {
         double monthlyInterestRate = emi.interestRate / (12 * 100);
+
         double monthlyInterest = monthlyInterestRate == 0
             ? 0
             : remainingPrincipal * monthlyInterestRate;
+=======
+        double monthlyInterest = monthlyInterestRate == 0 ? 0 : remainingPrincipal * monthlyInterestRate;
+
         double monthlyPrincipal = monthlyEmi - monthlyInterest;
         remainingPrincipal -= monthlyPrincipal;
 
@@ -1397,8 +1568,12 @@ class HomePageState extends ConsumerState<HomePage> {
 
     double emiAmount;
     if (monthlyInterestRate == 0 || totalMonths == 0) {
+
       emiAmount =
           totalMonths > 0 ? principalAmount / totalMonths : principalAmount;
+=======
+      emiAmount = totalMonths > 0 ? principalAmount / totalMonths : principalAmount;
+
     } else {
       emiAmount = (principalAmount *
               monthlyInterestRate *
@@ -1783,8 +1958,12 @@ class MappingScreen extends StatefulWidget {
   final List<Map<String, dynamic>> transactions;
   final List<String> tags;
 
+
   const MappingScreen(
       {super.key, required this.transactions, required this.tags});
+=======
+  const MappingScreen({super.key, required this.transactions, required this.tags});
+
 
   @override
   State<MappingScreen> createState() => _MappingScreenState();
@@ -1802,8 +1981,13 @@ class _MappingScreenState extends State<MappingScreen> {
   }
 
   List<Emi> getOptions(String tag) {
+
     final isDebit = widget.transactions
         .any((tx) => tx['group_tag'] == tag && (tx['debit'] ?? 0) > 0);
+=======
+    final isDebit = widget.transactions.any(
+        (tx) => tx['group_tag'] == tag && (tx['debit'] ?? 0) > 0);
+
     final loanLendBox = Hive.box<Emi>('emis');
     final allEntries = loanLendBox.values.toList();
     return allEntries
@@ -1877,6 +2061,7 @@ class _MappingScreenState extends State<MappingScreen> {
   }
 }
 
+
 // Helper to get transactions sorted by datetime ascending
 List<Transaction> _getSortedTransactions(WidgetRef ref) {
   final transactions = ref.watch(transactionsNotifierProvider);
@@ -1884,3 +2069,11 @@ List<Transaction> _getSortedTransactions(WidgetRef ref) {
     ..sort((a, b) => a.datetime.compareTo(b.datetime));
   return sorted;
 }
+=======
+  // Helper to get transactions sorted by datetime ascending
+  List<Transaction> _getSortedTransactions(WidgetRef ref) {
+    final transactions = ref.watch(transactionsNotifierProvider);
+    final sorted = [...transactions]..sort((a, b) => a.datetime.compareTo(b.datetime));
+    return sorted;
+  }
+

@@ -3,6 +3,7 @@ import 'package:emi_manager/utils/number_formatter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'dart:math';
 
+
 /// Provider to calculate and round EMI values for given parameters.
 final emiCalculationProvider = Provider.family<double, EmiParams>((ref, params) {
   final double monthlyRate = params.annualInterestRate / 1200;
@@ -17,6 +18,22 @@ final emiCalculationProvider = Provider.family<double, EmiParams>((ref, params) 
   } else {
     final powFactor = pow(1 + monthlyRate, totalMonths);
     emi = params.principalAmount * monthlyRate * powFactor / (powFactor - 1);
+=======
+/// A provider that calculates and rounds EMI values
+final emiCalculationProvider =
+    Provider.family<double, EmiParams>((ref, params) {
+  // Calculate EMI
+  final monthlyRate = params.annualInterestRate / (12 * 100);
+  final totalMonths = params.tenureInYears * 12;
+
+  double emi;
+  if (monthlyRate == 0 || totalMonths == 0) {
+    emi = totalMonths > 0 ? params.principalAmount / totalMonths : params.principalAmount;
+  } else {
+    emi = params.principalAmount *
+        monthlyRate *
+        pow(1 + monthlyRate, totalMonths) /
+        (pow(1 + monthlyRate, totalMonths) - 1);
   }
 
   // Round the EMI according to settings
