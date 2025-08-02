@@ -163,7 +163,7 @@ class _EmiDetailsPageState extends ConsumerState<EmiDetailsPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildEmiInfoSection(context, ref, emi, l10n, interestAmount,
-                  principalAmount, totalAmount, tenure),
+                  principalAmount, totalAmount, tenure, schedule, transactions),
               const SizedBox(height: 24),
               _buildPieChart(ref, interestAmount, principalAmount, totalAmount),
               Center(
@@ -278,7 +278,9 @@ class _EmiDetailsPageState extends ConsumerState<EmiDetailsPage> {
       double interestAmount,
       double principalAmount,
       double totalAmount,
-      String tenure) {
+      String tenure,
+      List<AmortizationEntry> schedule,
+      List<Transaction> transactions) {
     final currencySymbol = ref.watch(currencyProvider);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -294,7 +296,6 @@ class _EmiDetailsPageState extends ConsumerState<EmiDetailsPage> {
         const SizedBox(height: 16),
         _buildInfoRow(ref, l10n.loanAmount,
             '$currencySymbol${GlobalFormatter.formatNumber(ref, principalAmount)}'),
-        _buildInfoRow(ref, l10n.tenure, tenure),
         _buildInfoRow(ref, l10n.tenure, tenure),
       ],
     );
@@ -486,6 +487,43 @@ class _EmiDetailsPageState extends ConsumerState<EmiDetailsPage> {
     }
 
     return '$years ${l10n.years} $months ${l10n.months}';
+  }
+
+  double _calculateTransactionBalance(double principal, List<Transaction> transactions) {
+    double totalCredit = transactions.where((t) => t.type == 'CR').fold(0.0, (sum, t) => sum + t.amount);
+    double totalDebit = transactions.where((t) => t.type == 'DR').fold(0.0, (sum, t) => sum + t.amount);
+    // For a loan, balance = principal - total paid (CR), for lend, balance = principal - total received (DR)
+    // But since the app seems to use CR for lend and DR for loan, we use both
+    return principal - totalCredit + totalDebit;
+  }
+
+  double _calculateTotalPrincipalPaid(dynamic emi, List<Transaction> transactions) {
+    if (emi.emiType == 'loan') {
+      // For loan, principal paid is sum of CR transactions
+      return transactions.where((t) => t.type == 'CR').fold(0.0, (sum, t) => sum + t.amount);
+    } else {
+      // For lend, principal received is sum of DR transactions
+      return transactions.where((t) => t.type == 'DR').fold(0.0, (sum, t) => sum + t.amount);
+    }
+  }
+
+  double _calculateCombinedBalance(dynamic emi, List<Transaction> transactions) {
+    double totalAmount = emi.totalEmi ?? emi.principalAmount;
+    double totalPaid;
+    if (emi.emiType == 'loan') {
+      totalPaid = transactions.where((t) => t.type == 'CR').fold(0.0, (sum, t) {
+        print('CR transaction: \$${t.amount} for EMI ${t.loanLendId}');
+        return sum + t.amount;
+      });
+    } else {
+      totalPaid = transactions.where((t) => t.type == 'DR').fold(0.0, (sum, t) {
+        print('DR transaction: \$${t.amount} for EMI ${t.loanLendId}');
+        return sum + t.amount;
+      });
+    }
+    double balance = totalAmount - totalPaid;
+    print('Total Paid: \$${totalPaid}, Total Amount: \$${totalAmount}, Balance: \$${balance}');
+    return balance < 0 ? 0 : balance;
   }
 }
 
