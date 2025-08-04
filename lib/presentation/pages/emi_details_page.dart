@@ -37,10 +37,11 @@ class _EmiDetailsPageState extends ConsumerState<EmiDetailsPage> {
     final emi = ref.watch(emisNotifierProvider
         .select((emis) => emis.firstWhere((emi) => emi.id == widget.emiId)));
 
-    final List<Transaction> transactions = [...ref
-        .watch(transactionsNotifierProvider)
-        .where((transaction) => transaction.loanLendId == widget.emiId)]
-      ..sort((a, b) => a.datetime.compareTo(b.datetime));
+    final List<Transaction> transactions = [
+      ...ref
+          .watch(transactionsNotifierProvider)
+          .where((transaction) => transaction.loanLendId == widget.emiId)
+    ]..sort((a, b) => a.datetime.compareTo(b.datetime));
 
     final l10n = AppLocalizations.of(context)!;
     final emiTypeColor = emi.emiType == 'lend'
@@ -197,7 +198,7 @@ class _EmiDetailsPageState extends ConsumerState<EmiDetailsPage> {
                 ),
               ),
               const SizedBox(height: 24),
-              BarGraph(
+              CustomBarLineChart(
                 principalAmounts: principalAmounts,
                 interestAmounts: interestAmounts,
                 balances: balances,
@@ -395,7 +396,8 @@ class _EmiDetailsPageState extends ConsumerState<EmiDetailsPage> {
             ? remainingPrincipal // last payment, clear all
             : monthlyPrincipal;
         remainingPrincipal -= principalPaid;
-        DateTime currentMonth = DateTime(paymentDate.year, paymentDate.month + month);
+        DateTime currentMonth =
+            DateTime(paymentDate.year, paymentDate.month + month);
         schedule.add(AmortizationEntry(
           paymentDate: currentMonth,
           principal: principalPaid,
@@ -456,13 +458,10 @@ class _EmiDetailsPageState extends ConsumerState<EmiDetailsPage> {
   }
 
   List<double> _getBalances(List<AmortizationEntry> schedule) {
-    final groupByYear =
-        groupBy(schedule, (AmortizationEntry entry) => entry.year);
+    final groupByYear = groupBy(schedule, (entry) => entry.year);
     return groupByYear.values
         .map((entries) => GlobalFormatter.roundNumber(
-            ref,
-            entries.fold(0.0, (prev, entry) => prev + entry.balance) /
-                entries.length))
+            ref, entries.last.balance)) // use last month’s balance in each year
         .toList();
   }
 
