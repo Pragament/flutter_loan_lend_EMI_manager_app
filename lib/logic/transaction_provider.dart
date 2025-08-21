@@ -28,7 +28,10 @@ class TransactionsNotifier extends _$TransactionsNotifier {
     await _box.put(transaction.id, transaction);
     state = [
       for (final existingTransaction in state)
-        if (existingTransaction.id == transaction.id) transaction else existingTransaction
+        if (existingTransaction.id == transaction.id)
+          transaction
+        else
+          existingTransaction
     ];
   }
 

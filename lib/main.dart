@@ -20,7 +20,6 @@ import 'package:emi_manager/logic/eula_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
 
   await Hive.initFlutter();
   // Hive.deleteBoxFromDisk('preferences');
@@ -44,8 +43,6 @@ void main() async {
 
   bool isFirstRun = prefsBox.get('isFirstRun', defaultValue: true);
 
-  
-
   runApp(ProviderScope(
     child: MainApp(isFirstRun: isFirstRun),
   ));
@@ -62,7 +59,6 @@ class MainApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final locale = ref.watch(localeNotifierProvider);
     return ShowCaseWidget(
-      
       builder: (context) => MaterialApp(
         locale: locale,
         supportedLocales: const [
@@ -111,8 +107,7 @@ class _SplashScreenState extends State<SplashScreen> {
   _navigateToNextScreen() async {
     await Future.delayed(const Duration(seconds: 3), () {});
     bool showEula = await EulaProvider.needsEulaAcceptance();
-    if (showEula && !widget.isFirstRun ) {
-
+    if (showEula && !widget.isFirstRun) {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
@@ -123,7 +118,8 @@ class _SplashScreenState extends State<SplashScreen> {
               Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => MainAppContent(isFirstRun: widget.isFirstRun),
+                  builder: (context) =>
+                      MainAppContent(isFirstRun: widget.isFirstRun),
                 ),
               );
             },
@@ -133,17 +129,23 @@ class _SplashScreenState extends State<SplashScreen> {
                 context: context,
                 barrierDismissible: false,
                 builder: (context) => AlertDialog(
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16)),
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
                   content: const Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Icon(Icons.error_outline, color: Colors.redAccent, size: 48),
+                      Icon(Icons.error_outline,
+                          color: Colors.redAccent, size: 48),
                       SizedBox(height: 16),
                       Text(
                         'EULA Declined',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: Colors.redAccent),
+                        style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 20,
+                            color: Colors.redAccent),
                         textAlign: TextAlign.center,
                       ),
                       SizedBox(height: 12),
@@ -160,8 +162,10 @@ class _SplashScreenState extends State<SplashScreen> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.redAccent,
                         foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                        padding: EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8)),
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 32, vertical: 12),
                       ),
                       onPressed: () {
                         Navigator.of(context).pop();

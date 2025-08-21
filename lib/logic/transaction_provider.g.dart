@@ -6,16 +6,18 @@ part of 'transaction_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$transactionsNotifierHash() => r'1c5f7340b8904ef1af7836d5b5c4e87b126f50e9';
+String _$transactionsNotifierHash() =>
+    r'1c5f7340b8904ef1af7836d5b5c4e87b126f50e9';
 
 /// See also [TransactionsNotifier].
 @ProviderFor(TransactionsNotifier)
-final transactionsNotifierProvider =
-  AutoDisposeNotifierProvider<TransactionsNotifier, List<Transaction>>.internal(
+final transactionsNotifierProvider = AutoDisposeNotifierProvider<
+    TransactionsNotifier, List<Transaction>>.internal(
   TransactionsNotifier.new,
   name: r'transactionsNotifierProvider',
-  debugGetCreateSourceHash:
-  const bool.fromEnvironment('dart.vm.product') ? null : _$transactionsNotifierHash,
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$transactionsNotifierHash,
   dependencies: null,
   allTransitiveDependencies: null,
 );

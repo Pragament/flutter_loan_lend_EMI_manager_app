@@ -13,7 +13,7 @@ void showHelpDialog(BuildContext context, String screen) {
       'Filtering by multiple tags',
       'Help Button'
     ];
-  } else if (screen == 'Loan'||screen == 'Lend'||screen == 'Loan') {
+  } else if (screen == 'Loan' || screen == 'Lend' || screen == 'Loan') {
     helpTopics = [
       'Tags - Create Tags',
       'Pick from List',

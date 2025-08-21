@@ -40,10 +40,11 @@ class _EmiDetailsPageState extends ConsumerState<EmiDetailsPage> {
     final emi = ref.watch(emisNotifierProvider
         .select((emis) => emis.firstWhere((emi) => emi.id == widget.emiId)));
 
-    final List<Transaction> transactions = [...ref
-        .watch(transactionsNotifierProvider)
-        .where((transaction) => transaction.loanLendId == widget.emiId)]
-      ..sort((a, b) => a.datetime.compareTo(b.datetime));
+    final List<Transaction> transactions = [
+      ...ref
+          .watch(transactionsNotifierProvider)
+          .where((transaction) => transaction.loanLendId == widget.emiId)
+    ]..sort((a, b) => a.datetime.compareTo(b.datetime));
 
     final l10n = AppLocalizations.of(context)!;
     final emiTypeColor = emi.emiType == 'lend'
@@ -308,12 +309,15 @@ class _EmiDetailsPageState extends ConsumerState<EmiDetailsPage> {
       List<AmortizationEntry> schedule,
       List<Transaction> transactions) {
     final currencySymbol = ref.watch(currencyProvider);
-    
+
     // Calculate payment progress
     final double amountPaid = _calculateAmountPaid(emi, transactions);
-    final double rawPercentagePaid = totalAmount > 0 ? (amountPaid / totalAmount * 100) : 0.0;
-    final double percentageForBar = rawPercentagePaid.clamp(0.0, 100.0).toDouble();
-    final double remainingAmountRaw = totalAmount - amountPaid; // can be negative when overpaid
+    final double rawPercentagePaid =
+        totalAmount > 0 ? (amountPaid / totalAmount * 100) : 0.0;
+    final double percentageForBar =
+        rawPercentagePaid.clamp(0.0, 100.0).toDouble();
+    final double remainingAmountRaw =
+        totalAmount - amountPaid; // can be negative when overpaid
     final bool isOverpaid = remainingAmountRaw < 0;
     final String remainingLabel = isOverpaid ? 'Overpaid' : 'Remaining Amount';
     final double remainingAbs = remainingAmountRaw.abs();
@@ -333,7 +337,8 @@ class _EmiDetailsPageState extends ConsumerState<EmiDetailsPage> {
         _buildInfoRow(ref, l10n.loanAmount,
             '$currencySymbol${GlobalFormatter.formatNumber(ref, principalAmount)}'),
         _buildInfoRow(ref, l10n.tenure, tenure),
-        _buildInfoRow(ref, l10n.interestRate, '${emi.interestRate.toStringAsFixed(2)}%'),
+        _buildInfoRow(
+            ref, l10n.interestRate, '${emi.interestRate.toStringAsFixed(2)}%'),
         const SizedBox(height: 16),
         // Payment Progress Section
         Container(
@@ -391,7 +396,9 @@ class _EmiDetailsPageState extends ConsumerState<EmiDetailsPage> {
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
-                          color: rawPercentagePaid >= 100 ? Colors.white : Colors.black87,
+                          color: rawPercentagePaid >= 100
+                              ? Colors.white
+                              : Colors.black87,
                         ),
                       ),
                     ),
@@ -404,7 +411,8 @@ class _EmiDetailsPageState extends ConsumerState<EmiDetailsPage> {
                 children: [
                   Icon(
                     rawPercentagePaid >= 100 ? Icons.check_circle : Icons.info,
-                    color: rawPercentagePaid >= 100 ? Colors.green : Colors.blue,
+                    color:
+                        rawPercentagePaid >= 100 ? Colors.green : Colors.blue,
                     size: 16,
                   ),
                   const SizedBox(width: 8),
@@ -418,7 +426,9 @@ class _EmiDetailsPageState extends ConsumerState<EmiDetailsPage> {
                       fontSize: 14,
                       color: isOverpaid
                           ? Colors.orange[800]
-                          : (rawPercentagePaid >= 100 ? Colors.green[700] : Colors.blue[700]),
+                          : (rawPercentagePaid >= 100
+                              ? Colors.green[700]
+                              : Colors.blue[700]),
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -526,7 +536,8 @@ class _EmiDetailsPageState extends ConsumerState<EmiDetailsPage> {
             ? remainingPrincipal // last payment, clear all
             : monthlyPrincipal;
         remainingPrincipal -= principalPaid;
-        DateTime currentMonth = DateTime(paymentDate.year, paymentDate.month + month);
+        DateTime currentMonth =
+            DateTime(paymentDate.year, paymentDate.month + month);
         schedule.add(AmortizationEntry(
           paymentDate: currentMonth,
           principal: principalPaid,
@@ -638,25 +649,36 @@ class _EmiDetailsPageState extends ConsumerState<EmiDetailsPage> {
     return totalPaid;
   }
 
-  double _calculateTransactionBalance(double principal, List<Transaction> transactions) {
-    double totalCredit = transactions.where((t) => t.type == 'CR').fold(0.0, (sum, t) => sum + t.amount);
-    double totalDebit = transactions.where((t) => t.type == 'DR').fold(0.0, (sum, t) => sum + t.amount);
+  double _calculateTransactionBalance(
+      double principal, List<Transaction> transactions) {
+    double totalCredit = transactions
+        .where((t) => t.type == 'CR')
+        .fold(0.0, (sum, t) => sum + t.amount);
+    double totalDebit = transactions
+        .where((t) => t.type == 'DR')
+        .fold(0.0, (sum, t) => sum + t.amount);
     // For a loan, balance = principal - total paid (CR), for lend, balance = principal - total received (DR)
     // But since the app seems to use CR for lend and DR for loan, we use both
     return principal - totalCredit + totalDebit;
   }
 
-  double _calculateTotalPrincipalPaid(dynamic emi, List<Transaction> transactions) {
+  double _calculateTotalPrincipalPaid(
+      dynamic emi, List<Transaction> transactions) {
     if (emi.emiType == 'loan') {
       // For loan, principal paid is sum of CR transactions
-      return transactions.where((t) => t.type == 'CR').fold(0.0, (sum, t) => sum + t.amount);
+      return transactions
+          .where((t) => t.type == 'CR')
+          .fold(0.0, (sum, t) => sum + t.amount);
     } else {
       // For lend, principal received is sum of DR transactions
-      return transactions.where((t) => t.type == 'DR').fold(0.0, (sum, t) => sum + t.amount);
+      return transactions
+          .where((t) => t.type == 'DR')
+          .fold(0.0, (sum, t) => sum + t.amount);
     }
   }
 
-  double _calculateCombinedBalance(dynamic emi, List<Transaction> transactions) {
+  double _calculateCombinedBalance(
+      dynamic emi, List<Transaction> transactions) {
     double totalAmount = emi.totalEmi ?? emi.principalAmount;
     double totalPaid;
     if (emi.emiType == 'loan') {
@@ -671,13 +693,14 @@ class _EmiDetailsPageState extends ConsumerState<EmiDetailsPage> {
       });
     }
     double balance = totalAmount - totalPaid;
-    print('Total Paid: \$${totalPaid}, Total Amount: \$${totalAmount}, Balance: \$${balance}');
+    print(
+        'Total Paid: \$${totalPaid}, Total Amount: \$${totalAmount}, Balance: \$${balance}');
     return balance < 0 ? 0 : balance;
   }
 
   void _deleteEmi(BuildContext context, WidgetRef ref, Emi emi) async {
     final l10n = AppLocalizations.of(context)!;
-    
+
     final shouldDelete = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -699,14 +722,14 @@ class _EmiDetailsPageState extends ConsumerState<EmiDetailsPage> {
     if (shouldDelete == true) {
       // Remove the EMI from the provider
       await ref.read(emisNotifierProvider.notifier).remove(emi);
-      
+
       // Close the dialog first
       Navigator.of(context).pop();
-      
+
       // Try to force a complete rebuild by using a different navigation approach
       // First pop all routes until we're back to the root
       Navigator.of(context).popUntil((route) => route.isFirst);
-      
+
       // Then navigate to home using GoRouter
       context.go('/');
     }

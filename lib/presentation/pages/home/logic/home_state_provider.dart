@@ -30,7 +30,5 @@ class HomeStateNotifier extends _$HomeStateNotifier {
     state = state.copyWith(emis: emisResult, selectedTags: selectedTags);
   }
 
-  void removeEmi(String id) {
-
-  }
+  void removeEmi(String id) {}
 }

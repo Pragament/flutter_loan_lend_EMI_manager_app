@@ -7,9 +7,9 @@ class EulaProvider {
   static const String _acceptedEulaKey = 'accepted_eula';
   static const String _lastCheckedKey = 'eula_last_checked';
 
-
   /// Fetch the latest active EULA from the API for the given language
-  static Future<Map<String, dynamic>?> getActiveEula([String? languageCode]) async {
+  static Future<Map<String, dynamic>?> getActiveEula(
+      [String? languageCode]) async {
     String url;
     switch (languageCode) {
       case 'hi':
@@ -35,13 +35,13 @@ class EulaProvider {
         } else if (agreementsRaw is Map) {
           eulas = [agreementsRaw];
         } else {
-
           return null;
         }
 
         final active = eulas.where((e) => e['is_active'] == true).toList();
         if (active.isEmpty) return null;
-        active.sort((a, b) => Version.parse(a['version']).compareTo(Version.parse(b['version'])));
+        active.sort((a, b) =>
+            Version.parse(a['version']).compareTo(Version.parse(b['version'])));
         return active.last;
       } catch (e) {
         return null;
@@ -60,16 +60,15 @@ class EulaProvider {
         final acceptedEula = jsonDecode(acceptedEulaJson);
         lastAcceptedVersion = acceptedEula['accepted_eula_version'];
       } catch (_) {}
-
-    }else {
+    } else {
       return false;
-
     }
     final lastChecked = prefs.getInt(_lastCheckedKey) ?? 0;
     final now = DateTime.now().millisecondsSinceEpoch;
     const thirtyDaysMs = 30 * 24 * 60 * 60 * 1000;
 
-    final shouldCheck = (now - lastChecked) > thirtyDaysMs || lastAcceptedVersion == null;
+    final shouldCheck =
+        (now - lastChecked) > thirtyDaysMs || lastAcceptedVersion == null;
 
     if (shouldCheck) {
       final activeEula = await getActiveEula();
@@ -90,7 +89,8 @@ class EulaProvider {
     final now = DateTime.now();
     final acceptedEula = {
       'accepted_eula_version': version ?? '',
-      'accepted_date': "${now.year.toString().padLeft(4, '0')}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}"
+      'accepted_date':
+          "${now.year.toString().padLeft(4, '0')}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}"
     };
     await prefs.setString(_acceptedEulaKey, jsonEncode(acceptedEula));
     await prefs.setInt(_lastCheckedKey, now.millisecondsSinceEpoch);

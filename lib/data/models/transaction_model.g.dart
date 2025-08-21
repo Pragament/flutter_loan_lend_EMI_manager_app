@@ -53,8 +53,7 @@ class TransactionAdapter extends TypeAdapter<Transaction> {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-          other is TransactionAdapter &&
-              runtimeType == other.runtimeType &&
-              typeId == other.typeId;
+      other is TransactionAdapter &&
+          runtimeType == other.runtimeType &&
+          typeId == other.typeId;
 }
-

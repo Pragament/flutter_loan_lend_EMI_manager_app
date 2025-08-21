@@ -23,7 +23,7 @@ class OnboardingScreen extends ConsumerStatefulWidget {
 class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   int currentIndex = 0;
   final PageController _pageController = PageController();
-  Locale? selectedLocale =const Locale('en'); // Track the selected locale
+  Locale? selectedLocale = const Locale('en'); // Track the selected locale
 
   @override
   Widget build(BuildContext context) {
@@ -238,17 +238,23 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           context: context,
           barrierDismissible: false,
           builder: (context) => AlertDialog(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                const Icon(Icons.error_outline, color: Colors.redAccent, size: 48),
+                const Icon(Icons.error_outline,
+                    color: Colors.redAccent, size: 48),
                 const SizedBox(height: 16),
                 Text(
                   localizations.eulaDeclined,
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20, color: Colors.redAccent),
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20,
+                      color: Colors.redAccent),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 12),
@@ -265,13 +271,15 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.redAccent,
                   foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8)),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
                 ),
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
-                child:Text(localizations.close),
+                child: Text(localizations.close),
               ),
             ],
           ),

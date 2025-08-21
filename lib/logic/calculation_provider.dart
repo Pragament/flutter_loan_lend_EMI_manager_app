@@ -12,7 +12,9 @@ final emiCalculationProvider =
 
   double emi;
   if (monthlyRate == 0 || totalMonths == 0) {
-    emi = totalMonths > 0 ? params.principalAmount / totalMonths : params.principalAmount;
+    emi = totalMonths > 0
+        ? params.principalAmount / totalMonths
+        : params.principalAmount;
   } else {
     emi = params.principalAmount *
         monthlyRate *

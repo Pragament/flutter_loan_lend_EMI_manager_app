@@ -3,15 +3,19 @@ import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:emi_manager/logic/eula_provider.dart';
 import 'package:emi_manager/presentation/l10n/app_localizations.dart';
 
-
 class EulaPage extends StatefulWidget {
   final VoidCallback onAccepted;
   final VoidCallback onDeclined;
 
   final String languageCode;
   final bool showAppBar;
-  const EulaPage({Key? key, required this.onAccepted, required this.onDeclined, this.languageCode = 'en', this.showAppBar = true}) : super(key: key);
-
+  const EulaPage(
+      {Key? key,
+      required this.onAccepted,
+      required this.onDeclined,
+      this.languageCode = 'en',
+      this.showAppBar = true})
+      : super(key: key);
 
   @override
   State<EulaPage> createState() => _EulaPageState();
@@ -36,7 +40,6 @@ class _EulaPageState extends State<EulaPage> {
       _error = false;
     });
     try {
-
       final activeEula = await EulaProvider.getActiveEula(widget.languageCode);
 
       if (activeEula != null) {
@@ -81,7 +84,6 @@ class _EulaPageState extends State<EulaPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-
               Text(localizations.eulaLoadError),
               SizedBox(height: 16),
               ElevatedButton(
@@ -116,27 +118,25 @@ class _EulaPageState extends State<EulaPage> {
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
-
               mainAxisAlignment: MainAxisAlignment.start,
-
               children: [
                 if (_eulaVersion != null)
                   Padding(
                     padding: const EdgeInsets.only(top: 8.0),
-
-                    child: Text('${localizations.eulaVersion}: $_eulaVersion', style: TextStyle(fontWeight: FontWeight.bold)),
+                    child: Text('${localizations.eulaVersion}: $_eulaVersion',
+                        style: TextStyle(fontWeight: FontWeight.bold)),
                   ),
                 SizedBox(height: 8),
                 SizedBox(
-                  height: cardHeight < cardMinHeight ? cardMinHeight : cardHeight,
-
+                  height:
+                      cardHeight < cardMinHeight ? cardMinHeight : cardHeight,
                   child: Card(
                     elevation: 2,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12)),
                     child: Padding(
-
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 12),
                       child: Markdown(
                         data: _eulaText ?? '',
                         styleSheet: MarkdownStyleSheet(
@@ -150,7 +150,8 @@ class _EulaPageState extends State<EulaPage> {
                           ),
                           listIndent: 24.0,
                           blockquote: theme.textTheme.bodyLarge?.copyWith(
-                            color: theme.textTheme.bodyLarge?.color?.withOpacity(0.8),
+                            color: theme.textTheme.bodyLarge?.color
+                                ?.withOpacity(0.8),
                             fontStyle: FontStyle.italic,
                           ),
                           blockquoteDecoration: BoxDecoration(
@@ -247,4 +248,3 @@ class EulaActions extends StatelessWidget {
     );
   }
 }
-

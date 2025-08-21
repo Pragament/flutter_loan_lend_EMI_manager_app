@@ -957,9 +957,11 @@ class HomePageState extends ConsumerState<HomePage> {
                   padding: const EdgeInsets.only(top: 10, left: 10, right: 10),
                   child: FloatingActionButton.extended(
                     onPressed: _importTransactionsCSV,
-                    backgroundColor: loanColor(context, false), // same color as Import CSV
+                    backgroundColor:
+                        loanColor(context, false), // same color as Import CSV
                     label: const Text("Import Transactions CSV"),
-                    icon: const Icon(Icons.arrow_downward), // same icon as Import CSV
+                    icon: const Icon(
+                        Icons.arrow_downward), // same icon as Import CSV
                   ),
                 ),
               ],
@@ -1454,7 +1456,9 @@ class HomePageState extends ConsumerState<HomePage> {
       double remainingPrincipal = emi.principalAmount;
       for (int month = 0; month < tenureInYears * 12; month++) {
         double monthlyInterestRate = emi.interestRate / (12 * 100);
-        double monthlyInterest = monthlyInterestRate == 0 ? 0 : remainingPrincipal * monthlyInterestRate;
+        double monthlyInterest = monthlyInterestRate == 0
+            ? 0
+            : remainingPrincipal * monthlyInterestRate;
         double monthlyPrincipal = monthlyEmi - monthlyInterest;
         remainingPrincipal -= monthlyPrincipal;
 
@@ -1484,7 +1488,8 @@ class HomePageState extends ConsumerState<HomePage> {
 
     double emiAmount;
     if (monthlyInterestRate == 0 || totalMonths == 0) {
-      emiAmount = totalMonths > 0 ? principalAmount / totalMonths : principalAmount;
+      emiAmount =
+          totalMonths > 0 ? principalAmount / totalMonths : principalAmount;
     } else {
       emiAmount = (principalAmount *
               monthlyInterestRate *

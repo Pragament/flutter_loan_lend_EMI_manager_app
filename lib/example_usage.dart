@@ -1,4 +1,3 @@
-
 import 'package:emi_manager/logic/rounding_provider.dart';
 import 'package:emi_manager/utils/number_formatter.dart';
 import 'package:flutter/material.dart';
