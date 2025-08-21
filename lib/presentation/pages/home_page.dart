@@ -871,6 +871,95 @@ class HomePageState extends ConsumerState<HomePage> {
               ),
             ],
           ),
+          key: _scaffoldKey,
+          drawer: Drawer(
+            child: ListView(
+              padding: EdgeInsets.zero,
+              children: <Widget>[
+                const DrawerHeader(
+                  decoration: BoxDecoration(color: Colors.blue),
+                  child: Text('Menu',
+                      style: TextStyle(color: Colors.white, fontSize: 24)),
+                ),
+                Showcase(
+                  key: langHelpKey,
+                  description: "You Can Choose Your Regional Language",
+                  child: const ListTile(
+                    title: Text('Select Language'),
+                    trailing: LocaleSelectorPopupMenu(),
+                  ),
+                ),
+                Showcase(
+                  key: helpHelpKey,
+                  description: "Help Button",
+                  child: ListTile(
+                    title: const Text('Help'),
+                    trailing: IconButton(
+                      icon: const Icon(Icons.help_outline),
+                      onPressed: () {
+                        _showHelpOptions(context);
+                      },
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(right: 13),
+                  child: ListTile(
+                    trailing: const Icon(Icons.settings),
+                    title: const Text(
+                      'Settings',
+                      style: TextStyle(fontStyle: FontStyle.normal),
+                    ),
+                    onTap: () {
+                      Navigator.pop(context); // Close the drawer
+                      context.push('/settings'); // Navigate to settings
+                    },
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(10),
+                  child: FloatingActionButton.extended(
+                    onPressed: () {
+                      showCurrencyPicker(
+                        context: context,
+                        showFlag: true,
+                        showCurrencyName: true,
+                        showCurrencyCode: true,
+                        onSelect: (Currency currency) {
+                          ref
+                              .read(currencyProvider.notifier)
+                              .setCurrencySymbol(currency.symbol);
+                        },
+                      );
+                    },
+                    backgroundColor: loanColor(context, false),
+                    label: const Text("Change Currency"),
+                    icon: const Icon(Icons.currency_exchange),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(top: 0, left: 10, right: 10),
+                  child: FloatingActionButton.extended(
+                    onPressed: () {
+                      importPaymentsFromCSV(context);
+                    },
+                    backgroundColor: loanColor(context, false),
+                    label: const Text("Import CSV"),
+                    icon: const Icon(Icons.arrow_downward),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(top: 10, left: 10, right: 10),
+                  child: FloatingActionButton.extended(
+                    onPressed: _importTransactionsCSV,
+                    backgroundColor: loanColor(context, false), // same color as Import CSV
+                    label: const Text("Import Transactions CSV"),
+                    icon: const Icon(Icons.arrow_downward), // same icon as Import CSV
+                  ),
+                ),
+              ],
+            ),
+          ),
           body: Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
