@@ -129,8 +129,7 @@ class AppLocalizationsTe extends AppLocalizations {
   String get confirmDelete => 'తొలగింపు ధృవీకరణ';
 
   @override
-  String get areYouSure =>
-      'మీరు నిజంగా ఈ EMI రికార్డును తొలగించాలని అనుకుంటున్నారా?';
+  String get areYouSure => 'మీరు నిజంగా ఈ EMI రికార్డును తొలగించాలని అనుకుంటున్నారా?';
 
   @override
   String get cancel => 'రద్దు';
@@ -205,8 +204,7 @@ class AppLocalizationsTe extends AppLocalizations {
   String get next => 'తదుపరి';
 
   @override
-  String get welcome =>
-      'మీరు మా యాప్ యొక్క తెలుగు సంచికలో ఉన్నారు. ఇక్కడ మీరు మీ రుణాలను మరియు ఈ.ఎమ్.ఐలను సులభంగా నిర్వహించవచ్చు.';
+  String get welcome => 'మీరు మా యాప్ యొక్క తెలుగు సంచికలో ఉన్నారు. ఇక్కడ మీరు మీ రుణాలను మరియు ఈ.ఎమ్.ఐలను సులభంగా నిర్వహించవచ్చు.';
 
   @override
   String get eulaLoadError => 'EULA లోడ్ చేయడంలో విఫలమైంది.';
@@ -233,8 +231,7 @@ class AppLocalizationsTe extends AppLocalizations {
   String get eulaDeclined => 'EULA తిరస్కరించబడింది';
 
   @override
-  String get eulaAlertDialog =>
-      'ఈ యాప్‌ను ఉపయోగించడానికి మీరు EULAని అంగీకరించాలి.';
+  String get eulaAlertDialog => 'ఈ యాప్‌ను ఉపయోగించడానికి మీరు EULAని అంగీకరించాలి.';
 
   @override
   String get close => 'మూసివేయి';
@@ -243,8 +240,7 @@ class AppLocalizationsTe extends AppLocalizations {
   String get noDataTitle => 'ఇంకా డేటా లేదు. ప్రారంభిద్దాం!';
 
   @override
-  String get noDataDescription =>
-      'కింద ఉన్న బటన్‌లను ఉపయోగించి లోన్ లేదా లెండ్‌ను సృష్టించండి.\nమీ ఆర్థికాలను ట్రాక్ చేయడానికి మీరు ఇక్కడ సహాయక చార్ట్‌లు మరియు పట్టికలను చూడవచ్చు.\nయాప్ మీకు ప్రక్రియను చూపించేందుకు ఎప్పుడైనా టూర్ బటన్‌ను నొక్కండి.';
+  String get noDataDescription => 'కింద ఉన్న బటన్‌లను ఉపయోగించి లోన్ లేదా లెండ్‌ను సృష్టించండి.\nమీ ఆర్థికాలను ట్రాక్ చేయడానికి మీరు ఇక్కడ సహాయక చార్ట్‌లు మరియు పట్టికలను చూడవచ్చు.\nయాప్ మీకు ప్రక్రియను చూపించేందుకు ఎప్పుడైనా టూర్ బటన్‌ను నొక్కండి.';
 
   @override
   String get tourButtonLabel => 'టూర్';

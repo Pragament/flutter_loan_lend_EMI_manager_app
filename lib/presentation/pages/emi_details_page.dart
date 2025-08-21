@@ -8,18 +8,21 @@ import 'package:emi_manager/logic/transaction_provider.dart';
 import 'package:emi_manager/logic/rounding_provider.dart';
 import 'package:emi_manager/presentation/constants.dart';
 import 'package:emi_manager/presentation/pages/new_transaction_page.dart';
+import 'package:emi_manager/presentation/pages/new_emi_page.dart';
 import 'package:emi_manager/utils/global_formatter.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:emi_manager/presentation/l10n/app_localizations.dart';
 import 'package:lottie/lottie.dart';
+import 'package:go_router/go_router.dart';
 import '../../data/models/transaction_model.dart';
 import '../widgets/amortization_schedule_table.dart';
 import '../widgets/bar_graph.dart';
 import 'dart:math';
 
 import 'home/transaction_details_page.dart';
+import 'home_page.dart';
 
 class EmiDetailsPage extends ConsumerStatefulWidget {
   const EmiDetailsPage({super.key, required this.emiId});
@@ -92,9 +95,32 @@ class _EmiDetailsPageState extends ConsumerState<EmiDetailsPage> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            Navigator.of(context).pop(); // Use Navigator instead of GoRouter
+            context.pop(); // Use GoRouter context.pop instead of Navigator
           },
         ),
+        actions: [
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              if (value == 'edit') {
+                // Navigate to edit page using GoRouter
+                context.go('/newEmi/${emi.emiType}?emi-id=${emi.id}');
+              } else if (value == 'delete') {
+                _deleteEmi(context, ref, emi);
+              }
+            },
+            itemBuilder: (context) => [
+              PopupMenuItem<String>(
+                value: 'edit',
+                child: Text(l10n.edit),
+              ),
+              PopupMenuItem<String>(
+                value: 'delete',
+                child: Text(l10n.delete),
+              ),
+            ],
+            icon: const Icon(Icons.more_vert),
+          ),
+        ],
       ),
       floatingActionButton: emi.emiType == 'lend'
           ? Stack(
@@ -163,7 +189,7 @@ class _EmiDetailsPageState extends ConsumerState<EmiDetailsPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildEmiInfoSection(context, ref, emi, l10n, interestAmount,
-                  principalAmount, totalAmount, tenure),
+                  principalAmount, totalAmount, tenure, schedule, transactions),
               const SizedBox(height: 24),
               _buildPieChart(ref, interestAmount, principalAmount, totalAmount),
               Center(
@@ -278,8 +304,20 @@ class _EmiDetailsPageState extends ConsumerState<EmiDetailsPage> {
       double interestAmount,
       double principalAmount,
       double totalAmount,
-      String tenure) {
+      String tenure,
+      List<AmortizationEntry> schedule,
+      List<Transaction> transactions) {
     final currencySymbol = ref.watch(currencyProvider);
+    
+    // Calculate payment progress
+    final double amountPaid = _calculateAmountPaid(emi, transactions);
+    final double rawPercentagePaid = totalAmount > 0 ? (amountPaid / totalAmount * 100) : 0.0;
+    final double percentageForBar = rawPercentagePaid.clamp(0.0, 100.0).toDouble();
+    final double remainingAmountRaw = totalAmount - amountPaid; // can be negative when overpaid
+    final bool isOverpaid = remainingAmountRaw < 0;
+    final String remainingLabel = isOverpaid ? 'Overpaid' : 'Remaining Amount';
+    final double remainingAbs = remainingAmountRaw.abs();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -295,7 +333,100 @@ class _EmiDetailsPageState extends ConsumerState<EmiDetailsPage> {
         _buildInfoRow(ref, l10n.loanAmount,
             '$currencySymbol${GlobalFormatter.formatNumber(ref, principalAmount)}'),
         _buildInfoRow(ref, l10n.tenure, tenure),
-        _buildInfoRow(ref, l10n.tenure, tenure),
+        _buildInfoRow(ref, l10n.interestRate, '${emi.interestRate.toStringAsFixed(2)}%'),
+        const SizedBox(height: 16),
+        // Payment Progress Section
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.grey[100],
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: Colors.grey[300]!),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.trending_up,
+                    color: Colors.blue[700],
+                    size: 20,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Payment Progress',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                      color: Colors.grey[800],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              _buildInfoRow(ref, 'Amount Paid',
+                  '$currencySymbol${GlobalFormatter.formatNumber(ref, amountPaid)}',
+                  isBold: true),
+              _buildInfoRow(ref, 'Percentage Paid',
+                  '${GlobalFormatter.roundNumber(ref, rawPercentagePaid).toStringAsFixed(1)}%'),
+              _buildInfoRow(ref, remainingLabel,
+                  '${isOverpaid ? '-' : ''}$currencySymbol${GlobalFormatter.formatNumber(ref, remainingAbs)}'),
+              const SizedBox(height: 8),
+              // Progress Bar with percentage text
+              Stack(
+                children: [
+                  LinearProgressIndicator(
+                    value: percentageForBar / 100,
+                    backgroundColor: Colors.grey[300],
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      rawPercentagePaid >= 100 ? Colors.green : Colors.blue,
+                    ),
+                    minHeight: 12,
+                  ),
+                  Positioned.fill(
+                    child: Center(
+                      child: Text(
+                        '${GlobalFormatter.roundNumber(ref, rawPercentagePaid).toStringAsFixed(1)}%',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: rawPercentagePaid >= 100 ? Colors.white : Colors.black87,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              // Status indicator
+              Row(
+                children: [
+                  Icon(
+                    rawPercentagePaid >= 100 ? Icons.check_circle : Icons.info,
+                    color: rawPercentagePaid >= 100 ? Colors.green : Colors.blue,
+                    size: 16,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    isOverpaid
+                        ? 'Overpaid by $currencySymbol${GlobalFormatter.formatNumber(ref, remainingAbs)}'
+                        : (rawPercentagePaid >= 100
+                            ? 'Payment Complete! 🎉'
+                            : 'Payment in Progress...'),
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: isOverpaid
+                          ? Colors.orange[800]
+                          : (rawPercentagePaid >= 100 ? Colors.green[700] : Colors.blue[700]),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
       ],
     );
   }
@@ -486,6 +617,99 @@ class _EmiDetailsPageState extends ConsumerState<EmiDetailsPage> {
     }
 
     return '$years ${l10n.years} $months ${l10n.months}';
+  }
+
+  double _calculateAmountPaid(dynamic emi, List<Transaction> transactions) {
+    double totalPaid = 0.0;
+
+    // In this app:
+    // - Lend uses CR transactions
+    // - Loan uses DR transactions
+    if (emi.emiType == 'lend') {
+      totalPaid = transactions
+          .where((t) => t.type == 'CR')
+          .fold(0.0, (sum, t) => sum + t.amount);
+    } else {
+      totalPaid = transactions
+          .where((t) => t.type == 'DR')
+          .fold(0.0, (sum, t) => sum + t.amount);
+    }
+
+    return totalPaid;
+  }
+
+  double _calculateTransactionBalance(double principal, List<Transaction> transactions) {
+    double totalCredit = transactions.where((t) => t.type == 'CR').fold(0.0, (sum, t) => sum + t.amount);
+    double totalDebit = transactions.where((t) => t.type == 'DR').fold(0.0, (sum, t) => sum + t.amount);
+    // For a loan, balance = principal - total paid (CR), for lend, balance = principal - total received (DR)
+    // But since the app seems to use CR for lend and DR for loan, we use both
+    return principal - totalCredit + totalDebit;
+  }
+
+  double _calculateTotalPrincipalPaid(dynamic emi, List<Transaction> transactions) {
+    if (emi.emiType == 'loan') {
+      // For loan, principal paid is sum of CR transactions
+      return transactions.where((t) => t.type == 'CR').fold(0.0, (sum, t) => sum + t.amount);
+    } else {
+      // For lend, principal received is sum of DR transactions
+      return transactions.where((t) => t.type == 'DR').fold(0.0, (sum, t) => sum + t.amount);
+    }
+  }
+
+  double _calculateCombinedBalance(dynamic emi, List<Transaction> transactions) {
+    double totalAmount = emi.totalEmi ?? emi.principalAmount;
+    double totalPaid;
+    if (emi.emiType == 'loan') {
+      totalPaid = transactions.where((t) => t.type == 'CR').fold(0.0, (sum, t) {
+        print('CR transaction: \$${t.amount} for EMI ${t.loanLendId}');
+        return sum + t.amount;
+      });
+    } else {
+      totalPaid = transactions.where((t) => t.type == 'DR').fold(0.0, (sum, t) {
+        print('DR transaction: \$${t.amount} for EMI ${t.loanLendId}');
+        return sum + t.amount;
+      });
+    }
+    double balance = totalAmount - totalPaid;
+    print('Total Paid: \$${totalPaid}, Total Amount: \$${totalAmount}, Balance: \$${balance}');
+    return balance < 0 ? 0 : balance;
+  }
+
+  void _deleteEmi(BuildContext context, WidgetRef ref, Emi emi) async {
+    final l10n = AppLocalizations.of(context)!;
+    
+    final shouldDelete = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.confirmDelete),
+        content: Text(l10n.areYouSure),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(l10n.cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(l10n.delete),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldDelete == true) {
+      // Remove the EMI from the provider
+      await ref.read(emisNotifierProvider.notifier).remove(emi);
+      
+      // Close the dialog first
+      Navigator.of(context).pop();
+      
+      // Try to force a complete rebuild by using a different navigation approach
+      // First pop all routes until we're back to the root
+      Navigator.of(context).popUntil((route) => route.isFirst);
+      
+      // Then navigate to home using GoRouter
+      context.go('/');
+    }
   }
 }
 
