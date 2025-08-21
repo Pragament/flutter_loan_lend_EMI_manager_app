@@ -1,5 +1,5 @@
 # Flutter Loan Lend EMI Manager App
-by nik testing1
+by nik testing2
 ## Project Description
 
 The Flutter Loan Lend EMI Manager App is designed to help users efficiently manage their loans, lending activities, and EMI schedules. It provides a user-friendly interface to track transactions, set reminders, and visualize financial data. The app exists to simplify financial management and ensure users never miss an EMI payment or lending record.
