@@ -3,7 +3,6 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 // Adjust the import based on your file structure
 
-
 class BarGraph extends StatelessWidget {
   final List<double> principalAmounts;
   final List<double> interestAmounts;
@@ -24,7 +23,7 @@ class BarGraph extends StatelessWidget {
     List<BarChartGroupData> barGroups = [];
     double maxPayment = principalAmounts.isNotEmpty
         ? principalAmounts.reduce((a, b) => max(a, b)) +
-        interestAmounts.reduce((a, b) => max(a, b))
+            interestAmounts.reduce((a, b) => max(a, b))
         : 0;
 
     for (int i = 0; i < years.length; i++) {
@@ -55,11 +54,17 @@ class BarGraph extends StatelessWidget {
     }
     // Change the size according to total number of loans.
     final len = years.length;
-    var prod = len<5 ? 0.95: len<10? 1.25: len<15 ?1.75: 2.5;
+    var prod = len < 5
+        ? 0.95
+        : len < 10
+            ? 1.25
+            : len < 15
+                ? 1.75
+                : 2.5;
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: SizedBox(
-        width: w*prod,
+        width: w * prod,
         child: AspectRatio(
           aspectRatio: 1.5,
           child: Padding(
@@ -71,13 +76,15 @@ class BarGraph extends StatelessWidget {
                   leftTitles: AxisTitles(
                     sideTitles: SideTitles(
                       showTitles: true,
-                      reservedSize: 45,  // Adjust this value to increase left margin
+                      reservedSize:
+                          45, // Adjust this value to increase left margin
                       getTitlesWidget: (value, meta) {
                         return SideTitleWidget(
                           axisSide: meta.axisSide,
                           child: Text(
                             '${(value / 1000).toStringAsFixed(0)}K',
-                            style: const TextStyle(color: Colors.black, fontSize: 12),
+                            style: const TextStyle(
+                                color: Colors.black, fontSize: 12),
                           ),
                         );
                       },
@@ -90,7 +97,7 @@ class BarGraph extends StatelessWidget {
                       getTitlesWidget: (value, meta) {
                         int index = value.toInt();
                         String title = years.isNotEmpty && index < years.length
-                            ?  years[index].toString()
+                            ? years[index].toString()
                             : '';
 
                         return SideTitleWidget(

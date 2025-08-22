@@ -48,13 +48,22 @@ class HomeBarGraph extends StatelessWidget {
       tenureMonths = (endYear - startYear + 1) * 12;
 
       // Monthly EMI calculation
-      double monthlyEmi = (remainingPrincipal * monthlyInterestRate) /
-          (1 - pow(1 + monthlyInterestRate, -tenureMonths));
+      double monthlyEmi;
+      if (monthlyInterestRate == 0 || tenureMonths == 0) {
+        monthlyEmi = tenureMonths > 0
+            ? remainingPrincipal / tenureMonths
+            : remainingPrincipal;
+      } else {
+        monthlyEmi = (remainingPrincipal * monthlyInterestRate) /
+            (1 - pow(1 + monthlyInterestRate, -tenureMonths));
+      }
 
       // Amortization loop to split EMI payments into yearly principal and interest
       for (int month = 0; month < tenureMonths; month++) {
         int currentYear = startYear + (month ~/ 12);
-        double monthlyInterest = remainingPrincipal * monthlyInterestRate;
+        double monthlyInterest = monthlyInterestRate == 0
+            ? 0
+            : remainingPrincipal * monthlyInterestRate;
         double monthlyPrincipal = monthlyEmi - monthlyInterest;
 
         // Deduct principal paid from the remaining principal
@@ -65,9 +74,11 @@ class HomeBarGraph extends StatelessWidget {
 
         // Accumulate principal and interest for each year
         yearlyData[currentYear]!['principal_${emi.id}'] =
-            (yearlyData[currentYear]!['principal_${emi.id}'] ?? 0) + monthlyPrincipal;
+            (yearlyData[currentYear]!['principal_${emi.id}'] ?? 0) +
+                monthlyPrincipal;
         yearlyData[currentYear]!['interest_${emi.id}'] =
-            (yearlyData[currentYear]!['interest_${emi.id}'] ?? 0) + monthlyInterest;
+            (yearlyData[currentYear]!['interest_${emi.id}'] ?? 0) +
+                monthlyInterest;
       }
     }
 
@@ -89,9 +100,9 @@ class HomeBarGraph extends StatelessWidget {
         double interest = yearlyData[year]?['interest_${emi.id}'] ?? 0.0;
 
         // Calculate the remaining balance for the current year
-        if(currentDate.year == year) {
-            principal = (principal*monthsLeft)/12.0;
-            interest = (interest*monthsLeft)/12.0;
+        if (currentDate.year == year) {
+          principal = (principal * monthsLeft) / 12.0;
+          interest = (interest * monthsLeft) / 12.0;
         }
 
         rods.add(
@@ -101,7 +112,8 @@ class HomeBarGraph extends StatelessWidget {
             color: null, // Set color to null to apply gradient
             rodStackItems: [
               BarChartRodStackItem(0, principal, principalColor),
-              BarChartRodStackItem(principal, principal + interest, interestColor),
+              BarChartRodStackItem(
+                  principal, principal + interest, interestColor),
             ],
             borderRadius: BorderRadius.zero,
           ),
@@ -117,11 +129,13 @@ class HomeBarGraph extends StatelessWidget {
     }
 
     // Find the maximum Y value for proper scaling
-    final maxY = barGroups.map((group) => group.barRods.map((rod) => rod.toY).reduce(max)).reduce(max);
-    var total = tenureMonths*allEmis.length;
+    final maxY = barGroups
+        .map((group) => group.barRods.map((rod) => rod.toY).reduce(max))
+        .reduce(max);
+    var total = tenureMonths * allEmis.length;
     // print("Total: $total");
-    if(total < 500) {
-      total = 2*total;
+    if (total < 500) {
+      total = 2 * total;
     }
     return Padding(
       padding: const EdgeInsets.only(right: 10),
@@ -152,7 +166,8 @@ class HomeBarGraph extends StatelessWidget {
                                 axisSide: meta.axisSide,
                                 child: Text(
                                   value.toInt().toString(),
-                                  style: const TextStyle(color: Colors.black, fontSize: 11),
+                                  style: const TextStyle(
+                                      color: Colors.black, fontSize: 11),
                                 ),
                               );
                             },
@@ -161,25 +176,28 @@ class HomeBarGraph extends StatelessWidget {
                         leftTitles: AxisTitles(
                           sideTitles: SideTitles(
                             showTitles: true,
-                            reservedSize: 45,  // Adjust this value to increase left margin
+                            reservedSize:
+                                45, // Adjust this value to increase left margin
                             getTitlesWidget: (value, meta) {
                               return SideTitleWidget(
                                 axisSide: meta.axisSide,
                                 child: Text(
                                   '${(value / 1000).toStringAsFixed(0)}K',
-                                  style: const TextStyle(color: Colors.black, fontSize: 12),
+                                  style: const TextStyle(
+                                      color: Colors.black, fontSize: 12),
                                 ),
                               );
                             },
                           ),
                         ),
-                        topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                        topTitles: const AxisTitles(
+                            sideTitles: SideTitles(showTitles: false)),
                       ),
                       borderData: FlBorderData(show: false),
                       barTouchData: BarTouchData(enabled: true),
                       gridData: const FlGridData(show: true),
                       backgroundColor: Colors.white,
-                      maxY: maxY*1.1, // 10% margin
+                      maxY: maxY * 1.1, // 10% margin
                       minY: 0,
                     ),
                   ),
@@ -193,7 +211,7 @@ class HomeBarGraph extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(
                 allEmis.length,
-                    (index) => Padding(
+                (index) => Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 10),
                   child: Row(
                     children: [
@@ -204,7 +222,8 @@ class HomeBarGraph extends StatelessWidget {
                             child: Container(
                               width: 12,
                               height: 12,
-                              color: interestColors[index % interestColors.length],
+                              color:
+                                  interestColors[index % interestColors.length],
                             ),
                           ),
                           ClipPath(
@@ -221,9 +240,10 @@ class HomeBarGraph extends StatelessWidget {
                       Text(
                         allEmis[index].title,
                         style: TextStyle(
-                            color: allEmis[index].emiType=='loan'? Colors.red: Colors.blueAccent,
-                            fontSize: 14
-                        ),
+                            color: allEmis[index].emiType == 'loan'
+                                ? Colors.red
+                                : Colors.blueAccent,
+                            fontSize: 14),
                       ),
                     ],
                   ),

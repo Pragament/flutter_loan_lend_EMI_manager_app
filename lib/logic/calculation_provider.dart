@@ -10,10 +10,17 @@ final emiCalculationProvider =
   final monthlyRate = params.annualInterestRate / (12 * 100);
   final totalMonths = params.tenureInYears * 12;
 
-  final emi = params.principalAmount *
-      monthlyRate *
-      pow(1 + monthlyRate, totalMonths) /
-      (pow(1 + monthlyRate, totalMonths) - 1);
+  double emi;
+  if (monthlyRate == 0 || totalMonths == 0) {
+    emi = totalMonths > 0
+        ? params.principalAmount / totalMonths
+        : params.principalAmount;
+  } else {
+    emi = params.principalAmount *
+        monthlyRate *
+        pow(1 + monthlyRate, totalMonths) /
+        (pow(1 + monthlyRate, totalMonths) - 1);
+  }
 
   // Round the EMI according to settings
   final settings = ref.watch(roundingProvider);

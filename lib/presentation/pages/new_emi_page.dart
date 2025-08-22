@@ -19,7 +19,8 @@ class NewEmiPage extends ConsumerStatefulWidget {
   final String emiType;
   final String? emiId;
   final bool startTour;
-  const NewEmiPage({super.key, required this.emiType, this.emiId, this.startTour = false});
+  const NewEmiPage(
+      {super.key, required this.emiType, this.emiId, this.startTour = false});
   @override
   ConsumerState<ConsumerStatefulWidget> createState() => _NewEmiPageState();
 }
@@ -254,7 +255,8 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Help'),
-        content: Text(_helpTexts[fieldKey] ?? 'No help available for this field.'),
+        content:
+            Text(_helpTexts[fieldKey] ?? 'No help available for this field.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
