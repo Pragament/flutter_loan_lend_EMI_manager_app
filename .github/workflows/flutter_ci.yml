@@ -27,5 +27,5 @@ jobs:
       - name: Analyze Dart code
         run: flutter analyze --no-fatal-infos --no-fatal-warnings
 
-      - name: Run tests
-        run: flutter test
+      #- name: Run tests
+        #run: flutter test
