@@ -58,7 +58,7 @@ class _TagsSelectionDialogState extends ConsumerState<TagsSelectionDialog> {
                 showDialog(
                   context: context,
                   builder: (context) => AlertDialog(
-                    title: const Text("Enter tag name",
+                    title: const Text('Enter tag name',
                         textAlign: TextAlign.center),
                     shape: const RoundedRectangleBorder(
                         borderRadius: BorderRadius.all(Radius.circular(20.0))),
@@ -133,7 +133,7 @@ class _TagsSelectionDialogState extends ConsumerState<TagsSelectionDialog> {
               },
               // Changed the widget to text
               child: const Text(
-                "Create Tag +",
+                'Create Tag +',
                 style: TextStyle(fontSize: 15),
               ),
             ),
@@ -177,7 +177,7 @@ class _TagsSelectionDialogState extends ConsumerState<TagsSelectionDialog> {
                                     Expanded(
                                       child: CheckboxListTile(
                                         title: Text(
-                                          "# ${tag.name}",
+                                          '# ${tag.name}',
                                           style: const TextStyle(fontSize: 13),
                                         ),
                                         value: selectedTags

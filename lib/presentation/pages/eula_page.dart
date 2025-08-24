@@ -10,12 +10,11 @@ class EulaPage extends StatefulWidget {
   final String languageCode;
   final bool showAppBar;
   const EulaPage(
-      {Key? key,
+      {super.key,
       required this.onAccepted,
       required this.onDeclined,
       this.languageCode = 'en',
-      this.showAppBar = true})
-      : super(key: key);
+      this.showAppBar = true});
 
   @override
   State<EulaPage> createState() => _EulaPageState();
@@ -74,7 +73,7 @@ class _EulaPageState extends State<EulaPage> {
     final localizations = AppLocalizations.of(context)!;
 
     if (_loading) {
-      return Scaffold(
+      return const Scaffold(
         body: Center(child: CircularProgressIndicator()),
       );
     }
@@ -85,7 +84,7 @@ class _EulaPageState extends State<EulaPage> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(localizations.eulaLoadError),
-              SizedBox(height: 16),
+              const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: _fetchEula,
                 child: Text(localizations.eulaRetry),
@@ -96,7 +95,7 @@ class _EulaPageState extends State<EulaPage> {
       );
     }
     final cardHeight = MediaQuery.of(context).size.height * 0.35;
-    final cardMinHeight = 550.0;
+    const cardMinHeight = 550.0;
     return WillPopScope(
       onWillPop: () async => false, // Prevent back navigation
       child: Scaffold(
@@ -104,7 +103,7 @@ class _EulaPageState extends State<EulaPage> {
             ? AppBar(
                 title: Text(
                   localizations.eulaTitle,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     color: Colors.blueAccent,
                     fontSize: 24,
@@ -124,9 +123,9 @@ class _EulaPageState extends State<EulaPage> {
                   Padding(
                     padding: const EdgeInsets.only(top: 8.0),
                     child: Text('${localizations.eulaVersion}: $_eulaVersion',
-                        style: TextStyle(fontWeight: FontWeight.bold)),
+                        style: const TextStyle(fontWeight: FontWeight.bold)),
                   ),
-                SizedBox(height: 8),
+                const SizedBox(height: 8),
                 SizedBox(
                   height:
                       cardHeight < cardMinHeight ? cardMinHeight : cardHeight,
@@ -170,7 +169,7 @@ class _EulaPageState extends State<EulaPage> {
                 ),
 
                 // The following actions can be placed above the onboarding dots
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
                 EulaActions(
                   hasRead: _hasRead,
                   onHasReadChanged: (val) {
@@ -200,14 +199,14 @@ class EulaActions extends StatelessWidget {
   final AppLocalizations localizations;
   final ThemeData theme;
   const EulaActions({
-    Key? key,
+    super.key,
     required this.hasRead,
     required this.onHasReadChanged,
     required this.onAccept,
     required this.onDecline,
     required this.localizations,
     required this.theme,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -230,7 +229,7 @@ class EulaActions extends StatelessWidget {
             ),
           ],
         ),
-        SizedBox(height: 8),
+        const SizedBox(height: 8),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [

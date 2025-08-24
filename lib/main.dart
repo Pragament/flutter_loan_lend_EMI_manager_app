@@ -14,7 +14,7 @@ import 'package:emi_manager/logic/locale_provider.dart';
 import 'package:emi_manager/presentation/router/router.dart';
 import 'package:showcaseview/showcaseview.dart';
 
-import 'data/models/transaction_model.dart';
+import 'package:emi_manager/data/models/transaction_model.dart';
 import 'package:emi_manager/presentation/pages/eula_page.dart';
 import 'package:emi_manager/logic/eula_provider.dart';
 
@@ -165,12 +165,12 @@ class _SplashScreenState extends State<SplashScreen> {
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8)),
                         padding:
-                            EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                            const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
                       ),
                       onPressed: () {
                         Navigator.of(context).pop();
                       },
-                      child: Text('Close'),
+                      child: const Text('Close'),
                     ),
                   ],
                 ),

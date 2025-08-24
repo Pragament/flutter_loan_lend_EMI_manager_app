@@ -5,7 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 import 'package:lottie/lottie.dart';
 
-import '../../data/models/transaction_model.dart';
+import 'package:emi_manager/data/models/transaction_model.dart';
 
 class NewTransactionPage extends ConsumerStatefulWidget {
   final String type;
@@ -56,7 +56,7 @@ class _NewTransactionPageState extends ConsumerState<NewTransactionPage> {
       );
 
       ref.read(transactionsNotifierProvider.notifier).add(transaction);
-      print("Transaction saved in Hive: ${widget.emiId}");
+      print('Transaction saved in Hive: ${widget.emiId}');
 
       // Show Lottie animation
       setState(() {

@@ -84,7 +84,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Text(
-              "Select Language",
+              'Select Language',
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
@@ -260,7 +260,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 const SizedBox(height: 12),
                 Text(
                   localizations.eulaAlertDialog,
-                  style: TextStyle(fontSize: 16),
+                  style: const TextStyle(fontSize: 16),
                   textAlign: TextAlign.center,
                 ),
               ],

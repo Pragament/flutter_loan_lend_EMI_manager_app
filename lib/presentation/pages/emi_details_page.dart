@@ -16,13 +16,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:emi_manager/presentation/l10n/app_localizations.dart';
 import 'package:lottie/lottie.dart';
 import 'package:go_router/go_router.dart';
-import '../../data/models/transaction_model.dart';
-import '../widgets/amortization_schedule_table.dart';
-import '../widgets/bar_graph.dart';
+import 'package:emi_manager/data/models/transaction_model.dart';
+import 'package:emi_manager/presentation/widgets/amortization_schedule_table.dart';
+import 'package:emi_manager/presentation/widgets/bar_graph.dart';
 import 'dart:math';
 
-import 'home/transaction_details_page.dart';
-import 'home_page.dart';
+import 'package:emi_manager/presentation/pages/home/transaction_details_page.dart';
+import 'package:emi_manager/presentation/pages/home_page.dart';
 
 class EmiDetailsPage extends ConsumerStatefulWidget {
   const EmiDetailsPage({super.key, required this.emiId});
@@ -157,7 +157,7 @@ class _EmiDetailsPageState extends ConsumerState<EmiDetailsPage> {
                       context,
                       MaterialPageRoute(
                           builder: (_) => NewTransactionPage(
-                              type: "CR", emiId: widget.emiId)),
+                              type: 'CR', emiId: widget.emiId)),
                     );
                   },
                   child: Icon(
@@ -175,7 +175,7 @@ class _EmiDetailsPageState extends ConsumerState<EmiDetailsPage> {
                   context,
                   MaterialPageRoute(
                       builder: (_) =>
-                          NewTransactionPage(type: "DR", emiId: widget.emiId)),
+                          NewTransactionPage(type: 'DR', emiId: widget.emiId)),
                 );
               },
               child: Icon(
@@ -694,7 +694,7 @@ class _EmiDetailsPageState extends ConsumerState<EmiDetailsPage> {
     }
     double balance = totalAmount - totalPaid;
     print(
-        'Total Paid: \$${totalPaid}, Total Amount: \$${totalAmount}, Balance: \$${balance}');
+        'Total Paid: \$$totalPaid, Total Amount: \$$totalAmount, Balance: \$$balance');
     return balance < 0 ? 0 : balance;
   }
 

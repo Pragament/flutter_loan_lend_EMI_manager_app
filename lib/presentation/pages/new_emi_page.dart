@@ -700,7 +700,7 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
                             icon: Showcase(
                               key: tagsKey,
                               description:
-                                  "Create New Tags or Select From Previous Tags",
+                                  'Create New Tags or Select From Previous Tags',
                               child: Icon(
                                 Icons.add,
                                 color: Theme.of(context).colorScheme.primary,
@@ -726,7 +726,7 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
                     padding: const EdgeInsets.all(8.0),
                     child: Showcase(
                       key: saveButtonKey,
-                      description: "Tap here to save your loan/lend entry.",
+                      description: 'Tap here to save your loan/lend entry.',
                       child: ElevatedButton(
                         onPressed: () {
                           if (_formKey.currentState?.validate() ?? false) {
