@@ -251,4 +251,5 @@ class Emi {
         "selectedYears": selectedYears,
         "selectedMonths": selectedMonths,
       };
+  Map<String, dynamic> toJson() => toMap();
 }

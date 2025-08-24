@@ -23,4 +23,5 @@ class Tag {
         "id": id,
         "name": name,
       };
+       Map<String, dynamic> toJson() => toMap();
 }

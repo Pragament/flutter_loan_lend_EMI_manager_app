@@ -67,4 +67,5 @@ class Transaction {
     "datetime": datetime.toIso8601String(),
     "loan_lend_id": loanLendId,
   };
+   Map<String, dynamic> toJson() => toMap();
 }
