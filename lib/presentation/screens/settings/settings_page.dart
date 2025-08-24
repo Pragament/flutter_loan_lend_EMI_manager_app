@@ -34,9 +34,9 @@ class SettingsPage extends StatelessWidget {
               try {
                 // Replace this with your Hive data later
                 final dummyBackupData = jsonEncode({
-                  "loans": [],
-                  "lends": [],
-                  "transactions": [],
+                  'loans': [],
+                  'lends': [],
+                  'transactions': [],
                 });
 
                 await BackupService.uploadBackupFile(

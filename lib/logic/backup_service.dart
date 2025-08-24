@@ -14,14 +14,14 @@ class BackupService {
   final jsonMap = json.decode(jsonString);
 
   final clientId = ClientId(
-    jsonMap["installed"]["client_id"],
-    jsonMap["installed"]["client_secret"],
+    jsonMap['installed']['client_id'],
+    jsonMap['installed']['client_secret'],
   );
 
   await clientViaUserConsent(clientId, _scopes, (url) {
-    print("🔗 Please open this URL in your browser:\n$url");
+    print(' Please open this URL in your browser:\n$url');
   }).then((AuthClient client) async {
-    print("✅ Auth successful, uploading to Google Drive...");
+    print(' Auth successful, uploading to Google Drive...');
 
     final dir = await getTemporaryDirectory();
     final file = File('${dir.path}/$filename');
@@ -35,9 +35,9 @@ class BackupService {
       uploadMedia: drive.Media(file.openRead(), file.lengthSync()),
     );
 
-    print("✅ Upload complete!");
+    print(' Upload complete!');
   }).catchError((e) {
-    print("❌ Upload failed: $e");
+    print(' Upload failed: $e');
   });
 }
 }
