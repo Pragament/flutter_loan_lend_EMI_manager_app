@@ -2,7 +2,7 @@
  
   "dart.flutterSdkPath": ".fvm/versions/3.29.2",
   "java.configuration.updateBuildConfiguration": "interactive",
-  "java.compile.nullAnalysis.mode": "automatic"
+  "java.compile.nullAnalysis.mode": "automatic",
 
   "dart.flutterSdkPath": "/Users/nik/flutter_dev/flutter",
   "java.configuration.updateBuildConfiguration": "interactive",
