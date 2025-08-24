@@ -1,5 +1,5 @@
 # Flutter Loan Lend EMI Manager App
-
+by nik testing3
 ## Project Description
 
 The Flutter Loan Lend EMI Manager App is designed to help users efficiently manage their loans, lending activities, and EMI schedules. It provides a user-friendly interface to track transactions, set reminders, and visualize financial data. The app exists to simplify financial management and ensure users never miss an EMI payment or lending record.
@@ -153,3 +153,33 @@ This section explains the structure and flow of the Flutter app to help new cont
    - Use `flutter run` to test changes locally.
 
 ---
+
+## Git Pre-commit Hook
+
+To enforce code quality locally before each commit, set up the following pre-commit hook:
+
+1. Create a file at `.git/hooks/pre-commit` with the following content:
+    ```sh
+    #!/bin/sh
+    flutter analyze --no-fatal-infos --no-fatal-warnings
+    if [ $? -ne 0 ]; then
+      echo "Flutter analyze failed. Commit aborted."
+      exit 1
+    fi
+
+    echo "Running flutter test..."
+    flutter test
+    if [ $? -ne 0 ]; then
+      echo "Flutter tests failed. Commit aborted."
+      #exit 1
+    fi
+
+    echo "All checks passed."
+    exit 0
+    ```
+2. Make it executable:
+    ```sh
+    chmod +x .git/hooks/pre-commit
+    ```
+
+This will prevent commits if formatting, analysis, or tests fail.

@@ -11,10 +11,12 @@ class TransactionDetailsPage extends ConsumerStatefulWidget {
   const TransactionDetailsPage({super.key, required this.transaction});
 
   @override
-  ConsumerState<ConsumerStatefulWidget> createState() => _TransactionDetailsPageState();
+  ConsumerState<ConsumerStatefulWidget> createState() =>
+      _TransactionDetailsPageState();
 }
 
-class _TransactionDetailsPageState extends ConsumerState<TransactionDetailsPage> {
+class _TransactionDetailsPageState
+    extends ConsumerState<TransactionDetailsPage> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
@@ -69,7 +71,9 @@ class _TransactionDetailsPageState extends ConsumerState<TransactionDetailsPage>
         ),
       );
 
-      ref.read(transactionsNotifierProvider.notifier).update(updatedTransaction);
+      ref
+          .read(transactionsNotifierProvider.notifier)
+          .update(updatedTransaction);
       Navigator.pop(context);
     }
   }
@@ -92,7 +96,8 @@ class _TransactionDetailsPageState extends ConsumerState<TransactionDetailsPage>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               ChoiceChip(
-                label: Text(widget.transaction.type == 'CR' ? 'Income' : 'Expense'),
+                label: Text(
+                    widget.transaction.type == 'CR' ? 'Income' : 'Expense'),
                 selected: true,
                 selectedColor: Colors.deepPurple,
                 labelStyle: const TextStyle(color: Colors.white),
@@ -158,7 +163,8 @@ class _TransactionDetailsPageState extends ConsumerState<TransactionDetailsPage>
                     onTap: _pickDate,
                     child: Row(
                       children: [
-                        const Icon(Icons.calendar_today, color: Colors.deepPurple),
+                        const Icon(Icons.calendar_today,
+                            color: Colors.deepPurple),
                         const SizedBox(width: 5),
                         Text(
                           _formattedDate,

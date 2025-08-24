@@ -1,1 +1,25 @@
 include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  errors:
+    # Treat these as hard errors (fail CI)
+    missing_required_param: error
+    missing_return: error
+    dead_code: error
+
+    # Downgrade to warnings (shown locally, not blocking CI)
+    prefer_const_constructors: warning
+    prefer_single_quotes: warning
+    avoid_print: warning
+
+    # Downgrade infos to ignore (avoid clutter)
+    prefer_final_fields: ignore
+    unnecessary_this: ignore
+    unused_import: warning
+
+linter:
+  rules:
+    # Add / remove rules your team cares about
+    - always_use_package_imports
+    - prefer_const_constructors
+    - prefer_single_quotes

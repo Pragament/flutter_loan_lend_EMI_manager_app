@@ -9,7 +9,7 @@ class Emi {
   final double monthlyEmi;
   final double balance;
   final int tenure; // Duration in years
-   // Color for the bar
+  // Color for the bar
 
   Emi({
     required this.id,
@@ -22,6 +22,5 @@ class Emi {
     required this.monthlyEmi,
     required this.balance,
     required this.tenure,
-
   });
 }

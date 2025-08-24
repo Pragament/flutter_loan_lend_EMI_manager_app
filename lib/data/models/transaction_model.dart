@@ -49,16 +49,17 @@ class Transaction {
       );
 
   factory Transaction.fromMap(Map<String, dynamic> map) => Transaction(
-    id: map["id"].toString(),
-    title: map["title"],
-    description: map["description"],
-    amount: map["amount"].toDouble(),
-    type: map["type"],
-    datetime: DateTime.parse(map["datetime"]),
-    loanLendId: map["loan_lend_id"].toString(),
-  );
+        id: map["id"].toString(),
+        title: map["title"],
+        description: map["description"],
+        amount: map["amount"].toDouble(),
+        type: map["type"],
+        datetime: DateTime.parse(map["datetime"]),
+        loanLendId: map["loan_lend_id"].toString(),
+      );
 
   Map<String, dynamic> toMap() => {
+ lokesh
     "id": id,
     "title": title,
     "description": description,
@@ -68,4 +69,14 @@ class Transaction {
     "loan_lend_id": loanLendId,
   };
    Map<String, dynamic> toJson() => toMap();
+
+        "id": id,
+        "title": title,
+        "description": description,
+        "amount": amount,
+        "type": type,
+        "datetime": datetime.toIso8601String(),
+        "loan_lend_id": loanLendId,
+      };
+ main
 }
