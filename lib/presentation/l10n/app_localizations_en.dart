@@ -204,8 +204,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get next => 'next';
 
   @override
-  String get welcome =>
-      'Welcome to the English version of our app. Here you can manage your loans and EMIs efficiently.';
+  String get welcome => 'Welcome to the English version of our app. Here you can manage your loans and EMIs efficiently.';
 
   @override
   String get eulaLoadError => 'Failed to load EULA.';
@@ -241,8 +240,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get noDataTitle => 'No data yet. Let\'s get started!';
 
   @override
-  String get noDataDescription =>
-      'Start by creating a Loan or Lend using the buttons below.\nYou\'ll then see helpful charts and tables here to track your finances.\nTap the Tour button anytime to let the app guide you through the process.';
+  String get noDataDescription => 'Start by creating a Loan or Lend using the buttons below.\nYou\'ll then see helpful charts and tables here to track your finances.\nTap the Tour button anytime to let the app guide you through the process.';
 
   @override
   String get tourButtonLabel => 'Tour';

@@ -442,12 +442,19 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
                           ),
                           SizedBox(
                             width: 100,
-                            child: TextField(
+                            child: TextFormField(
                               controller: principalAmountC,
                               keyboardType: TextInputType.number,
                               decoration: const InputDecoration(
                                 border: OutlineInputBorder(),
                               ),
+                              validator: (value) {
+                                final amount = double.tryParse(value ?? '');
+                                if (amount == null || amount <= 0) {
+                                  return 'Enter amount > 0';
+                                }
+                                return null;
+                              },
                               onChanged: (value) {
                                 setState(() {
                                   principalAmount = double.tryParse(value) ?? 0;
