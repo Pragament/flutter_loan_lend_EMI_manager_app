@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
-import '../../../data/models/transaction_model.dart';
-import '../../../logic/transaction_provider.dart';
-import '../new_transaction_page.dart';
+import 'package:emi_manager/data/models/transaction_model.dart';
+import 'package:emi_manager/logic/transaction_provider.dart';
+import 'package:emi_manager/presentation/pages/new_transaction_page.dart';
 
 class TransactionDetailsPage extends ConsumerStatefulWidget {
   final Transaction transaction;

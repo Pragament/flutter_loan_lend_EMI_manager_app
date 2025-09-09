@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:emi_manager/presentation/widgets/formatted_amount.dart';
 
-import '../pages/home/logic/home_state_provider.dart';
+import 'package:emi_manager/presentation/pages/home/logic/home_state_provider.dart';
 
 class AmortizationSummaryTable extends ConsumerStatefulWidget {
   final List<AmortizationEntry> entries; // Full schedule for all loans/lends
