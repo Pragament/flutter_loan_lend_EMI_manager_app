@@ -204,7 +204,8 @@ class AppLocalizationsHi extends AppLocalizations {
   String get next => 'अगला';
 
   @override
-  String get welcome => 'आप हमारे ऐप के हिंदी संस्करण में हैं। यहाँ आप अपने ऋण और ई.एम.आई को आसानी से प्रबंधित कर सकते हैं।';
+  String get welcome =>
+      'आप हमारे ऐप के हिंदी संस्करण में हैं। यहाँ आप अपने ऋण और ई.एम.आई को आसानी से प्रबंधित कर सकते हैं।';
 
   @override
   String get eulaLoadError => 'EULA लोड करने में विफल.';
@@ -216,7 +217,8 @@ class AppLocalizationsHi extends AppLocalizations {
   String get eulaVersion => 'संस्करण';
 
   @override
-  String get eulaAgree => 'मैंने अंतिम उपयोगकर्ता लाइसेंस अनुबंध (EULA) पढ़ लिया है और उससे सहमत हूँ।';
+  String get eulaAgree =>
+      'मैंने अंतिम उपयोगकर्ता लाइसेंस अनुबंध (EULA) पढ़ लिया है और उससे सहमत हूँ।';
 
   @override
   String get eulaAccept => 'स्वीकार करना';
@@ -231,7 +233,8 @@ class AppLocalizationsHi extends AppLocalizations {
   String get eulaDeclined => 'EULA अस्वीकृत';
 
   @override
-  String get eulaAlertDialog => 'आपको इस ऐप का उपयोग करने के लिए EULA स्वीकार करना होगा।';
+  String get eulaAlertDialog =>
+      'आपको इस ऐप का उपयोग करने के लिए EULA स्वीकार करना होगा।';
 
   @override
   String get close => 'बंद करें';
@@ -240,7 +243,8 @@ class AppLocalizationsHi extends AppLocalizations {
   String get noDataTitle => 'अभी कोई डेटा नहीं है। चलिए शुरू करते हैं!';
 
   @override
-  String get noDataDescription => 'नीचे दिए गए बटन का उपयोग करके एक लोन या लेंड बनाएं।\nइसके बाद आप यहाँ उपयोगी चार्ट्स और टेबल्स देख पाएंगे।\nकिसी भी समय टूर बटन टैप करें, ऐप आपको प्रक्रिया में मार्गदर्शन करेगा।';
+  String get noDataDescription =>
+      'नीचे दिए गए बटन का उपयोग करके एक लोन या लेंड बनाएं।\nइसके बाद आप यहाँ उपयोगी चार्ट्स और टेबल्स देख पाएंगे।\nकिसी भी समय टूर बटन टैप करें, ऐप आपको प्रक्रिया में मार्गदर्शन करेगा।';
 
   @override
   String get tourButtonLabel => 'टूर';

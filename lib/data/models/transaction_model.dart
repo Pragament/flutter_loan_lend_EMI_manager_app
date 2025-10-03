@@ -47,6 +47,17 @@ class Transaction {
         datetime: datetime ?? this.datetime,
         loanLendId: loanLendId ?? this.loanLendId,
       );
+  Transaction duplicate() {
+    return Transaction(
+      id: DateTime.now().millisecondsSinceEpoch.toString(), // new unique ID
+      title: this.title,
+      description: this.description,
+      amount: this.amount,
+      type: this.type,
+      datetime: DateTime.now(), // current date/time
+      loanLendId: this.loanLendId,
+    );
+  }
 
   factory Transaction.fromMap(Map<String, dynamic> map) => Transaction(
         id: map["id"].toString(),
