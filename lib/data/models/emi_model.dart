@@ -197,8 +197,14 @@ class Emi {
         selectedYears: selectedYears ?? this.selectedYears,
         selectedMonths: selectedMonths ?? this.selectedMonths,
       );
+  Emi duplicate() {
+    return copyWith(
+      id: DateTime.now().millisecondsSinceEpoch.toString(), // new unique ID
+      startDate: DateTime.now(), // optional: reset start date to now
+    );
+  }
 
-  factory Emi.fromMap(Map<String, dynamic> map, String id) => Emi(
+factory Emi.fromMap(Map<String, dynamic> map, String id) => Emi(
         id: map["id"],
         title: map["title"],
         emiType: map["emiType"],

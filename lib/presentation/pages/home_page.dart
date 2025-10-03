@@ -1613,15 +1613,24 @@ class EmiCard extends ConsumerWidget {
                     ),
                   ),
                   PopupMenuButton<String>(
-                    onSelected: (value) {
+                    onSelected: (value) async {
                       if (value == 'edit') {
                         final emiId = emi.id;
                         final emiType = emi.emiType;
                         GoRouter.of(context).go(
-                            NewEmiRoute(emiType: emiType, emiId: emiId)
-                                .location);
+                            NewEmiRoute(emiType: emiType, emiId: emiId).location);
                       } else if (value == 'delete') {
                         _deleteEmi(context, ref, emi);
+                      } else if (value == 'duplicate') {
+                        // Create a copy of the EMI item
+                        final duplicatedEmi = emi.duplicate();
+
+                        // Add to your main EMI list (using emiType if needed)
+                        await ref.read(emisNotifierProvider.notifier).add(duplicatedEmi);
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Item duplicated!')),
+                        );
                       }
                     },
                     itemBuilder: (context) => [
@@ -1632,6 +1641,10 @@ class EmiCard extends ConsumerWidget {
                       PopupMenuItem<String>(
                         value: 'delete',
                         child: Text(l10n.delete),
+                      ),
+                      PopupMenuItem<String>(
+                        value: 'duplicate',
+                        child: Text('Duplicate'), // <-- Add Duplicate option
                       ),
                     ],
                     icon: const Icon(Icons.more_vert),

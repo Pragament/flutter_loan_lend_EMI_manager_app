@@ -249,7 +249,7 @@ class _EmiDetailsPageState extends ConsumerState<EmiDetailsPage> {
     return ListView.builder(
       shrinkWrap: true,
       physics:
-          const NeverScrollableScrollPhysics(), // Disable scrolling to integrate with the main scroll view
+      const NeverScrollableScrollPhysics(), // Disable scrolling to integrate with the main scroll view
       itemCount: transactions.length,
       itemBuilder: (context, index) {
         final transaction = transactions[index];
@@ -273,12 +273,32 @@ class _EmiDetailsPageState extends ConsumerState<EmiDetailsPage> {
                   transaction.datetime.toLocal().toString().substring(0, 16),
                   style: const TextStyle(color: Colors.grey),
                 ),
-                trailing: Text(
-                  "${isCredit ? '+' : '-'}₹${GlobalFormatter.formatNumber(ref, transaction.amount)}",
-                  style: TextStyle(
-                      fontSize: 16.0,
-                      color: amountColor,
-                      fontWeight: FontWeight.bold),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      "${isCredit ? '+' : '-'}₹${GlobalFormatter.formatNumber(ref, transaction.amount)}",
+                      style: TextStyle(
+                          fontSize: 16.0,
+                          color: amountColor,
+                          fontWeight: FontWeight.bold),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.copy, size: 20),
+                      tooltip: 'Duplicate Transaction',
+                      onPressed: () {
+                        final duplicated = transaction.duplicate();
+                        ref
+                            .read(transactionsNotifierProvider.notifier)
+                            .add(duplicated);
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                              content: Text('Transaction duplicated!')),
+                        );
+                      },
+                    ),
+                  ],
                 ),
                 onTap: () {
                   Navigator.push(
@@ -296,6 +316,7 @@ class _EmiDetailsPageState extends ConsumerState<EmiDetailsPage> {
       },
     );
   }
+
 
   Widget _buildEmiInfoSection(
       BuildContext context,
