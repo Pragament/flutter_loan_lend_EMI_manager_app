@@ -37,6 +37,7 @@ import 'package:uuid/uuid.dart';
 import 'package:hive/hive.dart';
 import '../../data/models/transaction_model.dart';
 import 'package:emi_manager/logic/transaction_provider.dart';
+import 'package:emi_manager/utils/universal_date_parser.dart'; // support diff date format
 
 class HomePage extends ConsumerStatefulWidget {
   // GlobalKey loanHelpKey, GlobalKey lendHelpKey, GlobalKey langHelpKey, GlobalKey helpHelpKey
@@ -767,7 +768,13 @@ class HomePageState extends ConsumerState<HomePage> {
           continue;
         }
 
-        final date = DateFormat('dd-MMM-yyyy').parse(row['date']);
+        final date = UniversalDateParser.tryParse(row['date']);
+        if (date == null) {
+          // Handle invalid or unrecognized date
+          print('Could not parse date: ${row['date']}');
+          continue; // or skip the row, depending on context
+        }
+
         final tag = row['group_tag'].toString().trim();
         final matchedEmis = loanLendBox.values.where((emi) {
           final matchesTag = emi.tags.any(
