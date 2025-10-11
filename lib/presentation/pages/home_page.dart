@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 import 'package:csv/csv.dart';
+import 'package:emi_manager/utils/date_parser.dart';
 import 'package:currency_picker/currency_picker.dart';
 import 'package:emi_manager/data/models/emi_model.dart';
 import 'package:emi_manager/data/models/tag_model.dart';
@@ -579,55 +580,92 @@ class HomePageState extends ConsumerState<HomePage> {
 
   // Function to import CSV data and map it to your Payment model
   Future<void> importPaymentsFromCSV(BuildContext context) async {
+    print("Import function called!");
     try {
-      // File picker to allow user to select CSV file
+      // File picker
       FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
-        allowedExtensions: ['csv'], // CSV only
+        allowedExtensions: ['csv'],
       );
+      print("File picker result: $result");
 
       if (result != null && result.files.single.path != null) {
-        //if file exist
         File file = File(result.files.single.path!);
+        print("CSV file path: $file");
 
-        // Read the file contents
-        final input = await file.readAsString();
-        // Parse the CSV file
-        List<List<dynamic>> csvData = const CsvToListConverter().convert(input);
-        // Skip the header row and process the rest
+        // Read and normalize
+        String input = await file.readAsString();
+        input = input.replaceAll('\r\n', '\n').replaceAll('\r', '\n');
+
+        // Parse CSV
+        List<List<dynamic>> csvData = const CsvToListConverter(
+          eol: '\n',
+          fieldDelimiter: ',',
+          textDelimiter: '"',
+          shouldParseNumbers: false,
+        ).convert(input);
+
+        print('CSV rows after parsing: ${csvData.length}');
+        for (var row in csvData) {
+          print(row);
+        }
+
+        // Skip header
         for (int i = 1; i < csvData.length; i++) {
-          //oth row is heading
           var row = csvData[i];
-          // Map CSV data to Payment fields
-          // Assuming row[22] is a JSON string of tags
-          String tagJson = row[22];
+          print("Processing row $i: $row");
+
+          // ---- TAGS ----
           List<Tag> tags = [];
           try {
-            // Parse JSON string into a list of maps
-            List<dynamic> tagList = json.decode(tagJson);
-            print(tagList);
-
-            // Convert each map to a Tag object
-            tags = tagList.map((tag) {
-              return Tag.fromMap(tag);
-            }).toList();
-            if (tags.isNotEmpty) // saving  tags in hive
-            {
-              for (var tag in tags) {
-                await ref.read(tagsNotifierProvider.notifier).add(tag);
+            String tagValue = row[22]?.toString().trim() ?? "";
+            if (tagValue.isNotEmpty) {
+              // If multiple tags stored like "urgent,business"
+              for (var t in tagValue.split(',')) {
+                tags.add(Tag(
+                  id: DateTime.now().millisecondsSinceEpoch.toString(),
+                  name: t.trim(),
+                ));
               }
             }
           } catch (e) {
             print("Error parsing tags: $e");
           }
-          Emi SingleEmi = Emi(
+
+          // Save tags in Hive if not empty
+          if (tags.isNotEmpty) {
+            final existingTags =
+            ref.read(tagsNotifierProvider).map((t) => t.name).toSet();
+            for (var tag in tags) {
+              if (!existingTags.contains(tag.name)) {
+                await ref.read(tagsNotifierProvider.notifier).add(tag);
+              }
+            }
+          }
+          // Parse startDate
+          DateTime? parsedStart = DateParser.parse(row[5].toString());
+          if (parsedStart == null) {
+            print("Start date parsing failed for row ${i + 1}: ${row[5]}");
+            continue; // skip this row if needed
+          } else {
+            print("Parsed start date for row ${i + 1}: $parsedStart");
+          }
+          // Parse endDate
+          DateTime? parsedEnd = DateParser.parse(row[6].toString());
+          if (parsedEnd == null) {
+            print("End date parsing failed for row ${i + 1}: ${row[6]}");
+            continue; // skip this row if needed
+          } else {
+            print("Parsed end date for row ${i + 1}: $parsedEnd");
+          }
+          Emi singleEmi = Emi(
             id: row[0].toString(),
             title: row[1].toString(),
             emiType: row[2].toString(),
             principalAmount: double.tryParse(row[3].toString()) ?? 0.0,
             interestRate: double.tryParse(row[4].toString()) ?? 0.0,
-            startDate: DateTime.parse(row[5].toString()),
-            endDate: DateTime.parse(row[6].toString()),
+            startDate: DateParser.parse(row[5].toString())!,
+            endDate: DateParser.parse(row[6].toString())!,
             contactPersonName: row[7].toString(),
             contactPersonPhone: row[8].toString(),
             contactPersonEmail: row[9].toString(),
@@ -637,7 +675,7 @@ class HomePageState extends ConsumerState<HomePage> {
             partPayment: double.tryParse(row[13].toString()),
             advancePayment: double.tryParse(row[14].toString()),
             insuranceCharges: double.tryParse(row[15].toString()),
-            moratorium: (row[16].toString() == "Yes" ? true : false),
+            moratorium: (row[16].toString() == "Yes"),
             moratoriumMonth: int.tryParse(row[17].toString()),
             moratoriumType: row[18].toString(),
             monthlyEmi: double.tryParse(row[19].toString()),
@@ -645,15 +683,15 @@ class HomePageState extends ConsumerState<HomePage> {
             paid: double.tryParse(row[21].toString()),
             tags: tags,
           );
-          ref.read(emisNotifierProvider.notifier).add(SingleEmi);
-        }
-        // Now, do something with the imported payments (e.g., add to your current list)
-        setState(() {
-          //refresh the ui
-        });
 
-        Navigator.of(context).pop(); //pop the drawer
-        // Show a confirmation message
+          print(
+              'Imported EMI: ${singleEmi.title}, Tags: ${singleEmi.tags.map((t) => t.name).toList()}');
+          ref.read(emisNotifierProvider.notifier).add(singleEmi);
+        }
+
+        // Refresh UI
+        setState(() {});
+        Navigator.of(context).pop();
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Payments imported successfully!')),
         );
@@ -665,6 +703,22 @@ class HomePageState extends ConsumerState<HomePage> {
       );
     }
   }
+  DateTime? parseCSVDate(String dateString, {int rowIndex = -1, String fieldName = "date"}) {
+    try {
+      // Parse date in format 06-Jul-24
+      final parsed = DateFormat('dd-MMM-yy').parse(dateString);
+      if (rowIndex >= 0) {
+        print("Parsed $fieldName for row ${rowIndex + 1}: $parsed");
+      }
+      return parsed;
+    } catch (e) {
+      if (rowIndex >= 0) {
+        print("Failed to parse $fieldName for row ${rowIndex + 1}: $dateString, Error: $e");
+      }
+      return null; // Return null if parsing fails
+    }
+  }
+
 
   Future<void> _importTransactionsCSV() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles();
@@ -675,7 +729,7 @@ class HomePageState extends ConsumerState<HomePage> {
       List<List<dynamic>> csv = [];
       try {
         csv = CsvToListConverter(
-                eol: '\n', fieldDelimiter: ',', textDelimiter: '"')
+            eol: '\n', fieldDelimiter: ',', textDelimiter: '"')
             .convert(content);
       } catch (e) {
         ScaffoldMessenger.of(context)
@@ -694,34 +748,42 @@ class HomePageState extends ConsumerState<HomePage> {
 
         // Clean amounts by removing quotes and commas
         final debitStr =
-            row[0].toString().replaceAll(RegExp(r'[",]'), '').trim();
+        row[0].toString().replaceAll(RegExp(r'[",]'), '').trim();
         final creditStr =
-            row[1].toString().replaceAll(RegExp(r'[",]'), '').trim();
+        row[1].toString().replaceAll(RegExp(r'[",]'), '').trim();
+
+        // Parse date safely
+        final date = parseCSVDate(row[2].toString(), rowIndex: i, fieldName: "transaction date");
+        if (date == null) {
+          print("Skipping row ${i + 1} due to invalid date.");
+          continue; // Skip row if date can't be parsed
+        }
 
         transactions.add({
           'debit': double.tryParse(debitStr) ?? 0,
           'credit': double.tryParse(creditStr) ?? 0,
-          'date': row[2],
+          'date': date,
           'title': row[3],
           'group_tag': originalTag,
         });
+
         if (!seenTagsLowercase.contains(lowerTag)) {
           groupTags.add(originalTag);
           seenTagsLowercase.add(lowerTag);
         }
       }
 
-      // Automap group_tags to existing EMI groupTag (not Tag box)
+      // Automap group_tags to existing EMI groupTag
       final loanLendBox = Hive.box<Emi>('emis');
       final Map<String, String> autoMapped = {};
       final List<String> tagsToMap = [];
       for (final tag in groupTags) {
         final isCredit = transactions.any(
-          (tx) => tx['group_tag'] == tag && (tx['credit'] ?? 0) > 0,
+              (tx) => tx['group_tag'] == tag && (tx['credit'] ?? 0) > 0,
         );
         final matchingEmis = loanLendBox.values.where((emi) {
           final hasMatchingTag = emi.tags.any(
-            (t) => t.name.trim().toLowerCase() == tag.trim().toLowerCase(),
+                (t) => t.name.trim().toLowerCase() == tag.trim().toLowerCase(),
           );
           return hasMatchingTag &&
               ((isCredit && emi.emiType == 'lend') ||
@@ -736,8 +798,9 @@ class HomePageState extends ConsumerState<HomePage> {
           tagsToMap.add(tag);
         }
       }
+
       final Map<String, String?> manualMapped =
-          await _promptUserForMappings(transactions, tagsToMap);
+      await _promptUserForMappings(transactions, tagsToMap);
       final Map<String, String?> mapping = {...autoMapped, ...manualMapped};
       if (mapping.values.any((v) => v == null)) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -759,32 +822,26 @@ class HomePageState extends ConsumerState<HomePage> {
           amount = debit;
           transactionType = 'DR';
         } else {
-          // Skip if both are zero or blank
-          continue;
-        }
-        if (amount == 0) {
-          print("Skipping empty transaction with 0 amount: ${row['title']}");
-          continue;
+          continue; // Skip if both are zero
         }
 
-        final date = DateFormat('dd-MMM-yyyy').parse(row['date']);
+        if (amount == 0) continue;
+
+        final date = row['date'] as DateTime;
         final tag = row['group_tag'].toString().trim();
         final matchedEmis = loanLendBox.values.where((emi) {
           final matchesTag = emi.tags.any(
-            (t) => t.name.trim().toLowerCase() == tag.toLowerCase(),
+                (t) => t.name.trim().toLowerCase() == tag.toLowerCase(),
           );
           final isMappedEmi = mapping[tag] == emi.id;
 
-          // Use transactionType for logic
           final matchLoan = transactionType == 'DR' && emi.emiType == 'loan';
           final matchLend = transactionType == 'CR' && emi.emiType == 'lend';
 
           return (matchLoan || matchLend) && (matchesTag || isMappedEmi);
         }).toList();
 
-        if (matchedEmis.isEmpty) {
-          continue;
-        }
+        if (matchedEmis.isEmpty) continue;
 
         final addedEmiIds = <String>{};
         for (final emi in matchedEmis) {
@@ -798,7 +855,7 @@ class HomePageState extends ConsumerState<HomePage> {
               title: row['title'].toString(),
               description: '',
               amount: amount,
-              type: transactionType, // Use the calculated type
+              type: transactionType,
               datetime: date,
               loanLendId: emi.id,
             );
@@ -1613,7 +1670,7 @@ class EmiCard extends ConsumerWidget {
                     ),
                   ),
                   PopupMenuButton<String>(
-                    onSelected: (value) {
+                    onSelected: (value) async {
                       if (value == 'edit') {
                         final emiId = emi.id;
                         final emiType = emi.emiType;
@@ -1622,6 +1679,18 @@ class EmiCard extends ConsumerWidget {
                                 .location);
                       } else if (value == 'delete') {
                         _deleteEmi(context, ref, emi);
+                      } else if (value == 'duplicate') {
+                        // Create a copy of the EMI item
+                        final duplicatedEmi = emi.duplicate();
+
+                        // Add to your main EMI list (using emiType if needed)
+                        await ref
+                            .read(emisNotifierProvider.notifier)
+                            .add(duplicatedEmi);
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Item duplicated!')),
+                        );
                       }
                     },
                     itemBuilder: (context) => [
@@ -1632,6 +1701,10 @@ class EmiCard extends ConsumerWidget {
                       PopupMenuItem<String>(
                         value: 'delete',
                         child: Text(l10n.delete),
+                      ),
+                      PopupMenuItem<String>(
+                        value: 'duplicate',
+                        child: Text('Duplicate'), // <-- Add Duplicate option
                       ),
                     ],
                     icon: const Icon(Icons.more_vert),

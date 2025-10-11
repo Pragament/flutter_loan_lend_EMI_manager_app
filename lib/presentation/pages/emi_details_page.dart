@@ -82,10 +82,13 @@ class _EmiDetailsPageState extends ConsumerState<EmiDetailsPage> {
     final List<double> principalAmounts = _getPrincipalAmounts(schedule);
     final List<double> interestAmounts = _getInterestAmounts(schedule);
     final List<double> balances = _getBalances(schedule);
+    final safeTenure = tenureInYears < 0 ? 0 : tenureInYears;
+
     final List<int> years = List.generate(
-      tenureInYears,
-      (index) => startDate.year + index,
+      safeTenure,
+          (index) => startDate.year + index,
     );
+
 
     final settings = ref.watch(roundingProvider);
 
@@ -124,49 +127,61 @@ class _EmiDetailsPageState extends ConsumerState<EmiDetailsPage> {
         ],
       ),
       floatingActionButton: emi.emiType == 'lend'
-          ? Stack(
-              children: [
-                if (_showLottie)
-                  Positioned(
-                    bottom: 80, // Adjust this value as needed
-                    left: MediaQuery.of(context).size.width / 2 - 50,
-                    child: Lottie.asset(
-                      'assets/animations/arrow_down.json', // Your Lottie arrow animation
-                      width: 100,
-                      height: 100,
-                      repeat: false, // Play only once
-                      onLoaded: (composition) {
-                        Future.delayed(composition.duration, () {
-                          if (mounted) {
-                            setState(() {
-                              _showLottie = false;
-                            });
-                          }
+          ? Container(
+        width: 100,
+        height: 100,
+        child: Stack(
+          clipBehavior: Clip.none,
+          alignment: Alignment.center,
+          children: [
+            // Lottie arrow animation above the FAB
+            if (_showLottie)
+              Positioned(
+                bottom: 80, // distance above FAB
+                left: 0,
+                right: 0,
+                child: Lottie.asset(
+                  'assets/animations/arrow_bouncing.json',
+                  width: 100,
+                  height: 100,
+                  repeat: false,
+                  onLoaded: (composition) {
+                    Future.delayed(composition.duration, () {
+                      if (mounted) {
+                        setState(() {
+                          _showLottie = false;
                         });
-                      },
+                      }
+                    });
+                  },
+                ),
+              ),
+            // Floating Action Button
+            FloatingActionButton(
+              heroTag: 'CR',
+              backgroundColor: Colors.green,
+              onPressed: () {
+                setState(() {
+                  _showLottie = true;
+                });
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => NewTransactionPage(
+                      type: "CR",
+                      emiId: widget.emiId,
                     ),
                   ),
-                FloatingActionButton(
-                  heroTag: 'CR',
-                  backgroundColor: Colors.green,
-                  onPressed: () {
-                    setState(() {
-                      _showLottie = true; // Show animation on button press
-                    });
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (_) => NewTransactionPage(
-                              type: "CR", emiId: widget.emiId)),
-                    );
-                  },
-                  child: Icon(
-                    Icons.add,
-                    color: Colors.indigo[900],
-                  ),
-                ),
-              ],
-            )
+                );
+              },
+              child: Icon(
+                Icons.add,
+                color: Colors.indigo[900],
+              ),
+            ),
+          ],
+        ),
+      )
           : FloatingActionButton(
               heroTag: 'DR',
               backgroundColor: Colors.red,
@@ -273,12 +288,32 @@ class _EmiDetailsPageState extends ConsumerState<EmiDetailsPage> {
                   transaction.datetime.toLocal().toString().substring(0, 16),
                   style: const TextStyle(color: Colors.grey),
                 ),
-                trailing: Text(
-                  "${isCredit ? '+' : '-'}₹${GlobalFormatter.formatNumber(ref, transaction.amount)}",
-                  style: TextStyle(
-                      fontSize: 16.0,
-                      color: amountColor,
-                      fontWeight: FontWeight.bold),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      "${isCredit ? '+' : '-'}₹${GlobalFormatter.formatNumber(ref, transaction.amount)}",
+                      style: TextStyle(
+                          fontSize: 16.0,
+                          color: amountColor,
+                          fontWeight: FontWeight.bold),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.copy, size: 20),
+                      tooltip: 'Duplicate Transaction',
+                      onPressed: () {
+                        final duplicated = transaction.duplicate();
+                        ref
+                            .read(transactionsNotifierProvider.notifier)
+                            .add(duplicated);
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                              content: Text('Transaction duplicated!')),
+                        );
+                      },
+                    ),
+                  ],
                 ),
                 onTap: () {
                   Navigator.push(
