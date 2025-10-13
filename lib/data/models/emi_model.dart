@@ -204,7 +204,7 @@ class Emi {
     );
   }
 
-  factory Emi.fromMap(Map<String, dynamic> map, String id) => Emi(
+factory Emi.fromMap(Map<String, dynamic> map, String id) => Emi(
         id: map["id"],
         title: map["title"],
         emiType: map["emiType"],

@@ -264,7 +264,7 @@ class _EmiDetailsPageState extends ConsumerState<EmiDetailsPage> {
     return ListView.builder(
       shrinkWrap: true,
       physics:
-          const NeverScrollableScrollPhysics(), // Disable scrolling to integrate with the main scroll view
+      const NeverScrollableScrollPhysics(), // Disable scrolling to integrate with the main scroll view
       itemCount: transactions.length,
       itemBuilder: (context, index) {
         final transaction = transactions[index];
@@ -331,6 +331,7 @@ class _EmiDetailsPageState extends ConsumerState<EmiDetailsPage> {
       },
     );
   }
+
 
   Widget _buildEmiInfoSection(
       BuildContext context,
