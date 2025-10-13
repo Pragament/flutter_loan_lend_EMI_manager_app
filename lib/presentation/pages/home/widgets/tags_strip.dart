@@ -21,7 +21,7 @@ class TagsStrip extends ConsumerWidget {
       // Keep first unique tag, including ID
       uniqueMap.putIfAbsent(
         key,
-            () => Tag(
+        () => Tag(
           id: tag.id, // ✅ required id included here
           name: tag.name.trim(),
         ),
@@ -86,13 +86,14 @@ class TagsStrip extends ConsumerWidget {
                             : Icons.check_box_outline_blank,
                         size: 20,
                       ),
-                      Text(' ${tag.name}', style: const TextStyle(fontSize: 16)),
+                      Text(' ${tag.name}',
+                          style: const TextStyle(fontSize: 16)),
                     ],
                   ),
                   selected: isSelected,
                   onSelected: (selected) {
                     final notifier =
-                    ref.read(homeStateNotifierProvider.notifier);
+                        ref.read(homeStateNotifierProvider.notifier);
 
                     // Build a normalized name set for selected tags
                     final selectedNames = <String>{
@@ -106,9 +107,8 @@ class TagsStrip extends ConsumerWidget {
                     }
 
                     // Map normalized names back to full Tag objects
-                    final updatedList = selectedNames
-                        .map((name) => uniqueMap[name]!)
-                        .toList();
+                    final updatedList =
+                        selectedNames.map((name) => uniqueMap[name]!).toList();
 
                     notifier.updateTagSelection(updatedList);
                   },

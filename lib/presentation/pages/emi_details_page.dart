@@ -86,9 +86,8 @@ class _EmiDetailsPageState extends ConsumerState<EmiDetailsPage> {
 
     final List<int> years = List.generate(
       safeTenure,
-          (index) => startDate.year + index,
+      (index) => startDate.year + index,
     );
-
 
     final settings = ref.watch(roundingProvider);
 
@@ -128,60 +127,60 @@ class _EmiDetailsPageState extends ConsumerState<EmiDetailsPage> {
       ),
       floatingActionButton: emi.emiType == 'lend'
           ? Container(
-        width: 100,
-        height: 100,
-        child: Stack(
-          clipBehavior: Clip.none,
-          alignment: Alignment.center,
-          children: [
-            // Lottie arrow animation above the FAB
-            if (_showLottie)
-              Positioned(
-                bottom: 80, // distance above FAB
-                left: 0,
-                right: 0,
-                child: Lottie.asset(
-                  'assets/animations/arrow_bouncing.json',
-                  width: 100,
-                  height: 100,
-                  repeat: false,
-                  onLoaded: (composition) {
-                    Future.delayed(composition.duration, () {
-                      if (mounted) {
-                        setState(() {
-                          _showLottie = false;
-                        });
-                      }
-                    });
-                  },
-                ),
-              ),
-            // Floating Action Button
-            FloatingActionButton(
-              heroTag: 'CR',
-              backgroundColor: Colors.green,
-              onPressed: () {
-                setState(() {
-                  _showLottie = true;
-                });
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => NewTransactionPage(
-                      type: "CR",
-                      emiId: widget.emiId,
+              width: 100,
+              height: 100,
+              child: Stack(
+                clipBehavior: Clip.none,
+                alignment: Alignment.center,
+                children: [
+                  // Lottie arrow animation above the FAB
+                  if (_showLottie)
+                    Positioned(
+                      bottom: 80, // distance above FAB
+                      left: 0,
+                      right: 0,
+                      child: Lottie.asset(
+                        'assets/animations/arrow_bouncing.json',
+                        width: 100,
+                        height: 100,
+                        repeat: false,
+                        onLoaded: (composition) {
+                          Future.delayed(composition.duration, () {
+                            if (mounted) {
+                              setState(() {
+                                _showLottie = false;
+                              });
+                            }
+                          });
+                        },
+                      ),
+                    ),
+                  // Floating Action Button
+                  FloatingActionButton(
+                    heroTag: 'CR',
+                    backgroundColor: Colors.green,
+                    onPressed: () {
+                      setState(() {
+                        _showLottie = true;
+                      });
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => NewTransactionPage(
+                            type: "CR",
+                            emiId: widget.emiId,
+                          ),
+                        ),
+                      );
+                    },
+                    child: Icon(
+                      Icons.add,
+                      color: Colors.indigo[900],
                     ),
                   ),
-                );
-              },
-              child: Icon(
-                Icons.add,
-                color: Colors.indigo[900],
+                ],
               ),
-            ),
-          ],
-        ),
-      )
+            )
           : FloatingActionButton(
               heroTag: 'DR',
               backgroundColor: Colors.red,
@@ -264,7 +263,7 @@ class _EmiDetailsPageState extends ConsumerState<EmiDetailsPage> {
     return ListView.builder(
       shrinkWrap: true,
       physics:
-      const NeverScrollableScrollPhysics(), // Disable scrolling to integrate with the main scroll view
+          const NeverScrollableScrollPhysics(), // Disable scrolling to integrate with the main scroll view
       itemCount: transactions.length,
       itemBuilder: (context, index) {
         final transaction = transactions[index];
@@ -331,7 +330,6 @@ class _EmiDetailsPageState extends ConsumerState<EmiDetailsPage> {
       },
     );
   }
-
 
   Widget _buildEmiInfoSection(
       BuildContext context,

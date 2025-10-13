@@ -40,7 +40,8 @@ void main() async {
   // 🔥 Catch all errors globally
   FlutterError.onError = (FlutterErrorDetails details) {
     FlutterError.presentError(details);
-    print('🔥 Flutter framework error:\n${details.exception}\n${details.stack}');
+    print(
+        '🔥 Flutter framework error:\n${details.exception}\n${details.stack}');
   };
 
   // 🔥 Catch async and uncaught errors (outside Flutter framework)
@@ -52,7 +53,6 @@ void main() async {
 
   runApp(ProviderScope(child: MainApp(isFirstRun: isFirstRun)));
 }
-
 
 class MainApp extends ConsumerWidget {
   final bool isFirstRun;

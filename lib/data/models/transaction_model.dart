@@ -29,15 +29,15 @@ class Transaction {
     required this.loanLendId,
   });
 
-  Transaction copyWith({
-    String? id,
-    String? title,
-    String? description,
-    double? amount,
-    String? type,
-    DateTime? datetime,
-    String? loanLendId,z
-  }) =>
+  Transaction copyWith(
+          {String? id,
+          String? title,
+          String? description,
+          double? amount,
+          String? type,
+          DateTime? datetime,
+          String? loanLendId,
+          z}) =>
       Transaction(
         id: id ?? this.id,
         title: title ?? this.title,
