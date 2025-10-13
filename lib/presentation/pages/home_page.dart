@@ -635,7 +635,7 @@ class HomePageState extends ConsumerState<HomePage> {
           // Save tags in Hive if not empty
           if (tags.isNotEmpty) {
             final existingTags =
-            ref.read(tagsNotifierProvider).map((t) => t.name).toSet();
+                ref.read(tagsNotifierProvider).map((t) => t.name).toSet();
             for (var tag in tags) {
               if (!existingTags.contains(tag.name)) {
                 await ref.read(tagsNotifierProvider.notifier).add(tag);
@@ -703,7 +703,9 @@ class HomePageState extends ConsumerState<HomePage> {
       );
     }
   }
-  DateTime? parseCSVDate(String dateString, {int rowIndex = -1, String fieldName = "date"}) {
+
+  DateTime? parseCSVDate(String dateString,
+      {int rowIndex = -1, String fieldName = "date"}) {
     try {
       // Parse date in format 06-Jul-24
       final parsed = DateFormat('dd-MMM-yy').parse(dateString);
@@ -713,12 +715,12 @@ class HomePageState extends ConsumerState<HomePage> {
       return parsed;
     } catch (e) {
       if (rowIndex >= 0) {
-        print("Failed to parse $fieldName for row ${rowIndex + 1}: $dateString, Error: $e");
+        print(
+            "Failed to parse $fieldName for row ${rowIndex + 1}: $dateString, Error: $e");
       }
       return null; // Return null if parsing fails
     }
   }
-
 
   Future<void> _importTransactionsCSV() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles();
@@ -729,7 +731,7 @@ class HomePageState extends ConsumerState<HomePage> {
       List<List<dynamic>> csv = [];
       try {
         csv = CsvToListConverter(
-            eol: '\n', fieldDelimiter: ',', textDelimiter: '"')
+                eol: '\n', fieldDelimiter: ',', textDelimiter: '"')
             .convert(content);
       } catch (e) {
         ScaffoldMessenger.of(context)
@@ -748,12 +750,13 @@ class HomePageState extends ConsumerState<HomePage> {
 
         // Clean amounts by removing quotes and commas
         final debitStr =
-        row[0].toString().replaceAll(RegExp(r'[",]'), '').trim();
+            row[0].toString().replaceAll(RegExp(r'[",]'), '').trim();
         final creditStr =
-        row[1].toString().replaceAll(RegExp(r'[",]'), '').trim();
+            row[1].toString().replaceAll(RegExp(r'[",]'), '').trim();
 
         // Parse date safely
-        final date = parseCSVDate(row[2].toString(), rowIndex: i, fieldName: "transaction date");
+        final date = parseCSVDate(row[2].toString(),
+            rowIndex: i, fieldName: "transaction date");
         if (date == null) {
           print("Skipping row ${i + 1} due to invalid date.");
           continue; // Skip row if date can't be parsed
@@ -779,11 +782,11 @@ class HomePageState extends ConsumerState<HomePage> {
       final List<String> tagsToMap = [];
       for (final tag in groupTags) {
         final isCredit = transactions.any(
-              (tx) => tx['group_tag'] == tag && (tx['credit'] ?? 0) > 0,
+          (tx) => tx['group_tag'] == tag && (tx['credit'] ?? 0) > 0,
         );
         final matchingEmis = loanLendBox.values.where((emi) {
           final hasMatchingTag = emi.tags.any(
-                (t) => t.name.trim().toLowerCase() == tag.trim().toLowerCase(),
+            (t) => t.name.trim().toLowerCase() == tag.trim().toLowerCase(),
           );
           return hasMatchingTag &&
               ((isCredit && emi.emiType == 'lend') ||
@@ -800,7 +803,7 @@ class HomePageState extends ConsumerState<HomePage> {
       }
 
       final Map<String, String?> manualMapped =
-      await _promptUserForMappings(transactions, tagsToMap);
+          await _promptUserForMappings(transactions, tagsToMap);
       final Map<String, String?> mapping = {...autoMapped, ...manualMapped};
       if (mapping.values.any((v) => v == null)) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -831,7 +834,7 @@ class HomePageState extends ConsumerState<HomePage> {
         final tag = row['group_tag'].toString().trim();
         final matchedEmis = loanLendBox.values.where((emi) {
           final matchesTag = emi.tags.any(
-                (t) => t.name.trim().toLowerCase() == tag.toLowerCase(),
+            (t) => t.name.trim().toLowerCase() == tag.toLowerCase(),
           );
           final isMappedEmi = mapping[tag] == emi.id;
 
@@ -1671,12 +1674,12 @@ class EmiCard extends ConsumerWidget {
                   ),
                   PopupMenuButton<String>(
                     onSelected: (value) async {
-                    onSelected: (value) async {
                       if (value == 'edit') {
                         final emiId = emi.id;
                         final emiType = emi.emiType;
                         GoRouter.of(context).go(
-                            NewEmiRoute(emiType: emiType, emiId: emiId).location);
+                            NewEmiRoute(emiType: emiType, emiId: emiId)
+                                .location);
                       } else if (value == 'delete') {
                         _deleteEmi(context, ref, emi);
                       } else if (value == 'duplicate') {
