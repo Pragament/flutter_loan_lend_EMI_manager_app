@@ -82,8 +82,10 @@ class _EmiDetailsPageState extends ConsumerState<EmiDetailsPage> {
     final List<double> principalAmounts = _getPrincipalAmounts(schedule);
     final List<double> interestAmounts = _getInterestAmounts(schedule);
     final List<double> balances = _getBalances(schedule);
+    final safeTenure = tenureInYears < 0 ? 0 : tenureInYears;
+
     final List<int> years = List.generate(
-      tenureInYears,
+      safeTenure,
       (index) => startDate.year + index,
     );
 
@@ -124,48 +126,60 @@ class _EmiDetailsPageState extends ConsumerState<EmiDetailsPage> {
         ],
       ),
       floatingActionButton: emi.emiType == 'lend'
-          ? Stack(
-              children: [
-                if (_showLottie)
-                  Positioned(
-                    bottom: 80, // Adjust this value as needed
-                    left: MediaQuery.of(context).size.width / 2 - 50,
-                    child: Lottie.asset(
-                      'assets/animations/arrow_down.json', // Your Lottie arrow animation
-                      width: 100,
-                      height: 100,
-                      repeat: false, // Play only once
-                      onLoaded: (composition) {
-                        Future.delayed(composition.duration, () {
-                          if (mounted) {
-                            setState(() {
-                              _showLottie = false;
-                            });
-                          }
-                        });
-                      },
+          ? Container(
+              width: 100,
+              height: 100,
+              child: Stack(
+                clipBehavior: Clip.none,
+                alignment: Alignment.center,
+                children: [
+                  // Lottie arrow animation above the FAB
+                  if (_showLottie)
+                    Positioned(
+                      bottom: 80, // distance above FAB
+                      left: 0,
+                      right: 0,
+                      child: Lottie.asset(
+                        'assets/animations/arrow_bouncing.json',
+                        width: 100,
+                        height: 100,
+                        repeat: false,
+                        onLoaded: (composition) {
+                          Future.delayed(composition.duration, () {
+                            if (mounted) {
+                              setState(() {
+                                _showLottie = false;
+                              });
+                            }
+                          });
+                        },
+                      ),
+                    ),
+                  // Floating Action Button
+                  FloatingActionButton(
+                    heroTag: 'CR',
+                    backgroundColor: Colors.green,
+                    onPressed: () {
+                      setState(() {
+                        _showLottie = true;
+                      });
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => NewTransactionPage(
+                            type: "CR",
+                            emiId: widget.emiId,
+                          ),
+                        ),
+                      );
+                    },
+                    child: Icon(
+                      Icons.add,
+                      color: Colors.indigo[900],
                     ),
                   ),
-                FloatingActionButton(
-                  heroTag: 'CR',
-                  backgroundColor: Colors.green,
-                  onPressed: () {
-                    setState(() {
-                      _showLottie = true; // Show animation on button press
-                    });
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (_) => NewTransactionPage(
-                              type: "CR", emiId: widget.emiId)),
-                    );
-                  },
-                  child: Icon(
-                    Icons.add,
-                    color: Colors.indigo[900],
-                  ),
-                ),
-              ],
+                ],
+              ),
             )
           : FloatingActionButton(
               heroTag: 'DR',
@@ -249,7 +263,7 @@ class _EmiDetailsPageState extends ConsumerState<EmiDetailsPage> {
     return ListView.builder(
       shrinkWrap: true,
       physics:
-      const NeverScrollableScrollPhysics(), // Disable scrolling to integrate with the main scroll view
+          const NeverScrollableScrollPhysics(), // Disable scrolling to integrate with the main scroll view
       itemCount: transactions.length,
       itemBuilder: (context, index) {
         final transaction = transactions[index];
@@ -316,7 +330,6 @@ class _EmiDetailsPageState extends ConsumerState<EmiDetailsPage> {
       },
     );
   }
-
 
   Widget _buildEmiInfoSection(
       BuildContext context,

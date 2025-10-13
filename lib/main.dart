@@ -1,6 +1,7 @@
 // ignore_for_file: public_member_api_docs, sort_constructors_first
 import 'package:emi_manager/data/models/tag_model.dart';
 import 'package:flutter/material.dart';
+import 'dart:ui';
 import 'package:emi_manager/presentation/l10n/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -20,17 +21,11 @@ import 'package:emi_manager/logic/eula_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
   await Hive.initFlutter();
-  // Hive.deleteBoxFromDisk('preferences');
-  // Hive.deleteBoxFromDisk('emis');
 
-  // Register all adapters
   Hive.registerAdapter(EmiAdapter());
   Hive.registerAdapter(TagAdapter());
   Hive.registerAdapter(TransactionAdapter());
-
-  // Register rounding settings adapters
   Hive.registerAdapter(RoundingSettingsAdapter());
   Hive.registerAdapter(PrecisionTypeAdapter());
   Hive.registerAdapter(RoundingMethodAdapter());
@@ -40,12 +35,23 @@ void main() async {
   await Hive.openBox<Transaction>('transactions');
 
   var prefsBox = await Hive.openBox('preferences');
-
   bool isFirstRun = prefsBox.get('isFirstRun', defaultValue: true);
 
-  runApp(ProviderScope(
-    child: MainApp(isFirstRun: isFirstRun),
-  ));
+  // 🔥 Catch all errors globally
+  FlutterError.onError = (FlutterErrorDetails details) {
+    FlutterError.presentError(details);
+    print(
+        '🔥 Flutter framework error:\n${details.exception}\n${details.stack}');
+  };
+
+  // 🔥 Catch async and uncaught errors (outside Flutter framework)
+  PlatformDispatcher.instance.onError = (error, stack) {
+    print('🔥 Uncaught async error: $error');
+    print(stack);
+    return true; // prevents the app from crashing
+  };
+
+  runApp(ProviderScope(child: MainApp(isFirstRun: isFirstRun)));
 }
 
 class MainApp extends ConsumerWidget {
