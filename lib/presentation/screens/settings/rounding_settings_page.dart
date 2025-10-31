@@ -213,34 +213,37 @@ class RoundingSettingsPage extends ConsumerWidget {
           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 8),
-        RadioListTile<PrecisionType>(
+        ListTile(
           title: const Text('Decimal Places'),
-          value: PrecisionType.decimal,
-          groupValue: settings.precisionType,
-          onChanged: (value) {
-            if (value != null) {
-              ref.read(roundingProvider.notifier).setPrecisionType(value);
-            }
+          trailing: Icon(
+            settings.precisionType == PrecisionType.decimal
+                ? Icons.radio_button_checked
+                : Icons.radio_button_unchecked,
+          ),
+          onTap: () {
+            ref.read(roundingProvider.notifier).setPrecisionType(PrecisionType.decimal);
           },
         ),
-        RadioListTile<PrecisionType>(
+        ListTile(
           title: const Text('Whole Numbers'),
-          value: PrecisionType.wholeNumber,
-          groupValue: settings.precisionType,
-          onChanged: (value) {
-            if (value != null) {
-              ref.read(roundingProvider.notifier).setPrecisionType(value);
-            }
+          trailing: Icon(
+            settings.precisionType == PrecisionType.wholeNumber
+                ? Icons.radio_button_checked
+                : Icons.radio_button_unchecked,
+          ),
+          onTap: () {
+            ref.read(roundingProvider.notifier).setPrecisionType(PrecisionType.wholeNumber);
           },
         ),
-        RadioListTile<PrecisionType>(
+        ListTile(
           title: const Text('Fractions'),
-          value: PrecisionType.fraction,
-          groupValue: settings.precisionType,
-          onChanged: (value) {
-            if (value != null) {
-              ref.read(roundingProvider.notifier).setPrecisionType(value);
-            }
+          trailing: Icon(
+            settings.precisionType == PrecisionType.fraction
+                ? Icons.radio_button_checked
+                : Icons.radio_button_unchecked,
+          ),
+          onTap: () {
+            ref.read(roundingProvider.notifier).setPrecisionType(PrecisionType.fraction);
           },
         ),
       ],
@@ -255,14 +258,14 @@ class RoundingSettingsPage extends ConsumerWidget {
       case PrecisionType.decimal:
         content = Column(
           children: DecimalPrecision.values.map((precision) {
-            return RadioListTile<int>(
+            final selected = settings.precisionValue == precision.value;
+            return ListTile(
               title: Text('${precision.name} (${precision.value})'),
-              value: precision.value,
-              groupValue: settings.precisionValue,
-              onChanged: (value) {
-                if (value != null) {
-                  ref.read(roundingProvider.notifier).setPrecisionValue(value);
-                }
+              trailing: Icon(
+                selected ? Icons.radio_button_checked : Icons.radio_button_unchecked,
+              ),
+              onTap: () {
+                ref.read(roundingProvider.notifier).setPrecisionValue(precision.value);
               },
             );
           }).toList(),
@@ -271,14 +274,14 @@ class RoundingSettingsPage extends ConsumerWidget {
       case PrecisionType.wholeNumber:
         content = Column(
           children: WholeNumberPrecision.values.map((precision) {
-            return RadioListTile<int>(
+            final selected = settings.precisionValue == precision.value;
+            return ListTile(
               title: Text('${precision.name} (${precision.value})'),
-              value: precision.value,
-              groupValue: settings.precisionValue,
-              onChanged: (value) {
-                if (value != null) {
-                  ref.read(roundingProvider.notifier).setPrecisionValue(value);
-                }
+              trailing: Icon(
+                selected ? Icons.radio_button_checked : Icons.radio_button_unchecked,
+              ),
+              onTap: () {
+                ref.read(roundingProvider.notifier).setPrecisionValue(precision.value);
               },
             );
           }).toList(),
@@ -287,14 +290,14 @@ class RoundingSettingsPage extends ConsumerWidget {
       case PrecisionType.fraction:
         content = Column(
           children: FractionPrecision.values.map((precision) {
-            return RadioListTile<int>(
+            final selected = settings.precisionValue == precision.denominator;
+            return ListTile(
               title: Text('1/${precision.denominator}'),
-              value: precision.denominator,
-              groupValue: settings.precisionValue,
-              onChanged: (value) {
-                if (value != null) {
-                  ref.read(roundingProvider.notifier).setPrecisionValue(value);
-                }
+              trailing: Icon(
+                selected ? Icons.radio_button_checked : Icons.radio_button_unchecked,
+              ),
+              onTap: () {
+                ref.read(roundingProvider.notifier).setPrecisionValue(precision.denominator);
               },
             );
           }).toList(),
@@ -326,7 +329,7 @@ class RoundingSettingsPage extends ConsumerWidget {
         ),
         const SizedBox(height: 8),
         DropdownButtonFormField<RoundingMethod>(
-          value: settings.roundingMethod,
+          initialValue: settings.roundingMethod,
           onChanged: (value) {
             if (value != null) {
               ref.read(roundingProvider.notifier).setRoundingMethod(value);

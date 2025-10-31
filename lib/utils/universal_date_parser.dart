@@ -13,7 +13,7 @@ class UniversalDateParser {
     'dd/MM/yyyy HH:mm:ss',
     'MM/dd/yyyy HH:mm:ss',
     'yyyy/MM/dd HH:mm:ss',
-    
+
     // Date-only formats
     'yyyy-MM-dd',
     'dd-MM-yyyy',
@@ -22,7 +22,7 @@ class UniversalDateParser {
     'yyyy/MM/dd',
     'dd.MM.yyyy',
     'MM.dd.yyyy',
-    
+
     // Month name formats
     'dd-MMM-yyyy',
     'dd MMM yyyy',
@@ -30,13 +30,14 @@ class UniversalDateParser {
     'dd MMMM yyyy',
     'MMMM dd, yyyy',
     'yyyy MMM dd',
-    
-    // With time and AM/PM
+
+// With time and AM/PM
     'yyyy-MM-dd hh:mm:ss a',
     'dd-MM-yyyy hh:mm:ss a',
     'MM/dd/yyyy hh:mm a',
     'dd MMM yyyy hh:mm a',
-    
+    'dd-MMM-yyyy hh:mm a',
+
     // Unix timestamp (as string)
     'timestamp',
   ];
@@ -47,33 +48,28 @@ class UniversalDateParser {
       throw const FormatException('Date string is empty');
     }
 
-    // Try parsing as Unix timestamp first
+    // Try numeric timestamp first
     if (_isNumeric(dateString)) {
-      try {
-        final timestamp = int.parse(dateString);
-        // Handle milliseconds vs seconds
-        if (timestamp > 946684800000) { // After year 2000 in milliseconds
-          return DateTime.fromMillisecondsSinceEpoch(timestamp);
-        } else {
-          return DateTime.fromMillisecondsSinceEpoch(timestamp * 1000);
-        }
-      } catch (e) {
-        // Continue to other parsing methods
-      }
+      final timestamp = int.parse(dateString);
+      return timestamp > 946684800000
+          ? DateTime.fromMillisecondsSinceEpoch(timestamp)
+          : DateTime.fromMillisecondsSinceEpoch(timestamp * 1000);
     }
 
-    // Try each pattern until one works
+    // Normalize month names (remove commas, extra spaces)
+    dateString = dateString.trim();
+
     for (String pattern in _datePatterns) {
+      if (pattern == 'timestamp') continue;
       try {
-        if (pattern == 'timestamp') continue; // Already handled above
-        
-        return DateFormat(pattern).parse(dateString);
-      } catch (e) {
-        // Continue to next pattern
+        // Try both en_US and system locale
+        return DateFormat(pattern, 'en_US').parseStrict(dateString);
+      } catch (_) {
+        // Continue
       }
     }
 
-    // Try DateTime.parse as last resort
+    // Final fallback to DateTime.parse()
     try {
       return DateTime.parse(dateString);
     } catch (e) {
@@ -92,14 +88,17 @@ class UniversalDateParser {
 
   /// Parses multiple date strings, returning successful parses
   static List<DateTime> parseMultiple(List<String> dateStrings) {
-    return dateStrings.map((str) => tryParse(str)).whereType<DateTime>().toList();
+    return dateStrings
+        .map((str) => tryParse(str))
+        .whereType<DateTime>()
+        .toList();
   }
 
   /// Detects the format of a date string
   static String? detectFormat(String dateString) {
     for (String pattern in _datePatterns) {
       if (pattern == 'timestamp') continue;
-      
+
       try {
         DateFormat(pattern).parse(dateString);
         return pattern;

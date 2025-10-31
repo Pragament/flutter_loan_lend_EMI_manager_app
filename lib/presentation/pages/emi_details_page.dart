@@ -8,7 +8,7 @@ import 'package:emi_manager/logic/transaction_provider.dart';
 import 'package:emi_manager/logic/rounding_provider.dart';
 import 'package:emi_manager/presentation/constants.dart';
 import 'package:emi_manager/presentation/pages/new_transaction_page.dart';
-import 'package:emi_manager/presentation/pages/new_emi_page.dart';
+
 import 'package:emi_manager/utils/global_formatter.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
@@ -16,20 +16,20 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:emi_manager/presentation/l10n/app_localizations.dart';
 import 'package:lottie/lottie.dart';
 import 'package:go_router/go_router.dart';
-import '../../data/models/transaction_model.dart';
-import '../widgets/amortization_schedule_table.dart';
-import '../widgets/bar_graph.dart';
+import 'package:emi_manager/data/models/transaction_model.dart';
+import 'package:emi_manager/presentation/widgets/amortization_schedule_table.dart';
+import 'package:emi_manager/presentation/widgets/bar_graph.dart';
 import 'dart:math';
 
-import 'home/transaction_details_page.dart';
-import 'home_page.dart';
+import 'package:emi_manager/presentation/pages/home/transaction_details_page.dart';
 
 class EmiDetailsPage extends ConsumerStatefulWidget {
   const EmiDetailsPage({super.key, required this.emiId});
   final String emiId;
 
   @override
-  _EmiDetailsPageState createState() => _EmiDetailsPageState();
+  @override
+  ConsumerState<EmiDetailsPage> createState() => _EmiDetailsPageState();
 }
 
 class _EmiDetailsPageState extends ConsumerState<EmiDetailsPage> {
@@ -157,7 +157,7 @@ class _EmiDetailsPageState extends ConsumerState<EmiDetailsPage> {
                       context,
                       MaterialPageRoute(
                           builder: (_) => NewTransactionPage(
-                              type: "CR", emiId: widget.emiId)),
+                              type: 'CR', emiId: widget.emiId)),
                     );
                   },
                   child: Icon(
@@ -175,7 +175,7 @@ class _EmiDetailsPageState extends ConsumerState<EmiDetailsPage> {
                   context,
                   MaterialPageRoute(
                       builder: (_) =>
-                          NewTransactionPage(type: "DR", emiId: widget.emiId)),
+                          NewTransactionPage(type: 'DR', emiId: widget.emiId)),
                 );
               },
               child: Icon(
@@ -249,7 +249,7 @@ class _EmiDetailsPageState extends ConsumerState<EmiDetailsPage> {
     return ListView.builder(
       shrinkWrap: true,
       physics:
-      const NeverScrollableScrollPhysics(), // Disable scrolling to integrate with the main scroll view
+          const NeverScrollableScrollPhysics(), // Disable scrolling to integrate with the main scroll view
       itemCount: transactions.length,
       itemBuilder: (context, index) {
         final transaction = transactions[index];
@@ -316,7 +316,6 @@ class _EmiDetailsPageState extends ConsumerState<EmiDetailsPage> {
       },
     );
   }
-
 
   Widget _buildEmiInfoSection(
       BuildContext context,
@@ -670,54 +669,9 @@ class _EmiDetailsPageState extends ConsumerState<EmiDetailsPage> {
     return totalPaid;
   }
 
-  double _calculateTransactionBalance(
-      double principal, List<Transaction> transactions) {
-    double totalCredit = transactions
-        .where((t) => t.type == 'CR')
-        .fold(0.0, (sum, t) => sum + t.amount);
-    double totalDebit = transactions
-        .where((t) => t.type == 'DR')
-        .fold(0.0, (sum, t) => sum + t.amount);
-    // For a loan, balance = principal - total paid (CR), for lend, balance = principal - total received (DR)
-    // But since the app seems to use CR for lend and DR for loan, we use both
-    return principal - totalCredit + totalDebit;
-  }
-
-  double _calculateTotalPrincipalPaid(
-      dynamic emi, List<Transaction> transactions) {
-    if (emi.emiType == 'loan') {
-      // For loan, principal paid is sum of CR transactions
-      return transactions
-          .where((t) => t.type == 'CR')
-          .fold(0.0, (sum, t) => sum + t.amount);
-    } else {
-      // For lend, principal received is sum of DR transactions
-      return transactions
-          .where((t) => t.type == 'DR')
-          .fold(0.0, (sum, t) => sum + t.amount);
-    }
-  }
-
-  double _calculateCombinedBalance(
-      dynamic emi, List<Transaction> transactions) {
-    double totalAmount = emi.totalEmi ?? emi.principalAmount;
-    double totalPaid;
-    if (emi.emiType == 'loan') {
-      totalPaid = transactions.where((t) => t.type == 'CR').fold(0.0, (sum, t) {
-        print('CR transaction: \$${t.amount} for EMI ${t.loanLendId}');
-        return sum + t.amount;
-      });
-    } else {
-      totalPaid = transactions.where((t) => t.type == 'DR').fold(0.0, (sum, t) {
-        print('DR transaction: \$${t.amount} for EMI ${t.loanLendId}');
-        return sum + t.amount;
-      });
-    }
-    double balance = totalAmount - totalPaid;
-    print(
-        'Total Paid: \$${totalPaid}, Total Amount: \$${totalAmount}, Balance: \$${balance}');
-    return balance < 0 ? 0 : balance;
-  }
+  // For future implementation: Standalone balance calculation
+  // This will be used for advanced balance tracking features
+  // Removed unused _getBalance helper - kept logic inline where required
 
   void _deleteEmi(BuildContext context, WidgetRef ref, Emi emi) async {
     final l10n = AppLocalizations.of(context)!;
@@ -744,13 +698,15 @@ class _EmiDetailsPageState extends ConsumerState<EmiDetailsPage> {
       // Remove the EMI from the provider
       await ref.read(emisNotifierProvider.notifier).remove(emi);
 
+      if (!context.mounted) return;
       // Close the dialog first
       Navigator.of(context).pop();
 
-      // Try to force a complete rebuild by using a different navigation approach
+      if (!context.mounted) return;
       // First pop all routes until we're back to the root
       Navigator.of(context).popUntil((route) => route.isFirst);
 
+      if (!context.mounted) return;
       // Then navigate to home using GoRouter
       context.go('/');
     }

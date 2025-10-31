@@ -30,19 +30,29 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:showcaseview/showcaseview.dart';
 import 'package:lottie/lottie.dart'; // Import Lottie package
-import '../widgets/amorzation_table.dart';
-import '../widgets/locale_selector_popup_menu.dart';
-import 'package:intl/intl.dart';
+import 'package:emi_manager/presentation/widgets/amorzation_table.dart';
+import 'package:emi_manager/presentation/widgets/locale_selector_popup_menu.dart';
+
 import 'package:uuid/uuid.dart';
 import 'package:hive/hive.dart';
-import '../../data/models/transaction_model.dart';
+import 'package:emi_manager/data/models/transaction_model.dart';
 import 'package:emi_manager/logic/transaction_provider.dart';
 import 'package:emi_manager/utils/universal_date_parser.dart'; // support diff date format
 
 class HomePage extends ConsumerStatefulWidget {
-  // GlobalKey loanHelpKey, GlobalKey lendHelpKey, GlobalKey langHelpKey, GlobalKey helpHelpKey
+  final GlobalKey? loanHelpKey;
+  final GlobalKey? lendHelpKey;
+  final GlobalKey? langHelpKey;
+  final GlobalKey? helpHelpKey;
 
-  const HomePage({super.key, this.actionCallback});
+  const HomePage({
+    super.key,
+    this.actionCallback,
+    this.loanHelpKey,
+    this.lendHelpKey,
+    this.langHelpKey,
+    this.helpHelpKey,
+  });
 
   final Function? actionCallback;
 
@@ -73,7 +83,8 @@ class HomePageState extends ConsumerState<HomePage> {
   bool _showErrorLottie = false;
 
   bool _tourInProgress = false;
-  bool _newEmiTourInProgress = false;
+  // For future implementation: New EMI tour feature
+  // removed unused _newEmiTourInProgress
 
   @override
   void didChangeDependencies() {
@@ -459,29 +470,29 @@ class HomePageState extends ConsumerState<HomePage> {
       // Add the header row
       // Add the header row
       csvData.add([
-        "ID",
-        "Title",
-        "EMI Type",
-        "Principal Amount",
-        "Interest Rate",
-        "Start Date",
-        "End Date",
-        "Monthly EMI",
-        "Total EMI",
-        "Paid",
-        "Contact Person Name",
-        "Contact Person Phone",
-        "Contact Person Email",
-        "Other Info",
-        "Processing Fee",
-        "Other Charges",
-        "Part Payment",
-        "Advance Payment",
-        "Insurance Charges",
-        "Moratorium",
-        "Moratorium Month",
-        "Moratorium Type",
-        "Tags",
+        'ID',
+        'Title',
+        'EMI Type',
+        'Principal Amount',
+        'Interest Rate',
+        'Start Date',
+        'End Date',
+        'Monthly EMI',
+        'Total EMI',
+        'Paid',
+        'Contact Person Name',
+        'Contact Person Phone',
+        'Contact Person Email',
+        'Other Info',
+        'Processing Fee',
+        'Other Charges',
+        'Part Payment',
+        'Advance Payment',
+        'Insurance Charges',
+        'Moratorium',
+        'Moratorium Month',
+        'Moratorium Type',
+        'Tags',
       ]);
 
       // Add each emi's data
@@ -508,7 +519,7 @@ class HomePageState extends ConsumerState<HomePage> {
           emi.partPayment.toString(),
           emi.advancePayment.toString(),
           emi.insuranceCharges.toString(),
-          (emi.moratorium ?? false) ? "Yes" : "No",
+          (emi.moratorium ?? false) ? 'Yes' : 'No',
           emi.moratoriumMonth.toString(),
           emi.moratoriumType ?? '',
           emi.monthlyEmi.toString(),
@@ -527,7 +538,7 @@ class HomePageState extends ConsumerState<HomePage> {
       // Get the directory to save the file
       Directory directory = await getApplicationDocumentsDirectory();
       final path =
-          "/storage/emulated/0/Download/${Emis[0].startDate.day}emi.csv";
+          '/storage/emulated/0/Download/${Emis[0].startDate.day}emi.csv';
       final file = File(path);
       await file.writeAsString(csv);
       // Show the dialog box to let the user choose an action
@@ -535,9 +546,9 @@ class HomePageState extends ConsumerState<HomePage> {
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: const Text("Export Options"),
+            title: const Text('Export Options'),
             content: const Text(
-                "Would you like to download the CSV or share it via WhatsApp?"),
+                'Would you like to download the CSV or share it via WhatsApp?'),
             actions: [
               TextButton(
                 onPressed: () async {
@@ -550,7 +561,7 @@ class HomePageState extends ConsumerState<HomePage> {
                     SnackBar(content: Text('CSV saved to: ${file.path}')),
                   );
                 },
-                child: const Text("Download"),
+                child: const Text('Download'),
               ),
               TextButton(
                 onPressed: () async {
@@ -558,7 +569,7 @@ class HomePageState extends ConsumerState<HomePage> {
                   final xfile = XFile(file.path);
                   // Share the file via WhatsApp
                   final result = await Share.shareXFiles([xfile],
-                      text: "Here is the CSV file of Payment");
+                      text: 'Here is the CSV file of Payment');
                   if (result.status == ShareResultStatus.success) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('Shared Successfully')),
@@ -567,14 +578,14 @@ class HomePageState extends ConsumerState<HomePage> {
                   await file.delete();
                   Navigator.of(context).pop(); // Close the dialog
                 },
-                child: const Text("Share to WhatsApp"),
+                child: const Text('Share to WhatsApp'),
               ),
             ],
           );
         },
       );
     } catch (e) {
-      print("Error while exporting CSV: $e");
+      print('Error while exporting CSV: $e');
     }
   }
 
@@ -619,16 +630,23 @@ class HomePageState extends ConsumerState<HomePage> {
               }
             }
           } catch (e) {
-            print("Error parsing tags: $e");
+            print('Error parsing tags: $e');
           }
+          final parsedStart = UniversalDateParser.tryParse(row[5].toString());
+          if (parsedStart == null) {
+            print('Invalid start date: ${row[5]}');
+            continue;
+          }
+          final parsedEnd = UniversalDateParser.tryParse(row[6].toString());
+
           Emi SingleEmi = Emi(
             id: row[0].toString(),
             title: row[1].toString(),
             emiType: row[2].toString(),
             principalAmount: double.tryParse(row[3].toString()) ?? 0.0,
             interestRate: double.tryParse(row[4].toString()) ?? 0.0,
-            startDate: DateTime.parse(row[5].toString()),
-            endDate: DateTime.parse(row[6].toString()),
+            startDate: parsedStart,
+            endDate: parsedEnd,
             contactPersonName: row[7].toString(),
             contactPersonPhone: row[8].toString(),
             contactPersonEmail: row[9].toString(),
@@ -638,7 +656,7 @@ class HomePageState extends ConsumerState<HomePage> {
             partPayment: double.tryParse(row[13].toString()),
             advancePayment: double.tryParse(row[14].toString()),
             insuranceCharges: double.tryParse(row[15].toString()),
-            moratorium: (row[16].toString() == "Yes" ? true : false),
+            moratorium: (row[16].toString() == 'Yes' ? true : false),
             moratoriumMonth: int.tryParse(row[17].toString()),
             moratoriumType: row[18].toString(),
             monthlyEmi: double.tryParse(row[19].toString()),
@@ -660,7 +678,7 @@ class HomePageState extends ConsumerState<HomePage> {
         );
       }
     } catch (e) {
-      print("Error while importing CSV: $e");
+      print('Error while importing CSV: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error importing CSV: $e')),
       );
@@ -675,12 +693,12 @@ class HomePageState extends ConsumerState<HomePage> {
       final content = await file.readAsString();
       List<List<dynamic>> csv = [];
       try {
-        csv = CsvToListConverter(
+        csv = const CsvToListConverter(
                 eol: '\n', fieldDelimiter: ',', textDelimiter: '"')
             .convert(content);
       } catch (e) {
         ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text("Invalid CSV format.")));
+            .showSnackBar(const SnackBar(content: Text('Invalid CSV format.')));
         return;
       }
 
@@ -742,7 +760,7 @@ class HomePageState extends ConsumerState<HomePage> {
       final Map<String, String?> mapping = {...autoMapped, ...manualMapped};
       if (mapping.values.any((v) => v == null)) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Please map all group tags.")),
+          const SnackBar(content: Text('Please map all group tags.')),
         );
         return;
       }
@@ -816,7 +834,7 @@ class HomePageState extends ConsumerState<HomePage> {
       }
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Transactions imported from CSV")),
+        const SnackBar(content: Text('Transactions imported from CSV')),
       );
     }
   }
@@ -852,21 +870,16 @@ class HomePageState extends ConsumerState<HomePage> {
           if (_tourInProgress) {
             setState(() {
               _tourInProgress = false;
-              _newEmiTourInProgress = true;
             });
             // Navigate to NewEmiPage and start its tour
             await Navigator.of(context).push(
               MaterialPageRoute(
-                builder: (context) => NewEmiPage(
+                builder: (context) => const NewEmiPage(
                   emiType: 'loan',
                   startTour: true,
-                  // Optionally pass a callback or use a global state to return
                 ),
               ),
             );
-            setState(() {
-              _newEmiTourInProgress = false;
-            });
             // After returning from NewEmiPage, you are back on HomePage
           }
         },
@@ -895,7 +908,7 @@ class HomePageState extends ConsumerState<HomePage> {
                 ),
                 Showcase(
                   key: langHelpKey,
-                  description: "You Can Choose Your Regional Language",
+                  description: 'You Can Choose Your Regional Language',
                   child: const ListTile(
                     title: Text('Select Language'),
                     trailing: LocaleSelectorPopupMenu(),
@@ -903,7 +916,7 @@ class HomePageState extends ConsumerState<HomePage> {
                 ),
                 Showcase(
                   key: helpHelpKey,
-                  description: "Help Button",
+                  description: 'Help Button',
                   child: ListTile(
                     title: const Text('Help'),
                     trailing: IconButton(
@@ -945,7 +958,7 @@ class HomePageState extends ConsumerState<HomePage> {
                       );
                     },
                     backgroundColor: loanColor(context, false),
-                    label: const Text("Change Currency"),
+                    label: const Text('Change Currency'),
                     icon: const Icon(Icons.currency_exchange),
                   ),
                 ),
@@ -956,7 +969,7 @@ class HomePageState extends ConsumerState<HomePage> {
                       importPaymentsFromCSV(context);
                     },
                     backgroundColor: loanColor(context, false),
-                    label: const Text("Import CSV"),
+                    label: const Text('Import CSV'),
                     icon: const Icon(Icons.arrow_downward),
                   ),
                 ),
@@ -966,7 +979,7 @@ class HomePageState extends ConsumerState<HomePage> {
                     onPressed: _importTransactionsCSV,
                     backgroundColor:
                         loanColor(context, false), // same color as Import CSV
-                    label: const Text("Import Transactions CSV"),
+                    label: const Text('Import Transactions CSV'),
                     icon: const Icon(
                         Icons.arrow_downward), // same icon as Import CSV
                   ),
@@ -988,7 +1001,7 @@ class HomePageState extends ConsumerState<HomePage> {
                 const SizedBox(height: 24),
                 AnimatedOpacity(
                   opacity: 1.0,
-                  duration: Duration(milliseconds: 800),
+                  duration: const Duration(milliseconds: 800),
                   child: Card(
                     elevation: 4,
                     margin: const EdgeInsets.symmetric(horizontal: 24),
@@ -999,7 +1012,7 @@ class HomePageState extends ConsumerState<HomePage> {
                         children: [
                           Text(
                             AppLocalizations.of(context)!.noDataTitle,
-                            style: TextStyle(
+                            style: const TextStyle(
                                 fontWeight: FontWeight.bold, fontSize: 20),
                             textAlign: TextAlign.center,
                           ),
@@ -1010,7 +1023,7 @@ class HomePageState extends ConsumerState<HomePage> {
                           ),
                           const SizedBox(height: 24),
                           ElevatedButton.icon(
-                            icon: Icon(Icons.tour),
+                            icon: const Icon(Icons.tour),
                             label: Text(
                                 AppLocalizations.of(context)!.tourButtonLabel),
                             onPressed: () {
@@ -1037,7 +1050,7 @@ class HomePageState extends ConsumerState<HomePage> {
             children: [
               Showcase(
                 key: lendHelpKey,
-                description: "Add New Lend from Here",
+                description: 'Add New Lend from Here',
                 targetBorderRadius: BorderRadius.circular(35),
                 child: FloatingActionButton.extended(
                   onPressed: () {
@@ -1055,7 +1068,7 @@ class HomePageState extends ConsumerState<HomePage> {
               ),
               Showcase(
                 key: loanHelpKey,
-                description: "Add new Loan from Here",
+                description: 'Add new Loan from Here',
                 child: FloatingActionButton.extended(
                   onPressed: () {
                     Navigator.of(context).push(
@@ -1097,20 +1110,16 @@ class HomePageState extends ConsumerState<HomePage> {
         if (_tourInProgress) {
           setState(() {
             _tourInProgress = false;
-            _newEmiTourInProgress = true;
           });
           // Navigate to NewEmiPage and start its tour
           await Navigator.of(context).push(
             MaterialPageRoute(
-              builder: (context) => NewEmiPage(
+              builder: (context) => const NewEmiPage(
                 emiType: 'loan',
                 startTour: true,
               ),
             ),
           );
-          setState(() {
-            _newEmiTourInProgress = false;
-          });
           // After returning from NewEmiPage, you are back on HomePage
         }
       },
@@ -1139,7 +1148,7 @@ class HomePageState extends ConsumerState<HomePage> {
               ),
               Showcase(
                 key: langHelpKey,
-                description: "You Can Choose Your Regional Language",
+                description: 'You Can Choose Your Regional Language',
                 child: const ListTile(
                   title: Text('Select Language'),
                   trailing: LocaleSelectorPopupMenu(),
@@ -1147,7 +1156,7 @@ class HomePageState extends ConsumerState<HomePage> {
               ),
               Showcase(
                 key: helpHelpKey,
-                description: "Help Button",
+                description: 'Help Button',
                 child: ListTile(
                   title: const Text('Help'),
                   trailing: IconButton(
@@ -1189,7 +1198,7 @@ class HomePageState extends ConsumerState<HomePage> {
                     );
                   },
                   backgroundColor: loanColor(context, false),
-                  label: const Text("Change Currency"),
+                  label: const Text('Change Currency'),
                   icon: const Icon(Icons.currency_exchange),
                 ),
               ),
@@ -1200,7 +1209,7 @@ class HomePageState extends ConsumerState<HomePage> {
                     importPaymentsFromCSV(context);
                   },
                   backgroundColor: loanColor(context, false),
-                  label: const Text("Import CSV"),
+                  label: const Text('Import CSV'),
                   icon: const Icon(Icons.arrow_downward),
                 ),
               ),
@@ -1210,7 +1219,7 @@ class HomePageState extends ConsumerState<HomePage> {
                   onPressed: _importTransactionsCSV,
                   backgroundColor:
                       loanColor(context, false), // same color as Import CSV
-                  label: const Text("Import Transactions CSV"),
+                  label: const Text('Import Transactions CSV'),
                   icon: const Icon(
                       Icons.arrow_downward), // same icon as Import CSV
                 ),
@@ -1226,7 +1235,7 @@ class HomePageState extends ConsumerState<HomePage> {
                 children: [
                   Showcase(
                     key: filterHelpKey,
-                    description: "Filter By Multiple Tags",
+                    description: 'Filter By Multiple Tags',
                     child: const TagsStrip(),
                   ),
 
@@ -1334,7 +1343,7 @@ class HomePageState extends ConsumerState<HomePage> {
           children: [
             Showcase(
               key: lendHelpKey,
-              description: "Add New Lend from Here",
+              description: 'Add New Lend from Here',
               child: FloatingActionButton.extended(
                 onPressed: () async {
                   await Navigator.of(context).push(
@@ -1352,7 +1361,7 @@ class HomePageState extends ConsumerState<HomePage> {
             ),
             Showcase(
               key: loanHelpKey,
-              description: "Add new Loan from Here",
+              description: 'Add new Loan from Here',
               child: FloatingActionButton.extended(
                 onPressed: () async {
                   await Navigator.of(context).push(
@@ -1508,15 +1517,6 @@ class HomePageState extends ConsumerState<HomePage> {
     return GlobalFormatter.roundNumber(ref, emiAmount);
   }
 
-  double _calculateTotalInterest(List<AmortizationEntry> amortizationEntries) {
-    return amortizationEntries.fold(0.0, (sum, entry) => sum + entry.interest);
-  }
-
-  double _calculateTotalAmount(List<AmortizationEntry> amortizationEntries) {
-    return amortizationEntries.fold(
-        0.0, (sum, entry) => sum + entry.totalPayment);
-  }
-
   Widget _buildLegend(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
 
@@ -1625,7 +1625,8 @@ class EmiCard extends ConsumerWidget {
                         final emiId = emi.id;
                         final emiType = emi.emiType;
                         GoRouter.of(context).go(
-                            NewEmiRoute(emiType: emiType, emiId: emiId).location);
+                            NewEmiRoute(emiType: emiType, emiId: emiId)
+                                .location);
                       } else if (value == 'delete') {
                         _deleteEmi(context, ref, emi);
                       } else if (value == 'duplicate') {
@@ -1633,7 +1634,9 @@ class EmiCard extends ConsumerWidget {
                         final duplicatedEmi = emi.duplicate();
 
                         // Add to your main EMI list (using emiType if needed)
-                        await ref.read(emisNotifierProvider.notifier).add(duplicatedEmi);
+                        await ref
+                            .read(emisNotifierProvider.notifier)
+                            .add(duplicatedEmi);
 
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(content: Text('Item duplicated!')),
@@ -1649,7 +1652,7 @@ class EmiCard extends ConsumerWidget {
                         value: 'delete',
                         child: Text(l10n.delete),
                       ),
-                      PopupMenuItem<String>(
+                      const PopupMenuItem<String>(
                         value: 'duplicate',
                         child: Text('Duplicate'), // <-- Add Duplicate option
                       ),
@@ -1917,17 +1920,22 @@ class _MappingScreenState extends State<MappingScreen> {
         .any((tx) => tx['group_tag'] == tag && (tx['debit'] ?? 0) > 0);
     final loanLendBox = Hive.box<Emi>('emis');
     final allEntries = loanLendBox.values.toList();
-    return allEntries
+    final filtered = allEntries
         .where((entry) =>
             (isDebit && entry.emiType == 'loan') ||
             (!isDebit && entry.emiType == 'lend'))
         .toList();
+    // If no entries match the inferred type, allow selecting from all
+    // so the user can still map the tag.
+    return filtered.isEmpty ? allEntries : filtered;
   }
 
   @override
   Widget build(BuildContext context) {
+    bool allSelected = mapping.values.isNotEmpty &&
+        mapping.values.every((v) => (v?.isNotEmpty ?? false));
     return Scaffold(
-      appBar: AppBar(title: const Text("Map Group Tags")),
+      appBar: AppBar(title: const Text('Map Group Tags')),
       body: ListView.builder(
         padding: const EdgeInsets.all(16),
         itemCount: widget.tags.length,
@@ -1953,19 +1961,34 @@ class _MappingScreenState extends State<MappingScreen> {
                   DropdownButton<String>(
                     isExpanded: true,
                     value: mapping[tag],
-                    hint: const Text("Select from available loans/lends"),
+                    hint: Text(
+                      getOptions(tag).isEmpty
+                          ? 'No matches found; select any loan/lend'
+                          : 'Select from available loans/lends',
+                    ),
+                    disabledHint: const Text('No loans/lends available'),
                     items: options
                         .map((e) => DropdownMenuItem<String>(
                               value: e.id,
                               child: Text(e.title),
                             ))
                         .toList(),
-                    onChanged: (value) {
-                      setState(() {
-                        mapping[tag] = value;
-                      });
-                    },
+                    onChanged: options.isEmpty
+                        ? null
+                        : (value) {
+                            setState(() {
+                              mapping[tag] = value;
+                            });
+                          },
                   ),
+                  if (options.isEmpty)
+                    const Padding(
+                      padding: EdgeInsets.only(top: 8.0),
+                      child: Text(
+                        'No matching loans/lends found. Create an EMI first, or adjust your CSV group tags.',
+                        style: TextStyle(fontSize: 12),
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -1975,23 +1998,13 @@ class _MappingScreenState extends State<MappingScreen> {
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(16.0),
         child: TextButton(
-          onPressed: () {
-            Navigator.pop(context, mapping);
-          },
+          onPressed: allSelected ? () => Navigator.pop(context, mapping) : null,
           child: const Text(
-            "Done",
+            'Done',
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
           ),
         ),
       ),
     );
   }
-}
-
-// Helper to get transactions sorted by datetime ascending
-List<Transaction> _getSortedTransactions(WidgetRef ref) {
-  final transactions = ref.watch(transactionsNotifierProvider);
-  final sorted = [...transactions]
-    ..sort((a, b) => a.datetime.compareTo(b.datetime));
-  return sorted;
 }
