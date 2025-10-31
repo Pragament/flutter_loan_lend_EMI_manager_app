@@ -1,0 +1,6 @@
+ID,Title,EMI Type,Principal Amount,Interest Rate,Start Date,End Date,Monthly EMI,Total EMI,Paid,Contact Person Name,Contact Person Phone,Contact Person Email,Other Info,Processing Fee,Other Charges,Part Payment,Advance Payment,Insurance Charges,Moratorium,Moratorium Month,Moratorium Type,Tags
+d3945a78-4a28-4071-9f18-01c13122268,demo4,loan,9210000.0,10.8,1970-08-23T14:47:11.000,1970-08-23T17:33:51.000,,,,,null,null,null,null,null,No,null,,9210000.0,9210000.0,null,[]
+d3945a78-4a28-4071-9f18-01c3122268,demo3,loan,9910000.0,20.8,2025-10-31T00:00:00.000,2036-10-31T00:00:00.000,,,,,null,null,null,null,null,No,null,,191599.67,25291156.44,null,[]
+d3945a78-4a28-4071-9f18-01c34a1be122268,demo2,loan,48910000.0,15.8,2025-10-31T04:45:30.000Z,2029-12-31T04:45:30.000Z,,,,,null,null,null,null,null,No,null,,1341467.88,67073393.99999999,null,[]
+d3945a78-4a28-4071-9f18-01ca1be122268,demo1,loan,410000.0,11.8,2025-10-31T00:00:00.000,2026-10-31T00:00:00.000,,,,,null,null,null,null,null,No,null,,36389.65,436675.80000000005,null,[]
+d3945a78-4a28-4071-9f18-01ca1be22268,demo,loan,4400000.0,11.8,2025-10-31T00:00:00.000,2026-10-31T00:00:00.000,,,,,null,null,null,null,null,No,null,,390523.12,4686277.4399999995,null,[]

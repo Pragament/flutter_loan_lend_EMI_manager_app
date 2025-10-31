@@ -467,8 +467,7 @@ class HomePageState extends ConsumerState<HomePage> {
       final Emis = List<Emi>.from(allemis);
       // List to hold the CSV data
       List<List<String>> csvData = [];
-      // Add the header row
-      // Add the header row
+      // Add the header row aligned with the data order used below
       csvData.add([
         'ID',
         'Title',
@@ -477,9 +476,6 @@ class HomePageState extends ConsumerState<HomePage> {
         'Interest Rate',
         'Start Date',
         'End Date',
-        'Monthly EMI',
-        'Total EMI',
-        'Paid',
         'Contact Person Name',
         'Contact Person Phone',
         'Contact Person Email',
@@ -492,6 +488,9 @@ class HomePageState extends ConsumerState<HomePage> {
         'Moratorium',
         'Moratorium Month',
         'Moratorium Type',
+        'Monthly EMI',
+        'Total EMI',
+        'Paid',
         'Tags',
       ]);
 
@@ -537,8 +536,10 @@ class HomePageState extends ConsumerState<HomePage> {
       String csv = const ListToCsvConverter().convert(csvData);
       // Get the directory to save the file
       Directory directory = await getApplicationDocumentsDirectory();
-      final path =
-          '/storage/emulated/0/Download/${Emis[0].startDate.day}emi.csv';
+      final now = DateTime.now();
+      final ts =
+          '${now.year.toString().padLeft(4, '0')}${now.month.toString().padLeft(2, '0')}${now.day.toString().padLeft(2, '0')}_${now.hour.toString().padLeft(2, '0')}${now.minute.toString().padLeft(2, '0')}${now.second.toString().padLeft(2, '0')}';
+      final path = '/storage/emulated/0/Download/emi_$ts.csv';
       final file = File(path);
       await file.writeAsString(csv);
       // Show the dialog box to let the user choose an action
@@ -605,18 +606,104 @@ class HomePageState extends ConsumerState<HomePage> {
         // Read the file contents
         final input = await file.readAsString();
         // Parse the CSV file
-        List<List<dynamic>> csvData = const CsvToListConverter().convert(input);
+        List<List<dynamic>> csvData = const CsvToListConverter(
+          eol: '\n',
+          fieldDelimiter: ',',
+          textDelimiter: '"',
+        ).convert(input);
+        if (csvData.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('CSV is empty.')),
+          );
+          return;
+        }
+
+        // Build a header-aware index map (fallback to legacy positional indices if not present)
+        final List<dynamic> headerRow = csvData.first;
+        final Map<String, int> headerIndex = {};
+
+        String norm(String s) => s
+            .toLowerCase()
+            .trim()
+            .replaceAll(RegExp(r'[^a-z0-9]+'), ' ')
+            .replaceAll(RegExp(r'\s+'), ' ')
+            .trim();
+
+        for (int i = 0; i < headerRow.length; i++) {
+          final name = norm(headerRow[i].toString());
+          if (name.isNotEmpty) headerIndex[name] = i;
+        }
+
+        int colOr(List<String> variants, int fallback) {
+          for (final v in variants) {
+            final k = norm(v);
+            if (headerIndex.containsKey(k)) return headerIndex[k]!;
+          }
+          return fallback;
+        }
+
+        // Define indices with fallbacks to the original importer order
+        final int idxId = colOr(['id'], 0);
+        final int idxTitle = colOr(['title'], 1);
+        final int idxEmiType = colOr(['emi type', 'emi_type', 'type'], 2);
+        final int idxPrincipal = colOr(['principal amount', 'principal'], 3);
+        final int idxInterestRate = colOr(['interest rate', 'interest_rate'], 4);
+        final int idxStartDate = colOr(['start date', 'start_date'], 5);
+        final int idxEndDate = colOr(['end date', 'end_date'], 6);
+        final int idxContactName = colOr(['contact person name', 'contact name'], 7);
+        final int idxContactPhone = colOr(['contact person phone', 'contact phone', 'phone'], 8);
+        final int idxContactEmail = colOr(['contact person email', 'contact email', 'email'], 9);
+        final int idxOtherInfo = colOr(['other info', 'other'], 10);
+        final int idxProcessingFee = colOr(['processing fee'], 11);
+        final int idxOtherCharges = colOr(['other charges'], 12);
+        final int idxPartPayment = colOr(['part payment'], 13);
+        final int idxAdvancePayment = colOr(['advance payment'], 14);
+        final int idxInsurance = colOr(['insurance charges'], 15);
+        final int idxMoratorium = colOr(['moratorium'], 16);
+        final int idxMoratoriumMonth = colOr(['moratorium month'], 17);
+        final int idxMoratoriumType = colOr(['moratorium type'], 18);
+        final int idxMonthlyEmi = colOr(['monthly emi', 'emi', 'monthly'], 19);
+        final int idxTotalEmi = colOr(['total emi', 'total'], 20);
+        final int idxPaid = colOr(['paid'], 21);
+        final int idxTags = colOr(['tags'], 22);
+
+        int imported = 0;
+        int skipped = 0;
+
+        String _normalizeDateCell(dynamic v) {
+          final s = (v ?? '').toString().trim();
+          // Scientific notation like 1.76186E+12 -> integer ms string
+          final sci = RegExp(r'^[0-9]+(\.[0-9]+)?[eE][+-]?[0-9]+$');
+          if (sci.hasMatch(s)) {
+            final d = double.tryParse(s);
+            if (d != null) return d.round().toString();
+          }
+          // Trailing .0 like 1760000000000.0 -> 1760000000000
+          final trailingZeroFloat = RegExp(r'^(\d+)\.0+$');
+          final m = trailingZeroFloat.firstMatch(s);
+          if (m != null) return m.group(1)!;
+          return s;
+        }
+
         // Skip the header row and process the rest
         for (int i = 1; i < csvData.length; i++) {
           //oth row is heading
           var row = csvData[i];
+
+          String cell(dynamic v) {
+            if (v == null) return '';
+            final s = v.toString().trim();
+            if (s.toLowerCase() == 'null') return '';
+            return s;
+          }
+
           // Map CSV data to Payment fields
           // Assuming row[22] is a JSON string of tags
-          String tagJson = row[22];
+          String tagJson = cell(idxTags < row.length ? row[idxTags] : '');
           List<Tag> tags = [];
           try {
             // Parse JSON string into a list of maps
-            List<dynamic> tagList = json.decode(tagJson);
+            List<dynamic> tagList = tagJson.isEmpty ? [] : json.decode(tagJson);
             print(tagList);
 
             // Convert each map to a Tag object
@@ -632,39 +719,63 @@ class HomePageState extends ConsumerState<HomePage> {
           } catch (e) {
             print('Error parsing tags: $e');
           }
-          final parsedStart = UniversalDateParser.tryParse(row[5].toString());
+          final startRaw = idxStartDate < row.length ? row[idxStartDate] : '';
+          final endRaw = idxEndDate < row.length ? row[idxEndDate] : '';
+          final parsedStart = UniversalDateParser.tryParse(
+              _normalizeDateCell(startRaw));
           if (parsedStart == null) {
-            print('Invalid start date: ${row[5]}');
+            print('Invalid start date: ${idxStartDate < row.length ? row[idxStartDate] : ''}');
+            skipped++;
             continue;
           }
-          final parsedEnd = UniversalDateParser.tryParse(row[6].toString());
+          final parsedEnd = UniversalDateParser.tryParse(
+              _normalizeDateCell(endRaw));
 
           Emi SingleEmi = Emi(
-            id: row[0].toString(),
-            title: row[1].toString(),
-            emiType: row[2].toString(),
-            principalAmount: double.tryParse(row[3].toString()) ?? 0.0,
-            interestRate: double.tryParse(row[4].toString()) ?? 0.0,
+            id: cell(idxId < row.length ? row[idxId] : ''),
+            title: cell(idxTitle < row.length ? row[idxTitle] : ''),
+            emiType: cell(idxEmiType < row.length ? row[idxEmiType] : ''),
+            principalAmount:
+                double.tryParse(cell(idxPrincipal < row.length ? row[idxPrincipal] : '')) ?? 0.0,
+            interestRate:
+                double.tryParse(cell(idxInterestRate < row.length ? row[idxInterestRate] : '')) ?? 0.0,
             startDate: parsedStart,
             endDate: parsedEnd,
-            contactPersonName: row[7].toString(),
-            contactPersonPhone: row[8].toString(),
-            contactPersonEmail: row[9].toString(),
-            otherInfo: row[10].toString(),
-            processingFee: double.tryParse(row[11].toString()),
-            otherCharges: double.tryParse(row[12].toString()),
-            partPayment: double.tryParse(row[13].toString()),
-            advancePayment: double.tryParse(row[14].toString()),
-            insuranceCharges: double.tryParse(row[15].toString()),
-            moratorium: (row[16].toString() == 'Yes' ? true : false),
-            moratoriumMonth: int.tryParse(row[17].toString()),
-            moratoriumType: row[18].toString(),
-            monthlyEmi: double.tryParse(row[19].toString()),
-            totalEmi: double.tryParse(row[20].toString()),
-            paid: double.tryParse(row[21].toString()),
+            contactPersonName:
+                cell(idxContactName < row.length ? row[idxContactName] : ''),
+            contactPersonPhone:
+                cell(idxContactPhone < row.length ? row[idxContactPhone] : ''),
+            contactPersonEmail:
+                cell(idxContactEmail < row.length ? row[idxContactEmail] : ''),
+            otherInfo: cell(idxOtherInfo < row.length ? row[idxOtherInfo] : ''),
+            processingFee: double.tryParse(
+                cell(idxProcessingFee < row.length ? row[idxProcessingFee] : '')),
+            otherCharges: double.tryParse(
+                cell(idxOtherCharges < row.length ? row[idxOtherCharges] : '')),
+            partPayment: double.tryParse(
+                cell(idxPartPayment < row.length ? row[idxPartPayment] : '')),
+            advancePayment: double.tryParse(
+                cell(idxAdvancePayment < row.length ? row[idxAdvancePayment] : '')),
+            insuranceCharges: double.tryParse(
+                cell(idxInsurance < row.length ? row[idxInsurance] : '')),
+            moratorium: (() {
+              final v = cell(idxMoratorium < row.length ? row[idxMoratorium] : '');
+              final lv = v.toLowerCase();
+              return lv == 'yes' || lv == 'true' || lv == '1';
+            })(),
+            moratoriumMonth: int.tryParse(
+                cell(idxMoratoriumMonth < row.length ? row[idxMoratoriumMonth] : '')),
+            moratoriumType: cell(
+                idxMoratoriumType < row.length ? row[idxMoratoriumType] : ''),
+            monthlyEmi: double.tryParse(
+                cell(idxMonthlyEmi < row.length ? row[idxMonthlyEmi] : '')),
+            totalEmi: double.tryParse(
+                cell(idxTotalEmi < row.length ? row[idxTotalEmi] : '')),
+            paid: double.tryParse(cell(idxPaid < row.length ? row[idxPaid] : '')),
             tags: tags,
           );
           ref.read(emisNotifierProvider.notifier).add(SingleEmi);
+          imported++;
         }
         // Now, do something with the imported payments (e.g., add to your current list)
         setState(() {
@@ -672,10 +783,16 @@ class HomePageState extends ConsumerState<HomePage> {
         });
 
         Navigator.of(context).pop(); //pop the drawer
-        // Show a confirmation message
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Payments imported successfully!')),
-        );
+        if (imported > 0) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Imported $imported, skipped $skipped.')),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+                content: Text('No loans imported. Check date formats and CSV columns.')),
+          );
+        }
       }
     } catch (e) {
       print('Error while importing CSV: $e');
@@ -747,11 +864,11 @@ class HomePageState extends ConsumerState<HomePage> {
                   (!isCredit && emi.emiType == 'loan'));
         }).toList();
 
-        if (matchingEmis.isNotEmpty) {
-          for (final emi in matchingEmis) {
-            autoMapped['${tag}_${emi.id}'] = emi.id;
-          }
+        // If exactly one candidate EMI is found, auto-map the plain tag to this EMI ID
+        if (matchingEmis.length == 1) {
+          autoMapped[tag] = matchingEmis.first.id;
         } else {
+          // 0 or multiple matches -> require manual mapping
           tagsToMap.add(tag);
         }
       }
@@ -763,6 +880,25 @@ class HomePageState extends ConsumerState<HomePage> {
           const SnackBar(content: Text('Please map all group tags.')),
         );
         return;
+      }
+
+      String _normalizeDateCell(dynamic v) {
+        final s = (v ?? '').toString().trim();
+        // If scientific notation (e.g., 1.76186E+12), convert to integer string
+        final sci = RegExp(r'^[0-9]+(\.[0-9]+)?[eE][+-]?[0-9]+$');
+        if (sci.hasMatch(s)) {
+          final d = double.tryParse(s);
+          if (d != null) {
+            return d.round().toString();
+          }
+        }
+        // If numeric with trailing .0 (e.g., 1760000000000.0), strip fractional zeros
+        final trailingZeroFloat = RegExp(r'^(\d+)\.0+$');
+        final m = trailingZeroFloat.firstMatch(s);
+        if (m != null) {
+          return m.group(1)!;
+        }
+        return s;
       }
 
       for (final row in transactions) {
@@ -786,7 +922,8 @@ class HomePageState extends ConsumerState<HomePage> {
           continue;
         }
 
-        final date = UniversalDateParser.tryParse(row['date']);
+        final dateStr = _normalizeDateCell(row['date']);
+        final date = UniversalDateParser.tryParse(dateStr);
         if (date == null) {
           // Handle invalid or unrecognized date
           print('Could not parse date: ${row['date']}');
@@ -794,17 +931,23 @@ class HomePageState extends ConsumerState<HomePage> {
         }
 
         final tag = row['group_tag'].toString().trim();
+        final selectedEmiId = mapping[row['group_tag'].toString()];
         final matchedEmis = loanLendBox.values.where((emi) {
           final matchesTag = emi.tags.any(
             (t) => t.name.trim().toLowerCase() == tag.toLowerCase(),
           );
-          final isMappedEmi = mapping[tag] == emi.id;
+          final isMappedEmi = selectedEmiId == emi.id;
 
           // Use transactionType for logic
           final matchLoan = transactionType == 'DR' && emi.emiType == 'loan';
           final matchLend = transactionType == 'CR' && emi.emiType == 'lend';
 
-          return (matchLoan || matchLend) && (matchesTag || isMappedEmi);
+          // If user mapped this tag to a specific EMI, bypass type gate and accept
+          if (isMappedEmi) {
+            return true;
+          }
+
+          return (matchLoan || matchLend) && (matchesTag);
         }).toList();
 
         if (matchedEmis.isEmpty) {
@@ -813,9 +956,15 @@ class HomePageState extends ConsumerState<HomePage> {
 
         final addedEmiIds = <String>{};
         for (final emi in matchedEmis) {
-          final isMappedEmi = mapping[tag] == emi.id;
+          final isMappedEmi = selectedEmiId == emi.id;
           final hasTag = emi.tags
               .any((t) => t.name.trim().toLowerCase() == tag.toLowerCase());
+          // If mapped, force transaction type consistent with EMI type so that
+          // mapped rows always count as payments for loans and receipts for lends.
+          String finalType = transactionType;
+          if (isMappedEmi) {
+            finalType = emi.emiType == 'loan' ? 'DR' : 'CR';
+          }
 
           if ((isMappedEmi || hasTag) && !addedEmiIds.contains(emi.id)) {
             final transaction = Transaction(
@@ -823,7 +972,7 @@ class HomePageState extends ConsumerState<HomePage> {
               title: row['title'].toString(),
               description: '',
               amount: amount,
-              type: transactionType, // Use the calculated type
+              type: finalType, // Use forced type when mapped
               datetime: date,
               loanLendId: emi.id,
             );

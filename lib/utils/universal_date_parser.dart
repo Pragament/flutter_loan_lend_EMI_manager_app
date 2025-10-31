@@ -9,19 +9,35 @@ class UniversalDateParser {
     'yyyy-MM-ddTHH:mm:ssZ',
     'yyyy-MM-ddTHH:mm:ss.SSSZ',
     'yyyy-MM-ddTHH:mm:ss.SSS',
+    'yyyy-MM-ddTHH:mm',
+    'yyyy-MM-dd HH:mm:ss.SSS',
     'dd-MM-yyyy HH:mm:ss',
     'dd/MM/yyyy HH:mm:ss',
     'MM/dd/yyyy HH:mm:ss',
+    'MM-dd-yyyy HH:mm:ss',
     'yyyy/MM/dd HH:mm:ss',
+    'MM.dd.yyyy HH:mm:ss',
 
     // Date-only formats
     'yyyy-MM-dd',
     'dd-MM-yyyy',
+    'MM-dd-yyyy',
     'dd/MM/yyyy',
     'MM/dd/yyyy',
     'yyyy/MM/dd',
     'dd.MM.yyyy',
     'MM.dd.yyyy',
+    'yyyy.MM.dd',
+    'yyyyMMdd',
+    'ddMMyyyy',
+    'MMddyyyy',
+    // Two-digit year variants
+    'dd-MM-yy',
+    'MM-dd-yy',
+    'dd/MM/yy',
+    'MM/dd/yy',
+    'dd.MM.yy',
+    'MM.dd.yy',
 
     // Month name formats
     'dd-MMM-yyyy',
@@ -30,6 +46,8 @@ class UniversalDateParser {
     'dd MMMM yyyy',
     'MMMM dd, yyyy',
     'yyyy MMM dd',
+    'MMM d, yyyy',
+    'EEE, dd MMM yyyy HH:mm:ss Z', // RFC 2822/822 style
 
 // With time and AM/PM
     'yyyy-MM-dd hh:mm:ss a',
@@ -48,16 +66,8 @@ class UniversalDateParser {
       throw const FormatException('Date string is empty');
     }
 
-    // Try numeric timestamp first
-    if (_isNumeric(dateString)) {
-      final timestamp = int.parse(dateString);
-      return timestamp > 946684800000
-          ? DateTime.fromMillisecondsSinceEpoch(timestamp)
-          : DateTime.fromMillisecondsSinceEpoch(timestamp * 1000);
-    }
-
-    // Normalize month names (remove commas, extra spaces)
-    dateString = dateString.trim();
+    // Normalize input (trim, collapse spaces, fix timezone offset colon, etc.)
+    dateString = _normalize(dateString);
 
     for (String pattern in _datePatterns) {
       if (pattern == 'timestamp') continue;
@@ -67,6 +77,20 @@ class UniversalDateParser {
       } catch (_) {
         // Continue
       }
+    }
+
+    // If all patterns fail, try interpreting numeric strings as Unix timestamps
+    if (_isNumeric(dateString)) {
+      final tsStr = dateString.trim();
+      // Only accept typical Unix timestamp lengths
+      if (tsStr.length == 13) {
+        final ms = int.parse(tsStr);
+        return DateTime.fromMillisecondsSinceEpoch(ms);
+      } else if (tsStr.length == 10) {
+        final sec = int.parse(tsStr);
+        return DateTime.fromMillisecondsSinceEpoch(sec * 1000);
+      }
+      // Otherwise, do not guess; continue to final fallback
     }
 
     // Final fallback to DateTime.parse()
@@ -113,5 +137,27 @@ class UniversalDateParser {
   static bool _isNumeric(String str) {
     if (str.isEmpty) return false;
     return double.tryParse(str) != null;
+  }
+
+  /// Normalizes common quirks in date strings before parsing
+  /// - Trims whitespace and collapses multiple spaces
+  /// - Converts timezone like +05:30 to +0530 (expected by DateFormat 'Z')
+  /// - Removes trailing commas in month-name dates
+  static String _normalize(String input) {
+    String s = input.trim();
+    // Collapse multiple spaces
+    s = s.replaceAll(RegExp(r'\s+'), ' ');
+
+    // Ensure a space after comma if missing (e.g., "Oct 31,2026" -> "Oct 31, 2026")
+    s = s.replaceAllMapped(RegExp(r',(?=\S)'), (m) => ', ');
+
+    // Normalize timezone offsets at end: +HH:MM or -HH:MM -> +HHMM / -HHMM
+    final tzMatch = RegExp(r'([+-])(\d{2}):(\d{2})\s*$').firstMatch(s);
+    if (tzMatch != null) {
+      s = s.replaceFirst(RegExp(r'([+-])(\d{2}):(\d{2})\s*$'),
+          '${tzMatch.group(1)}${tzMatch.group(2)}${tzMatch.group(3)}');
+    }
+
+    return s;
   }
 }
