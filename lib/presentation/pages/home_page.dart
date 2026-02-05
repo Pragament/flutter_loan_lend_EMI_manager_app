@@ -493,30 +493,31 @@ class HomePageState extends ConsumerState<HomePage> {
         String tagJson = json.encode(tagMapList);
         String tags = tagJson;
         csvData.add([
-          emi.id.toString(),
-          emi.title,
-          emi.emiType,
-          emi.principalAmount.toString(),
-          emi.interestRate.toString(),
-          emi.startDate.toIso8601String(),
-          emi.endDate?.toIso8601String() ?? '',
-          emi.contactPersonName,
-          emi.contactPersonPhone,
-          emi.contactPersonEmail,
-          emi.otherInfo,
-          emi.processingFee.toString(),
-          emi.otherCharges.toString(),
-          emi.partPayment.toString(),
-          emi.advancePayment.toString(),
-          emi.insuranceCharges.toString(),
-          (emi.moratorium ?? false) ? "Yes" : "No",
-          emi.moratoriumMonth.toString(),
-          emi.moratoriumType ?? '',
-          emi.monthlyEmi.toString(),
-          emi.totalEmi.toString(),
-          emi.paid.toString(),
-          tags, // Join tags list as a comma-separated string
+          emi.id.toString(),                         // ID
+          emi.title,                                // Title
+          emi.emiType,                              // EMI Type
+          emi.principalAmount.toString(),           // Principal Amount
+          emi.interestRate.toString(),              // Interest Rate
+          emi.startDate.toIso8601String(),           // Start Date
+          emi.endDate?.toIso8601String() ?? '',      // End Date
+          emi.monthlyEmi?.toString() ?? '',          // Monthly EMI
+          emi.totalEmi?.toString() ?? '',            // Total EMI
+          emi.paid?.toString() ?? '',                // Paid
+          emi.contactPersonName,                    // Contact Person Name
+          emi.contactPersonPhone,                   // Contact Person Phone
+          emi.contactPersonEmail,                   // Contact Person Email
+          emi.otherInfo,                            // Other Info
+          emi.processingFee?.toString() ?? '',       // Processing Fee
+          emi.otherCharges?.toString() ?? '',        // Other Charges
+          emi.partPayment?.toString() ?? '',         // Part Payment
+          emi.advancePayment?.toString() ?? '',      // Advance Payment
+          emi.insuranceCharges?.toString() ?? '',    // Insurance Charges
+          (emi.moratorium ?? false) ? "Yes" : "No",  // Moratorium
+          emi.moratoriumMonth?.toString() ?? '',     // Moratorium Month
+          emi.moratoriumType ?? '',                  // Moratorium Type
+          tags,                                     // Tags
         ]);
+
       }
       var status = await Permission.storage.status;
       if (!status.isGranted) {
@@ -581,6 +582,11 @@ class HomePageState extends ConsumerState<HomePage> {
 
   // Function to import CSV data and map it to your Payment model
   Future<void> importPaymentsFromCSV(BuildContext context) async {
+    // Close drawer if this was triggered from it
+    if (_scaffoldKey.currentState?.isDrawerOpen ?? false) {
+      Navigator.of(context).pop();
+    }
+
     try {
       // File picker to allow user to select CSV file
       FilePickerResult? result = await FilePicker.platform.pickFiles(
@@ -622,6 +628,11 @@ class HomePageState extends ConsumerState<HomePage> {
           } catch (e) {
             print("Error parsing tags: $e");
           }
+          // Map CSV columns to Emi fields according to export format
+          // Export order: ID, Title, EMI Type, Principal, Interest, Start Date, End Date,
+          // Monthly EMI, Total EMI, Paid, Contact Name, Contact Phone, Contact Email,
+          // Other Info, Processing Fee, Other Charges, Part Payment, Advance Payment,
+          // Insurance Charges, Moratorium, Moratorium Month, Moratorium Type, Tags
           Emi SingleEmi = Emi(
             id: row[0].toString(),
             title: row[1].toString(),
@@ -630,21 +641,21 @@ class HomePageState extends ConsumerState<HomePage> {
             interestRate: double.tryParse(row[4].toString()) ?? 0.0,
             startDate: DateTime.parse(row[5].toString()),
             endDate: DateTime.parse(row[6].toString()),
-            contactPersonName: row[7].toString(),
-            contactPersonPhone: row[8].toString(),
-            contactPersonEmail: row[9].toString(),
-            otherInfo: row[10].toString(),
-            processingFee: double.tryParse(row[11].toString()),
-            otherCharges: double.tryParse(row[12].toString()),
-            partPayment: double.tryParse(row[13].toString()),
-            advancePayment: double.tryParse(row[14].toString()),
-            insuranceCharges: double.tryParse(row[15].toString()),
-            moratorium: (row[16].toString() == "Yes" ? true : false),
-            moratoriumMonth: int.tryParse(row[17].toString()),
-            moratoriumType: row[18].toString(),
-            monthlyEmi: double.tryParse(row[19].toString()),
-            totalEmi: double.tryParse(row[20].toString()),
-            paid: double.tryParse(row[21].toString()),
+            monthlyEmi: double.tryParse(row[7].toString()),
+            totalEmi: double.tryParse(row[8].toString()),
+            paid: double.tryParse(row[9].toString()),
+            contactPersonName: row[10].toString(),
+            contactPersonPhone: row[11].toString(),
+            contactPersonEmail: row[12].toString(),
+            otherInfo: row[13].toString(),
+            processingFee: double.tryParse(row[14].toString()),
+            otherCharges: double.tryParse(row[15].toString()),
+            partPayment: double.tryParse(row[16].toString()),
+            advancePayment: double.tryParse(row[17].toString()),
+            insuranceCharges: double.tryParse(row[18].toString()),
+            moratorium: (row[19].toString() == "Yes" ? true : false),
+            moratoriumMonth: int.tryParse(row[20].toString()),
+            moratoriumType: row[21].toString(),
             tags: tags,
           );
           ref.read(emisNotifierProvider.notifier).add(SingleEmi);
@@ -654,7 +665,7 @@ class HomePageState extends ConsumerState<HomePage> {
           //refresh the ui
         });
 
-        Navigator.of(context).pop(); //pop the drawer
+        //Navigator.of(context).pop(); //pop the drawer
         // Show a confirmation message
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Payments imported successfully!')),
@@ -672,60 +683,51 @@ class HomePageState extends ConsumerState<HomePage> {
     try {
       final csvService = TransactionCsvService();
 
-      // Step 1: Pick CSV file
+      // 1. Pick CSV
       final platformFile = await csvService.pickCsvFile();
-      if (platformFile == null) return;
+      if (platformFile == null || !mounted) return;
 
-      // Show loading
+      // 2. Show blocking loader
       showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (ctx) => const AlertDialog(
+        builder: (_) => const AlertDialog(
           content: Row(
             children: [
               CircularProgressIndicator(),
               SizedBox(width: 20),
-              Text('Reading CSV file...'),
+              Text('Importing transactions...'),
             ],
           ),
         ),
       );
 
-      // Step 2: Extract headers
+
+      // 3. Extract headers
       final headers = await csvService.extractCsvHeaders(platformFile);
+      if (!mounted) return;
 
-      if (context.mounted) Navigator.pop(context); // Close loading
+      Navigator.of(context, rootNavigator: true).pop(); // close FIRST loader
 
-      if (headers.isEmpty) {
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Could not read CSV headers')),
-          );
-        }
-        return;
-      }
-
-      // Step 3: Show mapping screen
+      // 4. Mapping screen
       final fieldMapping = await Navigator.push<Map<String, String>>(
         context,
         MaterialPageRoute(
           builder: (context) => CsvMappingScreen(
             csvHeaders: headers,
-            onMappingComplete: (mapping) {
-              Navigator.pop(context, mapping);
-            },
+            onMappingComplete: (_) {}, // DO NOTHING
           ),
         ),
       );
 
-      if (fieldMapping == null) return;
+      if (fieldMapping == null || !mounted) return;
 
-      // Step 4: Select which loan/lend to import to
+      // 5. Select EMI
       final loanLendBox = Hive.box<Emi>('emis');
       final allEmis = loanLendBox.values.toList();
 
       if (allEmis.isEmpty) {
-        if (context.mounted) {
+        if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Please create a Loan or Lend first')),
           );
@@ -733,7 +735,6 @@ class HomePageState extends ConsumerState<HomePage> {
         return;
       }
 
-      // Show dialog to select loan/lend
       final selectedEmi = await showDialog<Emi>(
         context: context,
         builder: (context) => AlertDialog(
@@ -743,78 +744,78 @@ class HomePageState extends ConsumerState<HomePage> {
             child: ListView.builder(
               shrinkWrap: true,
               itemCount: allEmis.length,
-              itemBuilder: (context, index) {
-                final emi = allEmis[index];
-                return ListTile(
-                  title: Text(emi.title),
-                  subtitle: Text(emi.emiType == 'loan' ? 'Loan' : 'Lend'),
-                  onTap: () => Navigator.pop(context, emi),
-                );
-              },
+              itemBuilder: (_, i) => ListTile(
+                title: Text(allEmis[i].title),
+                subtitle: Text('Type: ${allEmis[i].emiType}'),
+                onTap: () => Navigator.pop(context, allEmis[i]),
+              ),
             ),
           ),
         ),
       );
 
-      if (selectedEmi == null) return;
+      if (selectedEmi == null || !mounted) return;
 
-      // Show loading for parsing
-      if (context.mounted) {
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (ctx) => const AlertDialog(
-            content: Row(
-              children: [
-                CircularProgressIndicator(),
-                SizedBox(width: 20),
-                Text('Importing transactions...'),
-              ],
-            ),
-          ),
-        );
-      }
+      // 6. Show save loader
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
 
-      // Step 5: Parse CSV with mapping
+      // 7. Parse CSV
       final transactions = await csvService.parseTransactionsCsv(
         platformFile,
         fieldMapping,
         selectedEmi.id,
       );
 
-      if (context.mounted) Navigator.pop(context); // Close loading
+      if (!mounted) return;
 
+      // Close the loader before showing results
+      Navigator.of(context, rootNavigator: true).pop();
+
+      // 8. Validate and save transactions
       if (transactions.isEmpty) {
-        if (context.mounted) {
+        if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('No valid transactions found in CSV')),
+            const SnackBar(
+              content: Text('No valid transactions found in CSV. Check that debit/credit columns have valid amounts.'),
+              backgroundColor: Colors.orange,
+              duration: Duration(seconds: 4),
+            ),
           );
         }
         return;
       }
 
-      // Step 6: Add transactions to database
-      for (final transaction in transactions) {
-        await ref.read(transactionsNotifierProvider.notifier).add(transaction);
-      }
+      // Use batch insert to avoid multiple rebuilds
+      await ref.read(transactionsNotifierProvider.notifier).addBatch(transactions);
 
-      if (context.mounted) {
+      // 9. Show success message
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-              content: Text(
-                  'Imported ${transactions.length} transactions successfully!')),
+            content: Text('Successfully imported ${transactions.length} transactions'),
+            backgroundColor: Colors.green,
+          ),
         );
       }
     } catch (e) {
-      print("Error importing transactions: $e");
-      if (context.mounted) {
-        Navigator.pop(context); // Close any open dialogs
+     if (mounted) {
+  Navigator.of(context, rootNavigator: true).pop();
+}
+
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error importing CSV: $e')),
         );
       }
     }
   }
+
 
   Future<Map<String, String?>> _promptUserForMappings(
       List<Map<String, dynamic>> transactions, List<String> tags) async {
@@ -926,6 +927,7 @@ class HomePageState extends ConsumerState<HomePage> {
                 Padding(
                   padding: const EdgeInsets.all(10),
                   child: FloatingActionButton.extended(
+                    heroTag: null,
                     onPressed: () {
                       showCurrencyPicker(
                         context: context,
@@ -947,6 +949,7 @@ class HomePageState extends ConsumerState<HomePage> {
                 Padding(
                   padding: const EdgeInsets.only(top: 0, left: 10, right: 10),
                   child: FloatingActionButton.extended(
+                    heroTag: null,
                     onPressed: () {
                       importPaymentsFromCSV(context);
                     },
@@ -958,6 +961,7 @@ class HomePageState extends ConsumerState<HomePage> {
                 Padding(
                   padding: const EdgeInsets.only(top: 10, left: 10, right: 10),
                   child: FloatingActionButton.extended(
+                    heroTag: null,
                     onPressed: _importTransactionsCSV,
                     backgroundColor:
                         loanColor(context, false), // same color as Import CSV
@@ -1170,6 +1174,7 @@ class HomePageState extends ConsumerState<HomePage> {
               Padding(
                 padding: const EdgeInsets.all(10),
                 child: FloatingActionButton.extended(
+                  heroTag: null,
                   onPressed: () {
                     showCurrencyPicker(
                       context: context,
@@ -1191,6 +1196,7 @@ class HomePageState extends ConsumerState<HomePage> {
               Padding(
                 padding: const EdgeInsets.only(top: 0, left: 10, right: 10),
                 child: FloatingActionButton.extended(
+                  heroTag: null,
                   onPressed: () {
                     importPaymentsFromCSV(context);
                   },
@@ -1202,6 +1208,7 @@ class HomePageState extends ConsumerState<HomePage> {
               Padding(
                 padding: const EdgeInsets.only(top: 10, left: 10, right: 10),
                 child: FloatingActionButton.extended(
+                  heroTag: null,
                   onPressed: _importTransactionsCSV,
                   backgroundColor:
                       loanColor(context, false), // same color as Import CSV
@@ -1364,6 +1371,7 @@ class HomePageState extends ConsumerState<HomePage> {
               ),
             ),
             FloatingActionButton.extended(
+              heroTag: null,
               onPressed: () {
                 _triggerComparisonLottie(); // Trigger comparison animation
                 exportToCSV(context, allEmis);
