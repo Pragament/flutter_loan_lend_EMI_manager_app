@@ -92,7 +92,6 @@ class _CsvMappingScreenState extends State<CsvMappingScreen> {
     setState(() {
       _isInitializing = false;
     });
-
   }
 
   String? _findDefaultMapping(String header) {
@@ -152,8 +151,7 @@ class _CsvMappingScreenState extends State<CsvMappingScreen> {
   void _handleApply() {
     if (_validateMapping()) {
       Navigator.pop(context, fieldMapping);
-    }
-    else {
+    } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text(
