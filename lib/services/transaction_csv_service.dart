@@ -3,6 +3,7 @@ import 'package:csv/csv.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:emi_manager/data/models/transaction_model.dart';
+import 'package:emi_manager/utils/date_parser.dart';
 
 class TransactionCsvService {
   /// Pick a CSV file from device
@@ -189,7 +190,7 @@ class TransactionCsvService {
               creditAmount = _parseAmount(cellValue);
               break;
             case 'date':
-              date = _parseDate(cellValue);
+              date = DateParser.parse(cellValue);
               break;
           }
         }
@@ -256,7 +257,7 @@ class TransactionCsvService {
     }
   }
 
-  /// Parse date from string with multiple format support
+  /*/// Parse date from string with multiple format support
   DateTime? _parseDate(String value) {
     if (value.isEmpty) return null;
 
@@ -284,5 +285,5 @@ class TransactionCsvService {
 
     print('Failed to parse date: $value');
     return null;
-  }
+  }*/
 }

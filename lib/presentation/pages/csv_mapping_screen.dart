@@ -88,6 +88,10 @@ class _CsvMappingScreenState extends State<CsvMappingScreen> {
         fieldMapping[header] = 'Skip';
       }
     }
+
+    setState(() {
+      _isInitializing = false;
+    });
   }
 
   String? _findDefaultMapping(String header) {
@@ -97,7 +101,7 @@ class _CsvMappingScreenState extends State<CsvMappingScreen> {
     Map<String, String> exactMappings = {
       'title': 'title',
       'particulars': 'title',
-      'description': 'title',
+      'description': 'description',
       'narration': 'title',
       'details': 'title',
       'desc': 'description',
@@ -146,7 +150,7 @@ class _CsvMappingScreenState extends State<CsvMappingScreen> {
 
   void _handleApply() {
     if (_validateMapping()) {
-      widget.onMappingComplete(fieldMapping);
+      Navigator.pop(context, fieldMapping);
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -185,6 +189,14 @@ class _CsvMappingScreenState extends State<CsvMappingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isInitializing) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Map CSV Fields'),
@@ -374,6 +386,7 @@ class _CsvMappingScreenState extends State<CsvMappingScreen> {
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
+        heroTag: null,
         onPressed: _handleApply,
         tooltip: 'Complete Mapping',
         icon: const Icon(Icons.check),
