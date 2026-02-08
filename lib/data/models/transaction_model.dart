@@ -47,6 +47,7 @@ class Transaction {
         datetime: datetime ?? this.datetime,
         loanLendId: loanLendId ?? this.loanLendId,
       );
+
   Transaction duplicate() {
     return Transaction(
       id: DateTime.now().millisecondsSinceEpoch.toString(), // new unique ID

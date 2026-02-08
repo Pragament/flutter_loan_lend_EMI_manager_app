@@ -19,6 +19,15 @@ class TransactionsNotifier extends _$TransactionsNotifier {
     state = [...state, transaction];
   }
 
+  // Batch add multiple transactions at once to avoid multiple rebuilds
+  Future<void> addBatch(List<Transaction> transactions) async {
+    for (final transaction in transactions) {
+      await _box.put(transaction.id, transaction);
+    }
+    // Single state update for all transactions
+    state = [...state, ...transactions];
+  }
+
   Future<void> remove(Transaction transaction) async {
     await _box.delete(transaction.id);
     state = state.where((item) => item.id != transaction.id).toList();
