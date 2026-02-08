@@ -14,16 +14,18 @@ import 'package:emi_manager/logic/locale_provider.dart';
 import 'package:emi_manager/presentation/router/router.dart';
 import 'package:showcaseview/showcaseview.dart';
 
-import 'data/models/transaction_model.dart';
+import 'package:emi_manager/data/models/transaction_model.dart';
 import 'package:emi_manager/presentation/pages/eula_page.dart';
 import 'package:emi_manager/logic/eula_provider.dart';
 
 void main() async {
+
   WidgetsFlutterBinding.ensureInitialized();
 
   await Hive.initFlutter();
   // Hive.deleteBoxFromDisk('preferences');
   // Hive.deleteBoxFromDisk('emis');
+
 
   // Register all adapters
   Hive.registerAdapter(EmiAdapter());
@@ -105,18 +107,20 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   _navigateToNextScreen() async {
+    final navigator = Navigator.of(context);
     await Future.delayed(const Duration(seconds: 3), () {});
     bool showEula = await EulaProvider.needsEulaAcceptance();
+    if (!mounted) return;
     if (showEula && !widget.isFirstRun) {
-      Navigator.pushReplacement(
-        context,
+      navigator.pushReplacement(
         MaterialPageRoute(
           builder: (context) => EulaPage(
             onAccepted: () async {
               final activeEula = await EulaProvider.getActiveEula();
+              if (!mounted) return;
               await EulaProvider.acceptEula(activeEula?['version']);
-              Navigator.pushReplacement(
-                context,
+              if (!mounted) return;
+              navigator.pushReplacement(
                 MaterialPageRoute(
                   builder: (context) =>
                       MainAppContent(isFirstRun: widget.isFirstRun),
@@ -164,13 +168,13 @@ class _SplashScreenState extends State<SplashScreen> {
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8)),
-                        padding:
-                            EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 32, vertical: 12),
                       ),
                       onPressed: () {
                         Navigator.of(context).pop();
                       },
-                      child: Text('Close'),
+                      child: const Text('Close'),
                     ),
                   ],
                 ),
@@ -180,8 +184,8 @@ class _SplashScreenState extends State<SplashScreen> {
         ),
       );
     } else {
-      Navigator.pushReplacement(
-        context,
+      if (!context.mounted) return;
+      navigator.pushReplacement(
         MaterialPageRoute(
           builder: (context) => MainAppContent(isFirstRun: widget.isFirstRun),
         ),

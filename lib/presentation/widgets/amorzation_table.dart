@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:emi_manager/presentation/widgets/formatted_amount.dart';
 
-import '../pages/home/logic/home_state_provider.dart';
+import 'package:emi_manager/presentation/pages/home/logic/home_state_provider.dart';
 
 class AmortizationSummaryTable extends ConsumerStatefulWidget {
   final List<AmortizationEntry> entries; // Full schedule for all loans/lends
@@ -20,7 +20,8 @@ class AmortizationSummaryTable extends ConsumerStatefulWidget {
   });
 
   @override
-  _AmortizationSummaryTableState createState() =>
+  @override
+  ConsumerState<AmortizationSummaryTable> createState() =>
       _AmortizationSummaryTableState();
 }
 
@@ -142,7 +143,8 @@ class _AmortizationSummaryTableState
 
       rows.add(DataRow(
         color: isCurrentMonth
-            ? WidgetStateProperty.all(Colors.amber.withOpacity(0.2))
+            ? WidgetStateProperty.all(
+                Colors.amber.withAlpha((0.2 * 255).toInt()))
             : null,
         cells: [
           DataCell(

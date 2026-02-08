@@ -5,7 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 import 'package:lottie/lottie.dart';
 
-import '../../data/models/transaction_model.dart';
+import 'package:emi_manager/data/models/transaction_model.dart';
 
 class NewTransactionPage extends ConsumerStatefulWidget {
   final String type;
@@ -56,7 +56,7 @@ class _NewTransactionPageState extends ConsumerState<NewTransactionPage> {
       );
 
       ref.read(transactionsNotifierProvider.notifier).add(transaction);
-      print("Transaction saved in Hive: ${widget.emiId}");
+      // Transaction saved in Hive
 
       // Show Lottie animation
       setState(() {
@@ -275,7 +275,7 @@ class _NewTransactionPageState extends ConsumerState<NewTransactionPage> {
               child: GestureDetector(
                 onTap: () {}, // Prevent interaction with the background
                 child: Container(
-                  color: Colors.black.withOpacity(0.3), // Background blur
+                  color: Colors.black.withValues(alpha: 0.3), // Background blur
                   child: Center(
                     child: Lottie.asset(
                       'assets/animations/check_mark.json', // Path to your Lottie file

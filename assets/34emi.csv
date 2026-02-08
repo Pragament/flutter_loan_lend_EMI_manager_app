@@ -1,0 +1,7 @@
+﻿ID,Title,EMI Type,Principal Amount,Interest Rate,Start Date,End Date,Monthly EMI,Total EMI,Paid,Contact Person Name,Contact Person Phone,Contact Person Email,Other Info,Processing Fee,Other Charges,Part Payment,Advance Payment,Insurance Charges,Moratorium,Moratorium Month,Moratorium Type,Tags
+d3945a78-4a28-4071-9f18-01ca1be22268,demo,loan,4400000,11.8,10/31/2025,10/31/2026,ram,8090817647,demo@gmail.com,,null,null,null,null,null,No,null,,61562.56,7633757.44,null,[]
+d3945a78-4a28-4071-9f18-01ca1be122268,demo1,loan,410000,11.8,2025-10-31T00:00:00.000,2026-10-31T00:00:00.000,ram2,8090802647,demo2@gmail.com,,null,null,null,null,null,No,null,,61562.56,7633757.44,null,[]
+d3945a78-4a28-4071-9f18-01c34a1be122268,demo2,loan,48910000,15.8,2025-10-31T10:15:30+05:30,2029-12-31T10:15:30+05:30,ram3,8090807347,demo2@gmail.com,,null,null,null,null,null,No,null,,61562.56,7633757.44,null,[]
+d3945a78-4a28-4071-9f18-01c3122268,demo3,loan,9910000,20.8,31-10-2025,31-10-2036,ram4,8090804647,demo2@gmail.com,,null,null,null,null,null,No,null,,61562.56,7633757.44,null,[]
+d3945a78-4a28-4071-9f18-01c13122268,demo4,loan,9210000,10.8,20251031,20261031,ram5,8090805647,demo2@gmail.com,,null,null,null,null,null,No,null,,61562.56,7633757.44,null,[]
+d3945a78-4a28-4071-9f18-01c131221268,demo5,loan,9210000,10.8,1.76186E+12,1.7934E+12,ram6,8090806647,demo2@gmail.com,,null,null,null,null,null,No,null,,61562.56,7633757.44,null,[]

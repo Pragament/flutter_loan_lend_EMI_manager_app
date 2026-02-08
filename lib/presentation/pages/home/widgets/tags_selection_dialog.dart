@@ -58,11 +58,13 @@ class _TagsSelectionDialogState extends ConsumerState<TagsSelectionDialog> {
                 showDialog(
                   context: context,
                   builder: (context) => AlertDialog(
-                    title: const Text("Enter tag name",
+                    title: const Text('Enter tag name',
                         textAlign: TextAlign.center),
                     shape: const RoundedRectangleBorder(
                         borderRadius: BorderRadius.all(Radius.circular(20.0))),
-                    backgroundColor: Theme.of(context).dialogBackgroundColor,
+                    backgroundColor:
+                        Theme.of(context).dialogTheme.backgroundColor ??
+                            Theme.of(context).colorScheme.surface,
                     titlePadding: const EdgeInsets.only(top: 27),
                     insetPadding: EdgeInsets.zero,
                     contentPadding: const EdgeInsets.only(top: 10),
@@ -108,7 +110,7 @@ class _TagsSelectionDialogState extends ConsumerState<TagsSelectionDialog> {
                                 backgroundColor: Theme.of(context)
                                     .colorScheme
                                     .primary
-                                    .withOpacity(0.1),
+                                    .withValues(alpha: 0.1),
                                 elevation: 0.0,
                                 shadowColor: Colors.transparent,
                               ),
@@ -133,7 +135,7 @@ class _TagsSelectionDialogState extends ConsumerState<TagsSelectionDialog> {
               },
               // Changed the widget to text
               child: const Text(
-                "Create Tag +",
+                'Create Tag +',
                 style: TextStyle(fontSize: 15),
               ),
             ),
@@ -177,7 +179,7 @@ class _TagsSelectionDialogState extends ConsumerState<TagsSelectionDialog> {
                                     Expanded(
                                       child: CheckboxListTile(
                                         title: Text(
-                                          "# ${tag.name}",
+                                          '# ${tag.name}',
                                           style: const TextStyle(fontSize: 13),
                                         ),
                                         value: selectedTags

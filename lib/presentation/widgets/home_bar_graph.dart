@@ -1,7 +1,7 @@
 import 'dart:math';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-import '../../data/models/emi_model.dart';
+import 'package:emi_manager/data/models/emi_model.dart';
 
 class HomeBarGraph extends StatelessWidget {
   final List<Emi> allEmis;

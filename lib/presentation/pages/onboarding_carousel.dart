@@ -17,7 +17,7 @@ class OnboardingScreen extends ConsumerStatefulWidget {
   const OnboardingScreen({super.key});
 
   @override
-  _OnboardingScreenState createState() => _OnboardingScreenState();
+  ConsumerState<OnboardingScreen> createState() => _OnboardingScreenState();
 }
 
 class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
@@ -84,7 +84,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Text(
-              "Select Language",
+              'Select Language',
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
@@ -118,7 +118,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       child: Container(
         decoration: BoxDecoration(
           color: selectedLocale == locale
-              ? backgroundColor.withOpacity(0.3)
+              ? Color.fromARGB(
+                  (0.3 * 255).toInt(),
+                  (backgroundColor.r * 255.0).round() & 0xff,
+                  (backgroundColor.g * 255.0).round() & 0xff,
+                  (backgroundColor.b * 255.0).round() & 0xff)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(30.0),
           border: Border.all(
@@ -128,16 +132,13 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Radio<Locale>(
-              value: locale,
-              groupValue: selectedLocale,
-              onChanged: (Locale? value) {
-                setState(() {
-                  selectedLocale = value; // Update the selected locale
-                });
-                localeNotifier.changeLanguage(locale);
-              },
+            Icon(
+              selectedLocale == locale
+                  ? Icons.radio_button_checked
+                  : Icons.radio_button_unchecked,
+              color: selectedLocale == locale ? backgroundColor : Colors.grey,
             ),
+            const SizedBox(width: 8),
             Text(label, style: const TextStyle(fontSize: 18)),
           ],
         ),
@@ -229,7 +230,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       languageCode: langCode,
       onAccepted: () async {
         final activeEula = await EulaProvider.getActiveEula(langCode);
+        if (!mounted) return;
         await EulaProvider.acceptEula(activeEula?['version']);
+        if (!mounted) return;
         completeOnboarding(context);
       },
       onDeclined: () {
@@ -260,7 +263,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                 const SizedBox(height: 12),
                 Text(
                   localizations.eulaAlertDialog,
-                  style: TextStyle(fontSize: 16),
+                  style: const TextStyle(fontSize: 16),
                   textAlign: TextAlign.center,
                 ),
               ],

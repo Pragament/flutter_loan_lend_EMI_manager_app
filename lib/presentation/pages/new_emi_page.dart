@@ -323,8 +323,7 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
               child: GestureDetector(
                 onTap: () {}, // Prevent interaction with the background
                 child: Container(
-                  // ignore: deprecated_member_use
-                  color: Colors.black.withOpacity(0.3), // Background blur
+                  color: Colors.black.withValues(alpha: 0.3), // Background blur
                   child: Center(
                     child: Lottie.asset(
                       'assets/animations/check_mark.json', // Path to your Lottie file
@@ -707,7 +706,7 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
                             icon: Showcase(
                               key: tagsKey,
                               description:
-                                  "Create New Tags or Select From Previous Tags",
+                                  'Create New Tags or Select From Previous Tags',
                               child: Icon(
                                 Icons.add,
                                 color: Theme.of(context).colorScheme.primary,
@@ -733,7 +732,7 @@ class _NewEmiPageState extends ConsumerState<NewEmiPage> {
                     padding: const EdgeInsets.all(8.0),
                     child: Showcase(
                       key: saveButtonKey,
-                      description: "Tap here to save your loan/lend entry.",
+                      description: 'Tap here to save your loan/lend entry.',
                       child: ElevatedButton(
                         onPressed: () {
                           if (_formKey.currentState?.validate() ?? false) {
